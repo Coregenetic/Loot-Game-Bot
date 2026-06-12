@@ -1,12 +1,26 @@
 const tmi = require('tmi.js');
 
-// Commands werden in Phase 2 implementiert
-// Hier nur das Grundgerüst mit Command-Router
-
 const commands = new Map();
 
 function registerCommand(name, handler) {
     commands.set(name.toLowerCase(), handler);
+}
+
+function loadCommands() {
+    const commandFiles = [
+        './commands/loot',
+        './commands/stash',
+        './commands/level',
+        './commands/leaderboard',
+        './commands/prestige',
+        './commands/kappa'
+    ];
+
+    for (const file of commandFiles) {
+        const cmd = require(file);
+        registerCommand(cmd.command, cmd.handler);
+        console.log(`[CMD] Geladen: ${cmd.command}`);
+    }
 }
 
 function createBot() {
@@ -16,12 +30,12 @@ function createBot() {
             username: process.env.TWITCH_BOT_USERNAME,
             password: process.env.TWITCH_OAUTH_TOKEN
         },
-        channels: [process.env.TWITCH_CHANNEL]
+        channels: process.env.TWITCH_CHANNEL.split(',').map(c => c.trim())
     });
 
     client.on('message', async (channel, userstate, message, self) => {
-        if (self) return;                    // Eigene Nachrichten ignorieren
-        if (!message.startsWith('!')) return; // Kein Command
+        if (self) return;
+        if (!message.startsWith('!')) return;
 
         const parts   = message.trim().split(/\s+/);
         const cmdName = parts[0].toLowerCase();
@@ -46,7 +60,10 @@ function createBot() {
         console.warn(`[BOT] Verbindung getrennt: ${reason}`);
     });
 
-    return { connect: () => client.connect(), client, registerCommand: registerCommand };
+    // Commands laden
+    loadCommands();
+
+    return { connect: () => client.connect(), client };
 }
 
-module.exports = { createBot, registerCommand };
+module.exports = { createBot };

@@ -1,0 +1,61 @@
+{
+  "General": {
+    "CooldownSeconds": 1000,
+    "CooldownMessageDelaySeconds": 500,
+    "DoubleLootChance": 0.03,
+    "KappaDoubleLootBonus": 0.1,
+    "MinExfilSeconds": 1000,
+    "MaxExfilSeconds": 1000,
+    "SurvivalChance": 0.75
+  },
+  "Maps": {
+    "Customs": 10,
+    "Factory": 8,
+    "Ground Zero": 9,
+    "Interchange": 10,
+    "Lighthouse": 7,
+    "Reserve": 8,
+    "Shoreline": 7,
+    "Streets": 9,
+    "Lab": 3,
+    "Woods": 10,
+    "The Labyrinth": 2,
+    "Icebreaker": 1
+  },
+  "ActiveEvents": {
+    "ForcedMap": {
+      "MapName": "The Labyrinth",
+      "ExpiresAt": 1775582441
+    },
+    "DoubleLootOverride": {
+      "Chance": 0,
+      "ExpiresAt": 0
+    },
+    "XPBoost": {
+      "Multiplier": 2,
+      "ExpiresAt": 0
+    }
+  },
+  "Leveling": {
+    "XPMultiplier": 1.5,
+    "XPBase": 350,
+    "Ranks": {
+      "1": "Timmy",
+      "5": "Wanna-be Camper",
+      "10": "BUSCHBEWOHNER",
+      "15": "KISTENKRABBLER",
+      "20": "Lootstaubsauger",
+      "25": "TÜRRAHMEN-TAKTIKER",
+      "30": "EXTRACT-LURKER",
+      "35": "CHAD IN AUSBILDUNG",
+      "40": "ROGUE-KILLER",
+      "45": "BOSSJÄGER",
+      "50": "TARKOV-TYRANN",
+      "55": "LABS-PHANTOM",
+      "60": "TARKOV ELITE",
+      "65": "GEIST VON NORVINSK",
+      "70": "EFT Legende"
+    },
+    "PrestigeXPMalus": 0.1
+  }
+}
