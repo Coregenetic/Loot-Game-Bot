@@ -1,109 +1,109 @@
-const { getDb } = require('./schema');
+const { get, all, run, saveDb, getDb } = require('./schema');
 
 // ─── Spieler laden / anlegen ──────────────────────────────────────────────────
 
 function getPlayer(username) {
-    const db = getDb();
-    return db.prepare(`
-        SELECT * FROM players WHERE username = ? COLLATE NOCASE
-    `).get(username.toLowerCase());
+    return get(
+        `SELECT * FROM players WHERE lower(username) = lower(?)`,
+        [username.toLowerCase()]
+    );
 }
 
-function getOrCreatePlayer(username) {
-    const db = getDb();
+async function getOrCreatePlayer(username) {
     const existing = getPlayer(username);
     if (existing) return existing;
 
-    db.prepare(`
-        INSERT OR IGNORE INTO players (username) VALUES (?)
-    `).run(username.toLowerCase());
+    run(
+        `INSERT OR IGNORE INTO players (username) VALUES (?)`,
+        [username.toLowerCase()]
+    );
 
     return getPlayer(username);
 }
 
 function updatePlayer(username, fields) {
-    const db = getDb();
-    const sets = Object.keys(fields).map(k => `${k} = @${k}`).join(', ');
-    db.prepare(`
-        UPDATE players SET ${sets}, updated_at = unixepoch() WHERE username = ? COLLATE NOCASE
-    `).run({ ...fields, username: username.toLowerCase() });
+    const db = require('./schema');
+    const sets = Object.keys(fields).map(k => `${k} = ?`).join(', ');
+    const vals = [...Object.values(fields), username.toLowerCase()];
+    run(
+        `UPDATE players SET ${sets}, updated_at = strftime('%s','now') WHERE lower(username) = lower(?)`,
+        vals
+    );
 }
 
 // ─── Inventar ─────────────────────────────────────────────────────────────────
 
 function getInventory(playerId) {
-    const db = getDb();
-    return db.prepare(`
-        SELECT item_name, count, value FROM inventory
-        WHERE player_id = ?
-        ORDER BY (count * value) DESC
-    `).all(playerId);
+    return all(
+        `SELECT item_name, count, value FROM inventory
+         WHERE player_id = ?
+         ORDER BY (count * value) DESC`,
+        [playerId]
+    );
 }
 
 function addOrUpdateInventoryItem(playerId, itemName, count, value) {
-    const db = getDb();
-    db.prepare(`
-        INSERT INTO inventory (player_id, item_name, count, value)
-        VALUES (@playerId, @itemName, @count, @value)
-        ON CONFLICT(player_id, item_name) DO UPDATE SET
-            count = count + @count,
-            value = @value
-    `).run({ playerId, itemName, count, value });
+    run(
+        `INSERT INTO inventory (player_id, item_name, count, value)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(player_id, item_name) DO UPDATE SET
+             count = count + ?,
+             value = ?`,
+        [playerId, itemName, count, value, count, value]
+    );
 }
 
 function removeInventoryItem(playerId, itemName, count = 1) {
-    const db = getDb();
-    const item = db.prepare(`
-        SELECT count FROM inventory WHERE player_id = ? AND item_name = ? COLLATE NOCASE
-    `).get(playerId, itemName);
-
+    const item = get(
+        `SELECT count FROM inventory WHERE player_id = ? AND lower(item_name) = lower(?)`,
+        [playerId, itemName]
+    );
     if (!item) return false;
 
     if (item.count <= count) {
-        db.prepare(`DELETE FROM inventory WHERE player_id = ? AND item_name = ? COLLATE NOCASE`)
-          .run(playerId, itemName);
+        run(`DELETE FROM inventory WHERE player_id = ? AND lower(item_name) = lower(?)`,
+            [playerId, itemName]);
     } else {
-        db.prepare(`UPDATE inventory SET count = count - ? WHERE player_id = ? AND item_name = ? COLLATE NOCASE`)
-          .run(count, playerId, itemName);
+        run(`UPDATE inventory SET count = count - ? WHERE player_id = ? AND lower(item_name) = lower(?)`,
+            [count, playerId, itemName]);
     }
     return true;
 }
 
 function clearInventory(playerId) {
-    const db = getDb();
-    db.prepare(`DELETE FROM inventory WHERE player_id = ?`).run(playerId);
+    run(`DELETE FROM inventory WHERE player_id = ?`, [playerId]);
 }
 
 function getStashValue(playerId) {
-    const db = getDb();
-    const result = db.prepare(`
-        SELECT COALESCE(SUM(count * value), 0) AS total FROM inventory WHERE player_id = ?
-    `).get(playerId);
-    return result.total;
+    const result = get(
+        `SELECT COALESCE(SUM(count * value), 0) AS total FROM inventory WHERE player_id = ?`,
+        [playerId]
+    );
+    return result ? result.total : 0;
 }
 
 // ─── Cooldowns ────────────────────────────────────────────────────────────────
 
 function isOnCooldown(playerId, command) {
-    const db = getDb();
-    const row = db.prepare(`
-        SELECT expires_at FROM cooldowns WHERE player_id = ? AND command = ?
-    `).get(playerId, command);
-
+    const row = get(
+        `SELECT expires_at FROM cooldowns WHERE player_id = ? AND command = ?`,
+        [playerId, command]
+    );
     if (!row) return false;
-    if (row.expires_at <= Math.floor(Date.now() / 1000)) {
-        db.prepare(`DELETE FROM cooldowns WHERE player_id = ? AND command = ?`).run(playerId, command);
+    const now = Math.floor(Date.now() / 1000);
+    if (row.expires_at <= now) {
+        run(`DELETE FROM cooldowns WHERE player_id = ? AND command = ?`, [playerId, command]);
         return false;
     }
     return row.expires_at;
 }
 
 function setCooldown(playerId, command, seconds) {
-    const db = getDb();
     const expiresAt = Math.floor(Date.now() / 1000) + seconds;
-    db.prepare(`
-        INSERT OR REPLACE INTO cooldowns (player_id, command, expires_at) VALUES (?, ?, ?)
-    `).run(playerId, command, expiresAt);
+    run(
+        `INSERT OR REPLACE INTO cooldowns (player_id, command, expires_at) VALUES (?, ?, ?)`,
+        [playerId, command, expiresAt]
+    );
 }
 
 function getRemainingCooldown(playerId, command) {
@@ -115,30 +115,22 @@ function getRemainingCooldown(playerId, command) {
 // ─── Leaderboard ──────────────────────────────────────────────────────────────
 
 function getLeaderboard(limit = 5) {
-    const db = getDb();
-    const players = db.prepare(`
-        SELECT p.id, p.username, p.level, p.prestige, p.has_kappa,
-               COALESCE(SUM(i.count * i.value), 0) AS stash_value
-        FROM players p
-        LEFT JOIN inventory i ON i.player_id = p.id
-        GROUP BY p.id
-        ORDER BY p.prestige DESC, p.level DESC, stash_value DESC
-        LIMIT ?
-    `).all(limit);
-    return players;
+    return all(
+        `SELECT p.id, p.username, p.level, p.prestige, p.has_kappa,
+                COALESCE(SUM(i.count * i.value), 0) AS stash_value
+         FROM players p
+         LEFT JOIN inventory i ON i.player_id = p.id
+         GROUP BY p.id
+         ORDER BY p.prestige DESC, p.level DESC, stash_value DESC
+         LIMIT ?`,
+        [limit]
+    );
 }
 
 module.exports = {
-    getPlayer,
-    getOrCreatePlayer,
-    updatePlayer,
-    getInventory,
-    addOrUpdateInventoryItem,
-    removeInventoryItem,
-    clearInventory,
-    getStashValue,
-    isOnCooldown,
-    setCooldown,
-    getRemainingCooldown,
+    getPlayer, getOrCreatePlayer, updatePlayer,
+    getInventory, addOrUpdateInventoryItem, removeInventoryItem,
+    clearInventory, getStashValue,
+    isOnCooldown, setCooldown, getRemainingCooldown,
     getLeaderboard
 };

@@ -10,12 +10,10 @@ async function main() {
     console.log('  ╚══════════════════════════════════════╝');
     console.log('');
 
-    // 1. Datenbank initialisieren
     console.log('[BOOT] Initialisiere Datenbank...');
-    initSchema();
+    await initSchema();
     console.log('[BOOT] Datenbank bereit.');
 
-    // 2. Bot starten
     console.log('[BOOT] Verbinde Bot mit Twitch...');
     const bot = createBot();
     await bot.connect();

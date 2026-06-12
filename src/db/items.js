@@ -1,19 +1,16 @@
-const { getDb } = require('./schema');
+const { all, run } = require('./schema');
 
 function getAllItems() {
-    const db = getDb();
-    return db.prepare(`SELECT * FROM items`).all();
+    return all(`SELECT * FROM items`);
 }
 
 function getKappaItems() {
-    const db = getDb();
-    return db.prepare(`SELECT * FROM items WHERE is_kappa = 1`).all();
+    return all(`SELECT * FROM items WHERE is_kappa = 1`);
 }
 
 function getItemsForMap(mapName) {
-    const db = getDb();
-    const all = getAllItems();
-    return all.filter(item => {
+    const items = getAllItems();
+    return items.filter(item => {
         if (!item.map) return false;
         try {
             const maps = JSON.parse(item.map);
@@ -26,29 +23,26 @@ function getItemsForMap(mapName) {
 }
 
 function upsertItem(name, data) {
-    const db = getDb();
-    db.prepare(`
-        INSERT INTO items (name, text, value, map, icon, is_kappa)
-        VALUES (@name, @text, @value, @map, @icon, @isKappa)
-        ON CONFLICT(name) DO UPDATE SET
-            text     = @text,
-            value    = @value,
-            map      = @map,
-            icon     = @icon,
-            is_kappa = @isKappa
-    `).run({
-        name,
-        text:    data.text    || '',
-        value:   data.value   || 0,
-        map:     Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
-        icon:    data.icon    || '',
-        isKappa: data.isKappa ? 1 : 0
-    });
+    run(
+        `INSERT INTO items (name, text, value, map, icon, is_kappa)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(name) DO UPDATE SET
+             text = ?, value = ?, map = ?, icon = ?, is_kappa = ?`,
+        [
+            name,
+            data.text || '', data.value || 0,
+            Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
+            data.icon || '', data.isKappa ? 1 : 0,
+            // UPDATE values
+            data.text || '', data.value || 0,
+            Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
+            data.icon || '', data.isKappa ? 1 : 0
+        ]
+    );
 }
 
 function deleteItem(name) {
-    const db = getDb();
-    db.prepare(`DELETE FROM items WHERE name = ?`).run(name);
+    run(`DELETE FROM items WHERE name = ?`, [name]);
 }
 
 module.exports = { getAllItems, getKappaItems, getItemsForMap, upsertItem, deleteItem };

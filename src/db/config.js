@@ -1,17 +1,13 @@
-const { getDb } = require('./schema');
-
-// ─── Config lesen ─────────────────────────────────────────────────────────────
+const { get, all, run } = require('./schema');
 
 function getConfig(section) {
-    const db = getDb();
-    const row = db.prepare(`SELECT value FROM config WHERE key = ?`).get(section);
+    const row = get(`SELECT value FROM config WHERE key = ?`, [section]);
     if (!row) return null;
     try { return JSON.parse(row.value); } catch { return row.value; }
 }
 
 function getAllConfig() {
-    const db = getDb();
-    const rows = db.prepare(`SELECT key, value FROM config`).all();
+    const rows = all(`SELECT key, value FROM config`);
     const result = {};
     for (const row of rows) {
         try { result[row.key] = JSON.parse(row.value); }
@@ -20,13 +16,11 @@ function getAllConfig() {
     return result;
 }
 
-// ─── Config schreiben ─────────────────────────────────────────────────────────
-
 function setConfig(section, value) {
-    const db = getDb();
-    db.prepare(`
-        INSERT OR REPLACE INTO config (key, value, updated_at) VALUES (?, ?, unixepoch())
-    `).run(section, JSON.stringify(value));
+    run(
+        `INSERT OR REPLACE INTO config (key, value, updated_at) VALUES (?, ?, strftime('%s','now'))`,
+        [section, JSON.stringify(value)]
+    );
 }
 
 function updateConfigField(section, field, value) {
@@ -35,20 +29,12 @@ function updateConfigField(section, field, value) {
     setConfig(section, current);
 }
 
-// ─── Shortcuts für häufig genutzte Config-Werte ───────────────────────────────
-
-function getGeneral()       { return getConfig('General')       || {}; }
-function getMaps()          { return getConfig('Maps')           || {}; }
-function getLeveling()      { return getConfig('Leveling')       || {}; }
-function getActiveEvents()  { return getConfig('ActiveEvents')   || {}; }
+function getGeneral()      { return getConfig('General')      || {}; }
+function getMaps()         { return getConfig('Maps')         || {}; }
+function getLeveling()     { return getConfig('Leveling')     || {}; }
+function getActiveEvents() { return getConfig('ActiveEvents') || {}; }
 
 module.exports = {
-    getConfig,
-    getAllConfig,
-    setConfig,
-    updateConfigField,
-    getGeneral,
-    getMaps,
-    getLeveling,
-    getActiveEvents
+    getConfig, getAllConfig, setConfig, updateConfigField,
+    getGeneral, getMaps, getLeveling, getActiveEvents
 };
