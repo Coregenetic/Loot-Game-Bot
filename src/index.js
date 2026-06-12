@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const { initSchema } = require('./db/schema');
 const { createBot }  = require('./bot');
+const { startServer } = require('./api/server');
 
 async function main() {
     console.log('');
@@ -10,10 +11,16 @@ async function main() {
     console.log('  ╚══════════════════════════════════════╝');
     console.log('');
 
+    // 1. Datenbank
     console.log('[BOOT] Initialisiere Datenbank...');
     await initSchema();
     console.log('[BOOT] Datenbank bereit.');
 
+    // 2. API Server
+    console.log('[BOOT] Starte API Server...');
+    startServer();
+
+    // 3. Bot
     console.log('[BOOT] Verbinde Bot mit Twitch...');
     const bot = createBot();
     await bot.connect();
