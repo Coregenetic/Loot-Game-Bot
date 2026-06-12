@@ -100,8 +100,8 @@ function createServer() {
 function startServer() {
     const app  = createServer();
     const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-        console.log(`[API] Server läuft auf http://localhost:${port}`);
+    app.listen(port, '0.0.0.0', () => {
+        console.log(`[API] Server läuft auf http://0.0.0.0:${port}`);
     });
     return app;
 }
