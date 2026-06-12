@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Loot-Game — Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #050505;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 50% 40%, rgba(16,185,129,0.06) 0%, transparent 60%),
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 32px 32px, 32px 32px;
+            pointer-events: none;
+        }
+        .card {
+            position: relative;
+            background: #0a0a0b;
+            border: 1px solid #1f1f23;
+            border-top: 2px solid #10b981;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: #10b981; font-size: 18px;
+        }
+        .logo-text { font-size: 20px; font-weight: 700; color: #f4f4f5; letter-spacing: 0.1em; text-transform: uppercase; }
+        .logo-sub  { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #52525b; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 2px; }
+        .form-group { margin-bottom: 16px; }
+        label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px; color: #52525b;
+            letter-spacing: 0.2em; text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            background: #050505;
+            border: 1px solid #27272a;
+            color: #e4e4e7;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: rgba(16,185,129,0.5); }
+        .btn {
+            width: 100%;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.4);
+            color: #10b981;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: rgba(16,185,129,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .error {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #ef4444;
+            margin-top: 12px;
+            min-height: 16px;
+            text-align: center;
+        }
+        .corner { position: absolute; width: 12px; height: 12px; border-color: #27272a; border-style: solid; }
+        .tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+        .br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="corner tl"></div>
+        <div class="corner br"></div>
+
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+            <div>
+                <div class="logo-text">Loot-Game Hub</div>
+                <div class="logo-sub">by Coregenetic</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Benutzername</label>
+            <input id="username" type="text" placeholder="z.B. coregenetic" autocomplete="username">
+        </div>
+        <div class="form-group">
+            <label>Passwort</label>
+            <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button class="btn" id="loginBtn" onclick="doLogin()">
+            >> SYSTEM INITIALISIEREN <<
+        </button>
+
+        <div class="error" id="errorMsg"></div>
+    </div>
+
+    <script>
+        // Bereits eingeloggt?
+        const token = localStorage.getItem('lootgame_session_token');
+        if (token) {
+            fetch('/api/auth/me', { headers: { 'x-session-token': token } })
+                .then(r => r.ok ? window.location.href = '/' : null)
+                .catch(() => {});
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin();
+        });
+
+        async function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl  = document.getElementById('errorMsg');
+            const btn      = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                errorEl.textContent = 'Bitte alle Felder ausfüllen.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '// VERBINDE...';
+            errorEl.textContent = '';
+
+            try {
+                const res  = await fetch('/api/auth/login', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('lootgame_session_token', data.token);
+                    localStorage.setItem('lootgame_username', data.username);
+                    window.location.href = '/';
+                } else {
+                    errorEl.textContent = data.error || 'Login fehlgeschlagen.';
+                    btn.disabled = false;
+                    btn.textContent = '>> SYSTEM INITIALISIEREN <<';
+                }
+            } catch {
+                errorEl.textContent = 'Server nicht erreichbar.';
+                btn.disabled = false;
+                btn.textContent = '>> SYSTEM INITIALISIEREN <<';
+            }
+        }
+    </script>
+</body>
+</html>

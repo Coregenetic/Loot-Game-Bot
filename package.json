@@ -4,10 +4,11 @@
   "description": "Tarkov Loot Chat Game Bot by Coregenetic",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "migrate": "node src/db/migrate.js",
-    "import": "node src/db/import_profiles.js"
+    "start":       "node src/index.js",
+    "dev":         "nodemon src/index.js",
+    "migrate":     "node src/db/migrate.js",
+    "import":      "node src/db/import_profiles.js",
+    "setup-users": "node scripts/setup-users.js"
   },
   "dependencies": {
     "sql.js": "^1.10.3",

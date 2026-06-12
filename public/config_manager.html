@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarkov Loot-Game Config Manager by Coregenetic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="api-client.js"></script>
+    
+    <!-- Modern Tactical Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: rgba(9, 9, 11, 0.85);
+            --border-color: #27272a;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: #e4e4e7; 
+            font-family: 'Inter', sans-serif; 
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.15) 0%, transparent 40%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 24px 24px, 24px 24px;
+            background-attachment: fixed;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+
+        /* Eingabefelder (Pfeile STRIKT verstecken) */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none !important;
+            margin: 0 !important;
+            display: none !important;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield !important;
+            appearance: textfield !important;
+        }
+
+        .tarkov-input { 
+            background-color: #09090b; border: 1px solid #3f3f46; color: #f4f4f5; 
+            padding: 0.6rem 0.8rem; border-radius: 0.25rem; transition: all 0.2s ease; 
+            width: 100%; box-sizing: border-box;
+        }
+        .tarkov-input:focus { 
+            outline: none; border-color: #10b981; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(16, 185, 129, 0.2); 
+            background-color: #000000;
+        }
+
+        select.tarkov-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1em; padding-right: 2.25rem;
+        }
+
+        /* --- SLIDERS --- */
+        .tarkov-slider {
+            -webkit-appearance: none; width: 100%; height: 10px; border-radius: 5px; outline: none;
+            border: 1px solid #3f3f46; background: #27272a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+            margin-top: 10px; margin-bottom: 10px;
+        }
+        .tarkov-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
+            background: #10b981; cursor: pointer; border: 3px solid #09090b;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8), inset 0 0 4px rgba(255,255,255,0.4);
+            transition: transform 0.1s;
+        }
+        .tarkov-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        .tarkov-slider.slider-amber::-webkit-slider-thumb {
+            background: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), inset 0 0 4px rgba(255,255,255,0.4);
+        }
+        
+        /* --- BUTTONS --- */
+        .tarkov-btn { 
+            padding: 0.6rem 1rem; border-radius: 0.25rem; font-weight: 600; cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+            text-transform: uppercase; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em;
+        }
+        .tarkov-btn-primary { background: #059669; color: white; border: 1px solid #10b981; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
+        .tarkov-btn-primary:hover { background: #047857; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); border-color: #34d399; }
+        .tarkov-btn-secondary { background-color: #18181b; color: #a1a1aa; border: 1px solid #3f3f46; }
+        .tarkov-btn-secondary:hover { background-color: #27272a; color: #f4f4f5; border-color: #52525b; }
+        .tarkov-btn-danger { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
+        .tarkov-btn-danger:hover { background-color: #991b1b; color: white; border-color: #ef4444; }
+        
+        .tarkov-btn-small { 
+            padding: 0; font-size: 1.2rem; border-radius: 0.25rem; background: #18181b; border: 1px solid #3f3f46; 
+            color: #a1a1aa; cursor: pointer; transition: all 0.1s; display: flex; align-items: center; justify-content: center;
+        }
+        .tarkov-btn-small:hover { background: #27272a; }
+
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); border-radius: 0.4rem; }
+
+        #toast { 
+            position: fixed; bottom: 20px; right: 20px; background: #064e3b; color: #34d399; 
+            padding: 1rem 1.5rem; border-radius: 0.25rem; box-shadow: 0 0 15px rgba(4, 120, 87, 0.3); 
+            transform: translateY(150%); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            z-index: 50; border: 1px solid #10b981; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        #toast.show { transform: translateY(0); }
+        #toast.error { background: #450a0a; color: #f87171; border-color: #ef4444; box-shadow: 0 0 15px rgba(220, 38, 38, 0.3); }
+
+        .tab-btn { 
+            border-bottom: 2px solid transparent; padding-bottom: 0.6rem; color: #52525b; 
+            transition: all 0.2s; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em;
+        }
+        .tab-btn:hover { color: #a1a1aa; }
+        .tab-btn.active { border-color: #10b981; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+
+        #dropOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px);
+            z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #10b981; transition: all 0.2s;
+        }
+        #dropOverlay.hidden { display: none; opacity: 0; pointer-events: none; }
+        
+        .progress-bar { height: 4px; background: #27272a; border-radius: 2px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: #10b981; box-shadow: 0 0 10px #10b981; transition: width 0.3s ease; }
+        
+        .preset-badge {
+            cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono'; font-weight: bold; text-transform: uppercase;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; transition: all 0.2s;
+        }
+        .preset-badge:hover { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
+        
+        .setting-block { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.4rem; }
+        
+        /* Tooltip */
+        .tooltip-icon {
+            display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px;
+            border-radius: 50%; background: #3f3f46; color: #09090b; font-size: 9px; font-weight: bold; font-family: 'Inter';
+            cursor: help; margin-left: 6px; vertical-align: middle; transition: background 0.2s;
+        }
+        .tooltip-icon:hover { background: #10b981; }
+        .tooltip-text {
+            visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+            background: #09090b; border: 1px solid #10b981; color: #d4d4d8; padding: 8px 12px; border-radius: 4px;
+            font-size: 10px; width: max-content; max-width: 250px; z-index: 50; transition: opacity 0.2s; font-family: 'Inter'; text-transform: none; line-height: 1.4; font-weight: normal; box-shadow: 0 5px 15px rgba(0,0,0,0.8); pointer-events: none; text-align: center;
+        }
+        .group:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        /* Custom Dotted Border for Buffer */
+        .buffer-input {
+            border: 1px dashed #52525b;
+            background: #000;
+        }
+        .buffer-input:focus {
+            border: 1px dashed #10b981;
+        }
+
+        /* Rank Highlight Animation */
+        @keyframes highlightRank {
+            0% { background-color: rgba(6, 182, 212, 0.4); }
+            100% { background-color: transparent; }
+        }
+        .rank-flash { animation: highlightRank 1s ease-out; }
+    </style>
+</head>
+<body class="p-3 md:p-5 h-screen flex flex-col overflow-hidden">
+
+    <!-- Drag & Drop Dropzone -->
+    <div id="dropOverlay" class="hidden">
+        <svg class="w-24 h-24 text-emerald-500 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        <h2 class="font-tactical text-3xl md:text-4xl font-bold text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">UPLOAD CONFIG</h2>
+        <p class="text-zinc-400 mt-3 font-mono text-sm uppercase tracking-wider">Warte auf game_config.json Datei...</p>
+    </div>
+
+    <!-- GLOBALE KOPFZEILE MIT LIVE-EVENT-STATUS -->
+    <header class="glass-panel shrink-0 z-20 flex flex-wrap items-center justify-between px-5 py-3 mb-5 border-b-2 border-emerald-500/50 shadow-md">
+        
+        <div class="flex items-center gap-4 md:gap-8">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded bg-[#09090b] border border-emerald-500/40 flex items-center justify-center relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
+                    <svg class="w-5 h-5 text-emerald-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-tactical text-xl md:text-2xl text-emerald-400 font-bold tracking-wider leading-none">CONFIG MANAGER</h1>
+                    <p class="text-emerald-500/80 text-[10px] font-mono uppercase mt-1 flex items-center gap-1.5 font-semibold tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399] animate-ping"></span>
+                        BY COREGENETIC
+                    </p>
+                </div>
+            </div>
+
+            <!-- EVENT STATUS BANNER IM HEADER -->
+            <div id="globalEventBanner" class="hidden flex-col xl:flex-row gap-2 border-l-2 border-zinc-800 pl-4 md:pl-6 my-1">
+                <div id="headerMapEvent" class="hidden items-center gap-2 bg-blue-900/20 border border-blue-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(59,130,246,0.1)]">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
+                    <span class="font-tactical text-blue-400 font-bold tracking-widest text-[11px] md:text-xs">FORCED MAP: <span id="headerMapName" class="text-zinc-100"></span></span>
+                    <span id="headerMapTime" class="font-mono text-blue-300 font-bold text-[10px] md:text-[11px] ml-1 bg-blue-950/50 px-1.5 rounded"></span>
+                </div>
+                <div id="headerLootEvent" class="hidden items-center gap-2 bg-amber-900/20 border border-amber-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(245,158,11,0.1)]">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                    <span class="font-tactical text-amber-400 font-bold tracking-widest text-[11px] md:text-xs">DOUBLE LOOT: <span id="headerLootChance" class="text-zinc-100"></span></span>
+                    <span id="headerLootTime" class="font-mono text-amber-300 font-bold text-[10px] md:text-[11px] ml-1 bg-amber-950/50 px-1.5 rounded"></span>
+                </div>
+                <!-- XP BOOST HEADER -->
+                <div id="headerXPEvent" class="hidden items-center gap-2 bg-purple-900/20 border border-purple-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-purple-400 shrink-0"></span>
+                    <span class="font-tactical text-purple-400 font-bold tracking-widest text-[11px] md:text-xs">XP BOOST: <span id="headerXPMultiplier" class="text-zinc-100"></span>x</span>
+                    <span id="headerXPTime" class="font-mono text-purple-300 font-bold text-[10px] md:text-[11px] ml-1 bg-purple-950/50 px-1.5 rounded"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2 lg:gap-3 items-center mt-3 md:mt-0 shrink-0">
+            <input type="file" id="fileUpload" accept=".json" class="hidden" onchange="importJsonEvent(event)">
+            <button onclick="document.getElementById('fileUpload').click()" class="tarkov-btn tarkov-btn-secondary text-xs px-3 py-1.5">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Lade JSON
+            </button>
+            <div class="w-px h-5 bg-zinc-700 mx-1"></div>
+            <button onclick="copyJson()" class="text-zinc-400 hover:text-emerald-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                Kopieren
+            </button>
+            <button onclick="downloadJson()" class="tarkov-btn tarkov-btn-primary text-xs px-4 py-1.5 ml-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Datei Speichern
+            </button>
+        </div>
+    </header>
+
+    <!-- HAUPT-LAYOUT -->
+    <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-hidden">
+        
+        <!-- LINKE SEITE: Einstellungen -->
+        <div class="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-2 pb-6 custom-scroll">
+            
+            <!-- LIVE EVENTS -->
+            <div class="glass-panel p-5 relative border-t-2 border-t-blue-500">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-tactical font-semibold text-lg text-blue-400 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        LIVE EVENTS (BOOSTS)
+                    </h2>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Forced Map -->
+                    <div class="setting-block p-3" id="boxMapEvent">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-300">Map Erzwingen</label>
+                            <span id="countdownMapEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            <select id="eventMapSelect" class="tarkov-input text-sm py-1.5 font-semibold text-zinc-200 flex-grow"></select>
+                            
+                            <!-- Dauer -->
+                            <div class="flex items-stretch w-24 shrink-0 relative group">
+                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventMapMinutes', -5, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
+                                <input type="number" id="eventMapMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="15">
+                                <button onclick="quickAdjustInput('eventMapMinutes', 5, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                            </div>
+                            
+                            <!-- Transfer-Puffer -->
+                            <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
+                                <span class="absolute -top-3 right-0 text-[8px] text-blue-400/70 uppercase font-mono">Puffer</span>
+                                <input type="number" id="eventMapBuffer" class="tarkov-input buffer-input text-center font-bold text-blue-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer. Das Event startet virtuell erst nach Ablauf dieses Puffers, läuft für den Bot aber die volle Zeit.</div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="startMapEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5">Aktivieren</button>
+                            <button onclick="clearMapEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Double Loot -->
+                    <div class="setting-block p-3" id="boxLootEvent">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-amber-400">Doppel-Loot Event</label>
+                            <span id="countdownLootEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            
+                            <div class="flex items-stretch flex-grow relative">
+                                <span class="absolute -top-3 left-1 text-[8px] text-zinc-500 uppercase font-mono">Chance</span>
+                                <button onclick="quickAdjustInput('eventLootChance', -0.1, 0, 1, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-amber-400 transition-colors">-</button>
+                                <input type="number" step="0.01" id="eventLootChance" class="tarkov-input text-center font-bold text-amber-400 rounded-none border-x-0 py-0 h-full focus:z-10 px-1 text-sm" placeholder="1.0" value="1.0">
+                                <button onclick="quickAdjustInput('eventLootChance', 0.1, 0, 1, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-amber-400 transition-colors">+</button>
+                            </div>
+                            
+                            <!-- Dauer -->
+                            <div class="flex items-stretch w-24 shrink-0 relative group">
+                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventLootMinutes', -5, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
+                                <input type="number" id="eventLootMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="30">
+                                <button onclick="quickAdjustInput('eventLootMinutes', 5, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                            </div>
+
+                            <!-- Transfer-Puffer -->
+                            <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
+                                <span class="absolute -top-3 right-0 text-[8px] text-amber-400/70 uppercase font-mono">Puffer</span>
+                                <input type="number" id="eventLootBuffer" class="tarkov-input buffer-input text-center font-bold text-amber-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer. Das Event startet virtuell erst nach Ablauf dieses Puffers, läuft für den Bot aber die volle Zeit.</div>
+                            </div>
+                            
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="startLootEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5" style="background:#b45309; border-color:#d97706; box-shadow: 0 0 10px rgba(217,119,6,0.2);">Aktivieren</button>
+                            <button onclick="clearLootEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- XP BOOST EVENT -->
+                    <div class="setting-block p-3" id="boxXPEvent">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-purple-400">XP Boost Event</label>
+                            <span id="countdownXPEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            
+                            <div class="flex items-stretch flex-grow relative group">
+                                <span class="absolute -top-3 left-1 text-[8px] text-zinc-500 uppercase font-mono cursor-help">Multiplikator<span class="tooltip-icon">?</span><div class="tooltip-text">Um welchen Faktor sich die verdienten XP vervielfachen (z.B. 2.0 = doppelte XP).</div></span>
+                                <button onclick="quickAdjustInput('eventXPMultiplier', -0.5, 1.0, 10.0, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-purple-400 transition-colors">-</button>
+                                <input type="number" step="0.5" id="eventXPMultiplier" class="tarkov-input text-center font-bold text-purple-400 rounded-none border-x-0 py-0 h-full focus:z-10 px-1 text-sm" placeholder="2.0" value="2.0">
+                                <button onclick="quickAdjustInput('eventXPMultiplier', 0.5, 1.0, 10.0, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-purple-400 transition-colors">+</button>
+                            </div>
+                            
+                            <!-- Dauer -->
+                            <div class="flex items-stretch w-24 shrink-0 relative group">
+                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventXPMinutes', -15, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
+                                <input type="number" id="eventXPMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="60">
+                                <button onclick="quickAdjustInput('eventXPMinutes', 15, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                            </div>
+
+                            <!-- Transfer-Puffer -->
+                            <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
+                                <span class="absolute -top-3 right-0 text-[8px] text-purple-400/70 uppercase font-mono">Puffer</span>
+                                <input type="number" id="eventXPBuffer" class="tarkov-input buffer-input text-center font-bold text-purple-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer.</div>
+                            </div>
+                            
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="startXPEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5" style="background:#7e22ce; border-color:#a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.2);">Aktivieren</button>
+                            <button onclick="clearXPEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="clearAllEvents()" class="w-full mt-2 tarkov-btn tarkov-btn-secondary border-red-900/50 hover:border-red-500 hover:bg-red-900/20 hover:text-red-400 py-2.5 text-[11px] font-bold tracking-widest transition-all">
+                        ⚠️ ALLE EVENTS ABBRECHEN
+                    </button>
+                </div>
+            </div>
+
+            <!-- General Settings Panel -->
+            <div class="glass-panel p-5 relative border-t-2 border-t-emerald-500">
+                <div class="flex justify-between items-end mb-5">
+                    <div>
+                        <h2 class="font-tactical font-semibold text-xl text-zinc-100 uppercase tracking-widest">Global Parameters</h2>
+                        <p class="text-[10px] font-mono text-zinc-500 uppercase mt-1">Haupt-Ökonomie & Spielgefühl</p>
+                    </div>
+                    <div class="flex gap-1.5 bg-[#050505] p-1 rounded border border-zinc-800">
+                        <span class="preset-badge" onclick="loadPreset('default')" title="Standard Settings">STD</span>
+                        <span class="preset-badge" onclick="loadPreset('hardcore')" title="Hardcore Mode">HARD</span>
+                        <span class="preset-badge" onclick="loadPreset('fast')" title="Schnelle Runden">FAST</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="setting-block space-y-5">
+                        <!-- Doppel Loot Slider -->
+                        <div>
+                            <div class="flex justify-between items-end mb-2 relative group">
+                                <label class="block font-mono text-[11px] font-bold uppercase text-amber-400 cursor-help">
+                                    Doppel-Loot Chance
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip-text">Wahrscheinlichkeit, dass ein Spieler bei einem Run ZWEI Items statt einem findet.</div>
+                                </label>
+                                <span id="lbl_DoubleLootChance" class="font-mono text-base text-amber-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-amber-500/20">3%</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="quickAdjustInput('slider_DoubleLootChance', -1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-500/50">-</button>
+                                <input type="range" id="slider_DoubleLootChance" min="0" max="100" value="3" class="tarkov-slider slider-amber m-0" oninput="updateSliders()">
+                                <button onclick="quickAdjustInput('slider_DoubleLootChance', 1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-500/50">+</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Survival Slider -->
+                        <div class="pt-3 border-t border-zinc-800">
+                            <div class="flex justify-between items-end mb-2 relative group">
+                                <label class="block font-mono text-[11px] font-bold uppercase text-emerald-400 cursor-help">
+                                    Extraktions-Erfolgsrate (Survival)
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip-text">Die Chance, dass der Spieler den gefundenen Loot erfolgreich ins Stash bringt und nicht stirbt.</div>
+                                </label>
+                                <span id="lbl_SurvivalChance" class="font-mono text-base text-emerald-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-emerald-500/20">85%</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="quickAdjustInput('slider_SurvivalChance', -1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50">-</button>
+                                <input type="range" id="slider_SurvivalChance" min="0" max="100" value="85" class="tarkov-slider m-0" oninput="updateSliders()">
+                                <button onclick="quickAdjustInput('slider_SurvivalChance', 1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Number Inputs with +/- -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="setting-block">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-400 mb-3 border-b border-zinc-800 pb-1">Wartezeiten</label>
+                            <div class="space-y-3">
+                                <div class="relative group">
+                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">!loot Cooldown (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Zeit in Sekunden, die ein User warten muss, bevor er den Befehl erneut nutzen kann.</div></span>
+                                    <div class="flex items-stretch h-8">
+                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/50 transition-colors">-</button>
+                                        <input type="number" id="gen_CooldownSeconds" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Chat-Warnung Delay<span class="tooltip-icon">?</span><div class="tooltip-text">Wenn jemand spamt, schickt der Bot nur alle X Sekunden eine Warnung, um den Chat sauber zu halten.</div></span>
+                                    <div class="flex items-stretch h-8">
+                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/50 transition-colors">-</button>
+                                        <input type="number" id="gen_CooldownMessageDelaySeconds" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-block">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-400 mb-3 border-b border-zinc-800 pb-1">Dauer des Runs</label>
+                            <div class="space-y-3">
+                                <div class="relative group">
+                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Exfil Min (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Mindestdauer in Sekunden zwischen der Start-Nachricht und dem Überleben/Tod.</div></span>
+                                    <div class="flex items-stretch h-8">
+                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">-</button>
+                                        <input type="number" id="gen_MinExfilSeconds" class="tarkov-input text-center font-bold text-blue-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Exfil Max (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Maximale Dauer des Runs. Der Bot wählt einen zufälligen Wert zwischen Min und Max.</div></span>
+                                    <div class="flex items-stretch h-8">
+                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">-</button>
+                                        <input type="number" id="gen_MaxExfilSeconds" class="tarkov-input text-center font-bold text-blue-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leveling & Progression Panel -->
+            <div class="glass-panel p-5 relative border-t-2 border-t-cyan-500 mt-5">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h2 class="font-tactical font-semibold text-xl text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            XP Kurve Basis-Settings
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Info Box zur XP-Berechnung -->
+                <div class="bg-cyan-900/10 border border-cyan-500/30 rounded mb-5 shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] transition-all duration-300">
+                    <div onclick="toggleXPInfoBox()" class="flex items-center justify-between p-3 cursor-pointer hover:bg-cyan-500/10 transition-colors group">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-[#050505] p-1.5 rounded border border-cyan-500/30 shrink-0 group-hover:border-cyan-400/50 transition-colors">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="text-cyan-400 uppercase tracking-widest text-xs font-bold m-0">Wie werden XP berechnet?</h3>
+                        </div>
+                        <svg id="infoXPChevron" class="w-4 h-4 text-cyan-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    
+                    <div id="infoXPContent" class="hidden px-4 pb-4 pt-1 border-t border-cyan-500/20">
+                        <div class="text-[11px] font-mono text-zinc-300 leading-relaxed space-y-3 mt-2">
+                            
+                            <div class="bg-[#050505] border border-zinc-800 p-2.5 rounded">
+                                <strong class="text-emerald-400 block mb-1 uppercase tracking-wide">1. XP erhalten (Loot-Wert)</strong>
+                                <p>Die Spieler erhalten pro <strong>1.000 Rubel</strong> Wert ihres überlebten Loots genau <strong>1 XP</strong> (Minimum ist 10 XP).</p>
+                                <p class="text-zinc-500 mt-1">Beispiel: Ein 500K Item bringt 500 XP. Ein 2.5 Mio Item bringt 2.500 XP.</p>
+                            </div>
+
+                            <div class="bg-[#050505] border border-zinc-800 p-2.5 rounded">
+                                <strong class="text-amber-400 block mb-1 uppercase tracking-wide">2. XP pro Level (Anzeige)</strong>
+                                <p>Nach jedem Aufstieg beginnt die XP-Anzeige im Chat wieder bei 0. Die Tabelle rechts im "Ränge & XP" Tab zeigt dir genau, wie viele XP du von 0 an sammeln musst, um auf das jeweils nächste Level zu kommen.</p>
+                                <p class="text-zinc-500 mt-1 text-[9px]">(Im Hintergrund werden die XP als Gesamtsumme gespeichert, damit niemals Fortschritt verloren geht).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XP Inputs -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="setting-block">
+                        <div class="relative group">
+                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Base XP<span class="tooltip-icon">?</span><div class="tooltip-text">Die Grundmenge an XP für Berechnungen. Standard: 500.</div></span>
+                            <div class="flex items-stretch h-8">
+                                <button onclick="quickAdjustInput('lvl_XPBase', -50, 10)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
+                                <input type="number" id="lvl_XPBase" class="tarkov-input text-center font-bold text-cyan-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_XPBase', 50, 10)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-block">
+                        <div class="relative group">
+                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Kurve (Mult)<span class="tooltip-icon">?</span><div class="tooltip-text">Steilheit der XP-Kurve. 1.0 = linear, 1.5 = steil. Standard: 1.5.</div></span>
+                            <div class="flex items-stretch h-8">
+                                <button onclick="quickAdjustInput('lvl_XPMultiplier', -0.1, 1.0, 5.0, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
+                                <input type="number" step="0.1" id="lvl_XPMultiplier" class="tarkov-input text-center font-bold text-cyan-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_XPMultiplier', 0.1, 1.0, 5.0, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEU: PRESTIGE XP MALUS EINSTELLUNG -->
+                    <div class="setting-block">
+                        <div class="relative group">
+                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Prestige Malus<span class="tooltip-icon">?</span><div class="tooltip-text">Wie viel XP-Abzug (%) gibt es PRO Prestige-Level? 0.10 = 10%.</div></span>
+                            <div class="flex items-stretch h-8">
+                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', -0.05, 0.0, 0.9, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-purple-900/30 hover:text-purple-400 hover:border-purple-500/50 transition-colors">-</button>
+                                <input type="number" step="0.05" id="lvl_PrestigeXPMalus" class="tarkov-input text-center font-bold text-purple-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', 0.05, 0.0, 0.9, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-purple-900/30 hover:text-purple-400 hover:border-purple-500/50 transition-colors">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center border-t border-zinc-800 pt-3">
+                    <span class="text-[10px] font-mono text-zinc-500 uppercase">Passe die Rang-Namen und XP Vorschau rechts an.</span>
+                    <button onclick="switchTab('ranks')" class="tarkov-btn-secondary px-3 py-1.5 text-[10px] rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 transition-colors uppercase font-mono shadow-sm">
+                        Ränge & Vorschau ➔
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- RECHTE SEITE: Ansicht & Code -->
+        <div class="lg:col-span-7 glass-panel flex flex-col h-full overflow-hidden">
+            
+            <!-- Tabs -->
+            <div class="flex justify-between items-end px-5 pt-4 border-b border-zinc-800 bg-[#09090b]/50">
+                <div class="flex gap-4 md:gap-6 w-full overflow-x-auto custom-scroll">
+                    <button class="tab-btn active text-sm md:text-base shrink-0" onclick="switchTab('visual')">Maps</button>
+                    <button class="tab-btn text-sm md:text-base shrink-0" onclick="switchTab('ranks')">Ränge & XP</button>
+                    <button class="tab-btn text-sm md:text-base shrink-0" onclick="switchTab('code')">Raw JSON Code</button>
+                </div>
+            </div>
+
+            <!-- Tab Content: Visuell (Maps) -->
+            <div id="tabVisual" class="p-5 overflow-y-auto flex-grow h-0 relative custom-scroll">
+                
+                <!-- Add Map Bar -->
+                <div class="flex flex-col sm:flex-row gap-3 mb-5 bg-[#050505] p-3 rounded border border-zinc-800 items-end">
+                    <div class="flex-grow w-full">
+                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Map Name</label>
+                        <input type="text" id="newMapName" placeholder="Neue Map Name..." class="tarkov-input py-2 text-sm font-semibold w-full">
+                    </div>
+                    
+                    <div class="w-full sm:w-32 shrink-0">
+                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Weight</label>
+                        <div class="flex items-stretch h-[38px] w-full">
+                            <button onclick="quickAdjustInput('newMapWeight', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">-</button>
+                            <input type="number" id="newMapWeight" placeholder="Gewicht" value="5" class="tarkov-input py-0 px-1 text-sm text-center font-mono text-emerald-400 font-bold rounded-none border-x-0 focus:z-10 w-full">
+                            <button onclick="quickAdjustInput('newMapWeight', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="addNewMap()" class="tarkov-btn tarkov-btn-primary shrink-0 w-full sm:w-auto h-[38px]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Hinzufügen
+                    </button>
+                </div>
+
+                <!-- Database Grid for Maps -->
+                <div id="mapList" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    <!-- Map Items generated via JS -->
+                </div>
+            </div>
+
+            <!-- Tab Content: Ranks & XP Preview -->
+            <div id="tabRanks" class="p-5 overflow-y-auto flex-grow hidden h-0 relative custom-scroll">
+                
+                <!-- Add Rank Bar -->
+                <div class="flex flex-col sm:flex-row gap-3 mb-6 bg-[#050505] p-3 rounded border border-zinc-800 items-end">
+                    <div class="w-full sm:w-28 shrink-0">
+                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Ab Level</label>
+                        <div class="flex items-stretch h-[38px] w-full">
+                            <button onclick="quickAdjustInput('newRankLevel', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
+                            <input type="number" id="newRankLevel" placeholder="1" value="1" class="tarkov-input py-0 px-1 text-sm text-center font-mono text-cyan-400 font-bold rounded-none border-x-0 focus:z-10 w-full">
+                            <button onclick="quickAdjustInput('newRankLevel', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow w-full">
+                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Rang-Name</label>
+                        <input type="text" id="newRankName" placeholder="Z.B. Meister-Looter" class="tarkov-input py-2 text-sm font-semibold w-full">
+                    </div>
+                    
+                    <button onclick="addRank()" class="tarkov-btn tarkov-btn-primary shrink-0 w-full sm:w-auto h-[38px]" style="background:#0891b2; border-color:#06b6d4; box-shadow: 0 0 10px rgba(6,182,212,0.2);">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Speichern
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    
+                    <!-- Linke Spalte: Aktuelle Ränge -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="bg-[#050505] p-1.5 rounded border border-cyan-500/30 shrink-0">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                            </div>
+                            <h3 class="text-cyan-400 font-tactical text-lg uppercase tracking-widest">Definierte Ränge</h3>
+                        </div>
+                        <div id="rankList" class="space-y-2">
+                            <!-- JS Generated Ranks -->
+                        </div>
+                    </div>
+
+                    <!-- Rechte Spalte: XP Kurve / Tabelle -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="bg-[#050505] p-1.5 rounded border border-emerald-500/30 shrink-0">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                            </div>
+                            <h3 class="text-emerald-400 font-tactical text-lg uppercase tracking-widest">Live XP Vorschau</h3>
+                        </div>
+                        
+                        <div class="bg-[#050505] border border-zinc-800 rounded flex flex-col max-h-[50vh] xl:max-h-[60vh] overflow-hidden shadow-lg relative">
+                            <!-- Header der Tabelle -->
+                            <div class="flex justify-between bg-zinc-900/80 p-3 font-mono text-[10px] text-zinc-400 uppercase border-b border-zinc-700 tracking-wider shadow-md relative z-10 shrink-0">
+                                <span class="w-14 shrink-0">Level</span>
+                                <span class="flex-grow text-center text-cyan-300">Aktueller Rang</span>
+                                <span class="w-32 shrink-0 text-right">XP für Level-Up</span>
+                            </div>
+                            
+                            <!-- Scrollbarer Inhalt -->
+                            <div id="xpPreviewTable" class="overflow-y-auto custom-scroll p-2 space-y-1 relative z-0 flex-grow">
+                                <!-- JS Generated Table Rows -->
+                            </div>
+                        </div>
+                        <p class="text-[9px] text-zinc-500 font-mono text-center mt-2 uppercase tracking-wide">Zeigt die Kurve bis zum höchsten Rang + 5 Level an.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Tab Content: Code -->
+            <div id="tabCode" class="p-0 overflow-hidden flex-grow hidden h-0 flex-col bg-[#050505]">
+                <div class="bg-amber-500/10 border-b border-amber-500/20 p-2 text-[10px] font-mono font-semibold text-amber-500 text-center flex justify-center items-center gap-1.5 uppercase tracking-wide shadow-inner">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Achtung: Direkte Manipulation des Quellcodes. JSON Syntax-Fehler führen zum Systemausfall.
+                </div>
+                <textarea id="jsonOutput" class="w-full h-full bg-transparent text-emerald-400 font-mono text-[13px] p-5 outline-none resize-none leading-relaxed custom-scroll" oninput="debounceCodeRender()"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">SYS: OK</div>
+
+    <script>
+        // --- Standard Konfiguration ---
+        const defaultConfig = {
+            "General": {
+                "CooldownSeconds": 10,
+                "CooldownMessageDelaySeconds": 30,
+                "DoubleLootChance": 0.03,
+                "MinExfilSeconds": 5,
+                "MaxExfilSeconds": 10,
+                "SurvivalChance": 0.85
+            },
+            "Maps": {
+                "Customs": 10.0,
+                "Factory": 8.0,
+                "Ground Zero": 9.0,
+                "Interchange": 10.0,
+                "Lighthouse": 7.0,
+                "Reserve": 8.0,
+                "Shoreline": 7.0,
+                "Streets": 9.0,
+                "Lab": 3.0,
+                "Woods": 10.0,
+                "The Labyrinth": 2.0
+            },
+            "ActiveEvents": {
+                "ForcedMap": { "MapName": "", "ExpiresAt": 0 },
+                "DoubleLootOverride": { "Chance": 0, "ExpiresAt": 0 },
+                "XPBoost": { "Multiplier": 2.0, "ExpiresAt": 0 }
+            },
+            "Leveling": {
+                "XPMultiplier": 1.5,
+                "XPBase": 500,
+                "PrestigeXPMalus": 0.10, // NEUER WERT: 10% Malus pro Prestige
+                "Ranks": {
+                    "1": "Scav-Anfänger",
+                    "5": "Ratten-König",
+                    "10": "PMC Rekrut",
+                    "20": "Erfahrener Raider",
+                    "35": "Chad",
+                    "50": "EFT Legende",
+                    "70": "Meister-Looter"
+                }
+            }
+        };
+
+        const presets = {
+            default: { CooldownSeconds: 10, CooldownMessageDelaySeconds: 30, DoubleLootChance: 0.03, MinExfilSeconds: 5, MaxExfilSeconds: 10, SurvivalChance: 0.85 },
+            hardcore: { CooldownSeconds: 30, CooldownMessageDelaySeconds: 45, DoubleLootChance: 0.01, MinExfilSeconds: 10, MaxExfilSeconds: 20, SurvivalChance: 0.50 },
+            fast: { CooldownSeconds: 0, CooldownMessageDelaySeconds: 10, DoubleLootChance: 0.10, MinExfilSeconds: 2, MaxExfilSeconds: 5, SurvivalChance: 0.95 }
+        };
+
+        let currentConfig = {};
+        let codeTimeout;
+        let countdownInterval;
+
+        window.onload = async () => {
+            // API verfügbar? → von Bot laden
+            if (LootGameAPI.isConfigured()) {
+                try {
+                    const apiConfig = await LootGameAPI.config.getAll();
+                    if (apiConfig && Object.keys(apiConfig).length) {
+                        currentConfig = apiConfig;
+                        document.getElementById('jsonOutput').value = JSON.stringify(currentConfig, null, 2);
+                        showToast('Config vom Bot geladen ✓');
+                    } else {
+                        loadFromLocalStorage();
+                    }
+                } catch {
+                    showToast('Bot nicht erreichbar — lade lokale Config', true);
+                    loadFromLocalStorage();
+                }
+            } else {
+                loadFromLocalStorage();
+            }
+            ensureEventsExist();
+            syncUiFromJson();
+            startCountdownTimer();
+        };
+
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('tarkov_loot_game_config');
+            if (savedData) {
+                try {
+                    currentConfig = JSON.parse(savedData);
+                    document.getElementById('jsonOutput').value = JSON.stringify(currentConfig, null, 2);
+                } catch(e) { initDefault(); }
+            } else {
+                initDefault();
+            }
+        }
+
+        function initDefault() {
+            currentConfig = JSON.parse(JSON.stringify(defaultConfig));
+            document.getElementById('jsonOutput').value = JSON.stringify(currentConfig, null, 2);
+            saveToLocalStorage();
+        }
+
+        function ensureEventsExist() {
+            if(!currentConfig.ActiveEvents) currentConfig.ActiveEvents = JSON.parse(JSON.stringify(defaultConfig.ActiveEvents));
+            if(!currentConfig.ActiveEvents.ForcedMap) currentConfig.ActiveEvents.ForcedMap = { MapName: "", ExpiresAt: 0 };
+            if(!currentConfig.ActiveEvents.DoubleLootOverride) currentConfig.ActiveEvents.DoubleLootOverride = { Chance: 0, ExpiresAt: 0 };
+            if(!currentConfig.ActiveEvents.XPBoost) currentConfig.ActiveEvents.XPBoost = { Multiplier: 2.0, ExpiresAt: 0 };
+            
+            if(!currentConfig.Leveling) currentConfig.Leveling = JSON.parse(JSON.stringify(defaultConfig.Leveling));
+            if(currentConfig.Leveling.PrestigeXPMalus === undefined) currentConfig.Leveling.PrestigeXPMalus = 0.10; // NEU
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('tarkov_loot_game_config', JSON.stringify(currentConfig, null, 2));
+            const output = document.getElementById('jsonOutput');
+            if(output) output.value = JSON.stringify(currentConfig, null, 2);
+
+            // API sync — wenn Bot verbunden
+            if (LootGameAPI.isConfigured()) {
+                Promise.all(
+                    Object.entries(currentConfig).map(([section, value]) =>
+                        LootGameAPI.config.setSection(section, value).catch(() => null)
+                    )
+                ).then(() => {
+                    showToast('Config gespeichert & an Bot gesendet ✓');
+                }).catch(() => {
+                    showToast('Lokal gespeichert — Bot nicht erreichbar', true);
+                });
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            if(!toast) return;
+            toast.innerHTML = isError ? `<span class="text-red-400 mr-2">[ERR]</span> ${message}` : `<span class="text-emerald-400 mr-2">[SYS]</span> ${message}`;
+            if (isError) toast.classList.add('error');
+            else toast.classList.remove('error');
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            const visual = document.getElementById('tabVisual');
+            const ranks = document.getElementById('tabRanks');
+            const code = document.getElementById('tabCode');
+            
+            if(visual) { visual.classList.add('hidden'); visual.classList.remove('flex'); }
+            if(ranks) { ranks.classList.add('hidden'); ranks.classList.remove('flex'); }
+            if(code) { code.classList.add('hidden'); code.classList.remove('flex'); }
+
+            if (tab === 'visual') {
+                document.querySelectorAll('.tab-btn')[0]?.classList.add('active');
+                if(visual) visual.classList.remove('hidden');
+            } else if (tab === 'ranks') {
+                document.querySelectorAll('.tab-btn')[1]?.classList.add('active');
+                if(ranks) ranks.classList.remove('hidden');
+                // Beim Wechsel auf den Tab immer die UI und Vorschau refreshen
+                renderRankList();
+                renderXpPreview();
+            } else {
+                document.querySelectorAll('.tab-btn')[2]?.classList.add('active');
+                if(code) {
+                    code.classList.remove('hidden');
+                    code.classList.add('flex');
+                }
+            }
+        }
+
+        function toggleXPInfoBox() {
+            const content = document.getElementById('infoXPContent');
+            const chevron = document.getElementById('infoXPChevron');
+            if(content && chevron) {
+                if(content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    chevron.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    chevron.classList.remove('rotate-180');
+                }
+            }
+        }
+
+        function quickAdjustInput(elementId, delta, min = -Infinity, max = Infinity, isFloat = false) {
+            const el = document.getElementById(elementId);
+            if(!el) return;
+            
+            let current = isFloat ? parseFloat(el.value) : parseInt(el.value);
+            if (isNaN(current)) current = 0;
+            
+            let newVal = current + delta;
+            if(newVal < min) newVal = min;
+            if(newVal > max) newVal = max;
+            
+            if(isFloat) newVal = Math.round(newVal * 100) / 100;
+            
+            el.value = newVal;
+            
+            if(elementId.startsWith('gen_')) updateGeneralSettings();
+            if(elementId.startsWith('lvl_')) updateLevelingSettings();
+            if(elementId.startsWith('slider_')) updateSliders();
+        }
+
+        const dropOverlay = document.getElementById('dropOverlay');
+        if(dropOverlay) {
+            document.body.addEventListener('dragover', (e) => { e.preventDefault(); dropOverlay.classList.remove('hidden'); });
+            document.body.addEventListener('dragleave', (e) => { e.preventDefault(); dropOverlay.classList.add('hidden'); });
+            document.body.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropOverlay.classList.add('hidden');
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if(file.name.endsWith('.json')) { importFile(file); } 
+                    else { showToast("ERROR: Bitte nur .json Dateien", true); }
+                }
+            });
+        }
+
+        function importFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    currentConfig = JSON.parse(e.target.result); 
+                    ensureEventsExist();
+                    saveToLocalStorage();
+                    syncUiFromJson();
+                    showToast("CONFIG ERFOLGREICH GELADEN");
+                } catch (error) { showToast("LADEN FEHLGESCHLAGEN: JSON FEHLER", true); }
+            };
+            reader.readAsText(file);
+        }
+
+        function importJsonEvent(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            importFile(file);
+            event.target.value = '';
+        }
+
+        function downloadJson() {
+            try {
+                const prettyJson = JSON.stringify(currentConfig, null, 2);
+                const blob = new Blob([prettyJson], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "game_config.json";
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
+                showToast("DOWNLOAD GESTARTET");
+            } catch(e) { showToast("DOWNLOAD FEHLGESCHLAGEN", true); }
+        }
+
+        function copyJson() {
+            try {
+                const output = document.getElementById('jsonOutput');
+                if(output) {
+                    output.select();
+                    document.execCommand('copy');
+                    showToast("CODE IN ZWISCHENABLAGE KOPIERT");
+                }
+            } catch(e) { showToast("KOPIEREN FEHLGESCHLAGEN", true); }
+        }
+
+        function loadPreset(presetName) {
+            if(presets[presetName]) {
+                currentConfig.General = JSON.parse(JSON.stringify(presets[presetName]));
+                saveToLocalStorage();
+                syncUiFromJson();
+                showToast(`PROFIL GELADEN: ${presetName.toUpperCase()}`);
+            }
+        }
+
+        function updateSliderFill(slider, colorHex) {
+            if(!slider) return;
+            const min = Number(slider.min) || 0;
+            const max = Number(slider.max) || 100;
+            const val = Number(slider.value) || 0;
+            const percentage = ((val - min) / (max - min)) * 100;
+            slider.style.background = `linear-gradient(to right, ${colorHex} 0%, ${colorHex} ${percentage}%, #27272a ${percentage}%, #27272a 100%)`;
+        }
+
+        function syncUiFromJson() {
+            try {
+                const gen = currentConfig.General || {};
+                const lvl = currentConfig.Leveling || {};
+                
+                const uiElements = {
+                    cooldown: document.getElementById('gen_CooldownSeconds'),
+                    delay: document.getElementById('gen_CooldownMessageDelaySeconds'),
+                    minEx: document.getElementById('gen_MinExfilSeconds'),
+                    maxEx: document.getElementById('gen_MaxExfilSeconds'),
+                    xpBase: document.getElementById('lvl_XPBase'),
+                    xpMult: document.getElementById('lvl_XPMultiplier'),
+                    xpMalus: document.getElementById('lvl_PrestigeXPMalus') // NEU
+                };
+
+                if(uiElements.cooldown) uiElements.cooldown.value = gen.CooldownSeconds ?? 10;
+                if(uiElements.delay) uiElements.delay.value = gen.CooldownMessageDelaySeconds ?? 30;
+                if(uiElements.minEx) uiElements.minEx.value = gen.MinExfilSeconds ?? 5;
+                if(uiElements.maxEx) uiElements.maxEx.value = gen.MaxExfilSeconds ?? 10;
+
+                // Sync Leveling
+                if(uiElements.xpBase) uiElements.xpBase.value = lvl.XPBase ?? 500;
+                if(uiElements.xpMult) uiElements.xpMult.value = lvl.XPMultiplier ?? 1.5;
+                if(uiElements.xpMalus) uiElements.xpMalus.value = lvl.PrestigeXPMalus ?? 0.10; // NEU
+                
+                const dblChance = Math.round((gen.DoubleLootChance ?? 0.03) * 100);
+                const srvChance = Math.round((gen.SurvivalChance ?? 0.85) * 100);
+                
+                const sliderDbl = document.getElementById('slider_DoubleLootChance');
+                const sliderSrv = document.getElementById('slider_SurvivalChance');
+                
+                if (sliderDbl) {
+                    sliderDbl.value = dblChance;
+                    const lblDbl = document.getElementById('lbl_DoubleLootChance');
+                    if(lblDbl) lblDbl.textContent = dblChance + "%";
+                    updateSliderFill(sliderDbl, '#fbbf24'); 
+                }
+                
+                if (sliderSrv) {
+                    sliderSrv.value = srvChance;
+                    const lblSrv = document.getElementById('lbl_SurvivalChance');
+                    if(lblSrv) lblSrv.textContent = srvChance + "%";
+                    updateSliderFill(sliderSrv, '#10b981'); 
+                }
+
+                renderMapList();
+                renderRankList();
+                renderXpPreview();
+                populateEventMapSelect();
+                updateEventUI();
+            } catch(e) {
+                console.error("UI Sync Error", e);
+            }
+        }
+
+        function updateSliders() {
+            const sliderDbl = document.getElementById('slider_DoubleLootChance');
+            const sliderSrv = document.getElementById('slider_SurvivalChance');
+            
+            if(sliderDbl) {
+                const lblDbl = document.getElementById('lbl_DoubleLootChance');
+                if(lblDbl) lblDbl.textContent = sliderDbl.value + "%";
+                updateSliderFill(sliderDbl, '#fbbf24');
+            }
+            if(sliderSrv) {
+                const lblSrv = document.getElementById('lbl_SurvivalChance');
+                if(lblSrv) lblSrv.textContent = sliderSrv.value + "%";
+                updateSliderFill(sliderSrv, '#10b981');
+            }
+            updateGeneralSettings();
+        }
+
+        function updateGeneralSettings() {
+            if(!currentConfig.General) currentConfig.General = {};
+            
+            let minEx = parseInt(document.getElementById('gen_MinExfilSeconds')?.value) || 0;
+            let maxEx = parseInt(document.getElementById('gen_MaxExfilSeconds')?.value) || 0;
+            
+            if (minEx > maxEx) {
+                maxEx = minEx;
+                const maxEl = document.getElementById('gen_MaxExfilSeconds');
+                if(maxEl) maxEl.value = maxEx;
+            }
+            
+            currentConfig.General.CooldownSeconds = parseInt(document.getElementById('gen_CooldownSeconds')?.value) || 0;
+            currentConfig.General.CooldownMessageDelaySeconds = parseInt(document.getElementById('gen_CooldownMessageDelaySeconds')?.value) || 0;
+            currentConfig.General.MinExfilSeconds = minEx;
+            currentConfig.General.MaxExfilSeconds = maxEx;
+            
+            const sDbl = document.getElementById('slider_DoubleLootChance');
+            const sSrv = document.getElementById('slider_SurvivalChance');
+            
+            if(sDbl) currentConfig.General.DoubleLootChance = parseFloat(sDbl.value) / 100;
+            if(sSrv) currentConfig.General.SurvivalChance = parseFloat(sSrv.value) / 100;
+
+            saveToLocalStorage();
+        }
+
+        function updateLevelingSettings() {
+            ensureEventsExist();
+            
+            let xpBase = parseInt(document.getElementById('lvl_XPBase')?.value) || 500;
+            let xpMult = parseFloat(document.getElementById('lvl_XPMultiplier')?.value) || 1.5;
+            let xpMalus = parseFloat(document.getElementById('lvl_PrestigeXPMalus')?.value) || 0.10; // NEU
+
+            currentConfig.Leveling.XPBase = xpBase;
+            currentConfig.Leveling.XPMultiplier = xpMult;
+            currentConfig.Leveling.PrestigeXPMalus = xpMalus; // NEU
+
+            saveToLocalStorage();
+            
+            // Sofortige Vorschau nach Änderung
+            renderXpPreview();
+        }
+
+        // ==========================================
+        // RÄNGE & XP LOGIK
+        // ==========================================
+        
+        // Berechnet die XP für ein gegebenes Level nach der Formel
+        function calculateXpForLevel(level, baseXP, multiplier) {
+            if (level <= 1) return 0;
+            return Math.floor(baseXP * Math.pow(level - 1, multiplier) + (level - 1) * baseXP);
+        }
+
+        function renderRankList() {
+            const container = document.getElementById('rankList');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const ranks = currentConfig.Leveling?.Ranks || {};
+            const rankKeys = Object.keys(ranks).map(Number).sort((a,b) => a - b);
+
+            if (rankKeys.length === 0) {
+                 container.innerHTML = `<div class="text-center font-mono font-bold text-zinc-500 py-6 uppercase text-xs tracking-widest">Keine Ränge definiert.</div>`;
+                 return;
+            }
+
+            rankKeys.forEach(level => {
+                const name = ranks[level];
+                
+                const div = document.createElement('div');
+                div.className = "bg-[#09090b] border border-zinc-800 rounded p-2 flex justify-between items-center group hover:border-cyan-500/30 transition-colors shadow-sm gap-2";
+                
+                // Inline Edit Funktion
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 w-full">
+                        <div class="bg-cyan-900/20 border border-cyan-500/30 px-2 py-1 rounded shrink-0">
+                            <span class="font-mono text-xs font-bold text-cyan-400">Lvl ${level}</span>
+                        </div>
+                        <div class="relative w-full flex items-center">
+                            <input type="text" value="${name}" title="Klicken zum Bearbeiten"
+                                   onchange="updateRankName('${level}', this.value)"
+                                   class="font-tactical text-[15px] font-bold tracking-wider text-zinc-200 bg-transparent border border-transparent hover:border-zinc-700 focus:border-cyan-500 focus:bg-[#050505] rounded px-2 py-1 w-full outline-none transition-all focus:pl-7 z-10 peer">
+                            <svg class="w-3.5 h-3.5 text-zinc-600 absolute left-2 opacity-0 peer-focus:opacity-100 transition-opacity z-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </div>
+                    </div>
+                    <button onclick="deleteRank('${level}')" class="text-zinc-600 hover:text-red-400 transition-colors p-2 shrink-0" title="Rang Löschen">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Neue Funktion zum Updaten des Namens
+        function updateRankName(level, newName) {
+            const trimmed = newName.trim();
+            if(!trimmed) {
+                showToast("Rang-Name darf nicht leer sein!", true);
+                renderRankList(); // Verwirft die Änderung bei leerem Feld
+                return;
+            }
+            if(!currentConfig.Leveling) currentConfig.Leveling = {};
+            if(!currentConfig.Leveling.Ranks) currentConfig.Leveling.Ranks = {};
+            
+            currentConfig.Leveling.Ranks[level.toString()] = trimmed;
+            
+            saveToLocalStorage();
+            renderXpPreview(); // Tabelle sofort anpassen
+            showToast(`RANG AKTUALISIERT: Lvl ${level} -> ${trimmed}`);
+        }
+
+        function addRank() {
+            const lvlEl = document.getElementById('newRankLevel');
+            const nameEl = document.getElementById('newRankName');
+            
+            if(!lvlEl || !nameEl) return;
+
+            const level = parseInt(lvlEl.value);
+            const name = nameEl.value.trim();
+
+            if(!level || level < 1) { showToast("Gültiges Level eingeben", true); return; }
+            if(!name) { showToast("Rang-Name fehlt", true); return; }
+
+            if(!currentConfig.Leveling) currentConfig.Leveling = {};
+            if(!currentConfig.Leveling.Ranks) currentConfig.Leveling.Ranks = {};
+            
+            currentConfig.Leveling.Ranks[level.toString()] = name;
+            
+            lvlEl.value = level + 5; // Erhöht automatisch für schnelle Eingabe
+            nameEl.value = '';
+            
+            saveToLocalStorage();
+            renderRankList();
+            renderXpPreview();
+            showToast(`RANG HINZUGEFÜGT: ${name} (Lvl ${level})`);
+            
+            // Zum neuen Rang in der Vorschau scrollen
+            setTimeout(() => {
+                const targetRow = document.getElementById(`xp-row-${level}`);
+                if(targetRow) {
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetRow.classList.add('rank-flash');
+                    setTimeout(() => targetRow.classList.remove('rank-flash'), 1000);
+                }
+            }, 100);
+        }
+
+        function deleteRank(levelStr) {
+            if(confirm(`Möchtest du den Rang ab Level ${levelStr} wirklich löschen?`)) {
+                delete currentConfig.Leveling.Ranks[levelStr];
+                saveToLocalStorage();
+                renderRankList();
+                renderXpPreview();
+                showToast(`RANG LEVEL ${levelStr} GELÖSCHT`);
+            }
+        }
+
+        function renderXpPreview() {
+            const container = document.getElementById('xpPreviewTable');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let baseXP = currentConfig.Leveling?.XPBase || 500;
+            let mult = currentConfig.Leveling?.XPMultiplier || 1.5;
+            const ranks = currentConfig.Leveling?.Ranks || {};
+            
+            const rankKeys = Object.keys(ranks).map(Number);
+            const maxRankLvl = rankKeys.length > 0 ? Math.max(...rankKeys) : 50;
+            const maxLvlToShow = Math.max(50, maxRankLvl + 5);
+
+            let html = '';
+            let currentRankName = "Unbekannt";
+
+            // Finde den ersten Rang
+            if(rankKeys.length > 0) {
+                 const firstLevel = Math.min(...rankKeys);
+                 if(1 >= firstLevel) currentRankName = ranks[firstLevel.toString()];
+                 else if (ranks["1"]) currentRankName = ranks["1"];
+                 else currentRankName = "Scav"; 
+            }
+
+            for(let i = 1; i <= maxLvlToShow; i++) {
+                if(ranks[i.toString()]) currentRankName = ranks[i.toString()];
+                
+                // Berechne die absolute XP-Zahl für das aktuelle und das nächste Level
+                const totalXpCurrent = calculateXpForLevel(i, baseXP, mult);
+                const totalXpNext = calculateXpForLevel(i + 1, baseXP, mult);
+                
+                // Errechnete Differenz ist das, was man für das Level-Up sammeln muss
+                const xpNeededForUp = totalXpNext - totalXpCurrent;
+                
+                const isRankUp = ranks[i.toString()] !== undefined;
+                
+                // Schicke Formatierung (z.B. 1.500)
+                const xpFormatted = xpNeededForUp.toLocaleString('de-DE');
+
+                let rowClass = "text-zinc-400 hover:bg-[#09090b]";
+                let levelClass = "text-zinc-500";
+                
+                if (isRankUp) {
+                    rowClass = "bg-cyan-900/20 text-cyan-300 font-bold border-l-2 border-l-cyan-400";
+                    levelClass = "text-cyan-400";
+                }
+
+                html += `
+                <div id="xp-row-${i}" class="flex justify-between items-center p-2.5 border-b border-zinc-800/50 transition-colors ${rowClass}">
+                    <span class="w-14 shrink-0 font-mono text-xs ${levelClass}">Lvl ${i}</span>
+                    <span class="flex-grow text-center font-tactical tracking-widest text-sm ${isRankUp ? 'text-white drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]' : 'opacity-75'}">${currentRankName}</span>
+                    <span class="w-32 shrink-0 text-right font-mono text-xs">${xpFormatted} XP</span>
+                </div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // ==========================================
+        // MAP & EVENT LOGIK (Bleibt gleich)
+        // ==========================================
+
+        function populateEventMapSelect() {
+            const select = document.getElementById('eventMapSelect');
+            if(!select) return;
+            select.innerHTML = '';
+            if(currentConfig.Maps) {
+                Object.keys(currentConfig.Maps).sort().forEach(map => {
+                    const opt = document.createElement('option');
+                    opt.value = map; opt.textContent = map;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function startMapEvent() {
+            const sel = document.getElementById('eventMapSelect');
+            const minEl = document.getElementById('eventMapMinutes');
+            const bufferEl = document.getElementById('eventMapBuffer');
+            
+            if(!sel || !minEl) return;
+            
+            const mapName = sel.value;
+            const durationMins = parseInt(minEl.value) || 15;
+            const bufferMins = parseInt(bufferEl?.value) || 0;
+
+            const expires = Math.floor(Date.now() / 1000) + ((durationMins + bufferMins) * 60);
+            
+            ensureEventsExist();
+            currentConfig.ActiveEvents.ForcedMap = { MapName: mapName, ExpiresAt: expires };
+            saveToLocalStorage();
+            updateEventUI();
+            showToast(`MAP EVENT GESTARTET: ${mapName} (+${bufferMins}m Puffer)`);
+        }
+
+        function clearMapEvent() {
+            ensureEventsExist();
+            currentConfig.ActiveEvents.ForcedMap.ExpiresAt = 0;
+            saveToLocalStorage();
+            updateEventUI();
+        }
+
+        function startLootEvent() {
+            const chanceEl = document.getElementById('eventLootChance');
+            const minEl = document.getElementById('eventLootMinutes');
+            const bufferEl = document.getElementById('eventLootBuffer');
+            
+            if(!chanceEl || !minEl) return;
+
+            const chance = parseFloat(chanceEl.value) || 1.0;
+            const durationMins = parseInt(minEl.value) || 30;
+            const bufferMins = parseInt(bufferEl?.value) || 0;
+
+            const expires = Math.floor(Date.now() / 1000) + ((durationMins + bufferMins) * 60);
+
+            ensureEventsExist();
+            currentConfig.ActiveEvents.DoubleLootOverride = { Chance: chance, ExpiresAt: expires };
+            saveToLocalStorage();
+            updateEventUI();
+            showToast(`LOOT EVENT GESTARTET (+${bufferMins}m Puffer)`);
+        }
+
+        function clearLootEvent() {
+            ensureEventsExist();
+            currentConfig.ActiveEvents.DoubleLootOverride.ExpiresAt = 0;
+            saveToLocalStorage();
+            updateEventUI();
+        }
+
+        function startXPEvent() {
+            const multEl = document.getElementById('eventXPMultiplier');
+            const minEl = document.getElementById('eventXPMinutes');
+            const bufferEl = document.getElementById('eventXPBuffer');
+            
+            if(!multEl || !minEl) return;
+
+            const multiplier = parseFloat(multEl.value) || 2.0;
+            const durationMins = parseInt(minEl.value) || 60;
+            const bufferMins = parseInt(bufferEl?.value) || 0;
+
+            const expires = Math.floor(Date.now() / 1000) + ((durationMins + bufferMins) * 60);
+
+            ensureEventsExist();
+            currentConfig.ActiveEvents.XPBoost = { Multiplier: multiplier, ExpiresAt: expires };
+            saveToLocalStorage();
+            updateEventUI();
+            showToast(`XP EVENT GESTARTET (+${bufferMins}m Puffer)`);
+        }
+
+        function clearXPEvent() {
+            ensureEventsExist();
+            currentConfig.ActiveEvents.XPBoost.ExpiresAt = 0;
+            saveToLocalStorage();
+            updateEventUI();
+        }
+        
+        function clearAllEvents() {
+            ensureEventsExist();
+            currentConfig.ActiveEvents.ForcedMap.ExpiresAt = 0;
+            currentConfig.ActiveEvents.DoubleLootOverride.ExpiresAt = 0;
+            currentConfig.ActiveEvents.XPBoost.ExpiresAt = 0;
+            saveToLocalStorage();
+            updateEventUI();
+            showToast("ALLE EVENTS ABGEBROCHEN", false);
+        }
+
+        function startCountdownTimer() {
+            if(countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateEventUI, 1000);
+        }
+
+        function updateEventUI() {
+            if(!currentConfig.ActiveEvents) return;
+            const now = Math.floor(Date.now() / 1000);
+
+            let mapActive = false;
+            let lootActive = false;
+            let xpActive = false;
+
+            // MAP EVENT UPDATE
+            const mapEvent = currentConfig.ActiveEvents.ForcedMap;
+            const mapBox = document.getElementById('boxMapEvent');
+            const mapText = document.getElementById('countdownMapEvent');
+            const headerMapEvent = document.getElementById('headerMapEvent');
+            const headerMapName = document.getElementById('headerMapName');
+            const headerMapTime = document.getElementById('headerMapTime');
+            
+            if(mapEvent && mapEvent.ExpiresAt > now) {
+                mapActive = true;
+                const remaining = mapEvent.ExpiresAt - now;
+                if(mapText) {
+                    mapText.textContent = formatTime(remaining);
+                    mapText.classList.replace('text-zinc-500', 'text-emerald-400');
+                    mapText.classList.add('animate-pulse');
+                }
+                if(mapBox) mapBox.classList.add('border-emerald-500');
+                
+                if(headerMapEvent) {
+                    headerMapEvent.classList.remove('hidden');
+                    headerMapEvent.classList.add('flex');
+                    if(headerMapName) headerMapName.textContent = mapEvent.MapName;
+                    if(headerMapTime) headerMapTime.textContent = formatTime(remaining);
+                }
+            } else {
+                if(mapText) {
+                    mapText.textContent = "INAKTIV";
+                    mapText.classList.replace('text-emerald-400', 'text-zinc-500');
+                    mapText.classList.remove('animate-pulse');
+                }
+                if(mapBox) mapBox.classList.remove('border-emerald-500');
+                
+                if(headerMapEvent) {
+                    headerMapEvent.classList.add('hidden');
+                    headerMapEvent.classList.remove('flex');
+                }
+            }
+
+            // LOOT EVENT UPDATE
+            const lootEvent = currentConfig.ActiveEvents.DoubleLootOverride;
+            const lootBox = document.getElementById('boxLootEvent');
+            const lootText = document.getElementById('countdownLootEvent');
+            const headerLootEvent = document.getElementById('headerLootEvent');
+            const headerLootChance = document.getElementById('headerLootChance');
+            const headerLootTime = document.getElementById('headerLootTime');
+            
+            if(lootEvent && lootEvent.ExpiresAt > now) {
+                lootActive = true;
+                const remaining = lootEvent.ExpiresAt - now;
+                if(lootText) {
+                    lootText.textContent = formatTime(remaining);
+                    lootText.classList.replace('text-zinc-500', 'text-amber-400');
+                    lootText.classList.add('animate-pulse');
+                }
+                if(lootBox) lootBox.style.borderColor = "rgba(245, 158, 11, 0.6)";
+                
+                if(headerLootEvent) {
+                    headerLootEvent.classList.remove('hidden');
+                    headerLootEvent.classList.add('flex');
+                    if(headerLootChance) headerLootChance.textContent = Math.round(lootEvent.Chance * 100) + "%";
+                    if(headerLootTime) headerLootTime.textContent = formatTime(remaining);
+                }
+            } else {
+                if(lootText) {
+                    lootText.textContent = "INAKTIV";
+                    lootText.classList.replace('text-amber-400', 'text-zinc-500');
+                    lootText.classList.remove('animate-pulse');
+                }
+                if(lootBox) lootBox.style.borderColor = "rgba(255,255,255,0.05)";
+                
+                if(headerLootEvent) {
+                    headerLootEvent.classList.add('hidden');
+                    headerLootEvent.classList.remove('flex');
+                }
+            }
+
+            // XP EVENT UPDATE
+            const xpEvent = currentConfig.ActiveEvents.XPBoost;
+            const xpBox = document.getElementById('boxXPEvent');
+            const xpText = document.getElementById('countdownXPEvent');
+            const headerXPEvent = document.getElementById('headerXPEvent');
+            const headerXPMultiplier = document.getElementById('headerXPMultiplier');
+            const headerXPTime = document.getElementById('headerXPTime');
+            
+            if(xpEvent && xpEvent.ExpiresAt > now) {
+                xpActive = true;
+                const remaining = xpEvent.ExpiresAt - now;
+                if(xpText) {
+                    xpText.textContent = formatTime(remaining);
+                    xpText.classList.replace('text-zinc-500', 'text-purple-400');
+                    xpText.classList.add('animate-pulse');
+                }
+                if(xpBox) xpBox.style.borderColor = "rgba(168, 85, 247, 0.6)";
+                
+                if(headerXPEvent) {
+                    headerXPEvent.classList.remove('hidden');
+                    headerXPEvent.classList.add('flex');
+                    if(headerXPMultiplier) headerXPMultiplier.textContent = xpEvent.Multiplier.toFixed(1);
+                    if(headerXPTime) headerXPTime.textContent = formatTime(remaining);
+                }
+            } else {
+                if(xpText) {
+                    xpText.textContent = "INAKTIV";
+                    xpText.classList.replace('text-purple-400', 'text-zinc-500');
+                    xpText.classList.remove('animate-pulse');
+                }
+                if(xpBox) xpBox.style.borderColor = "rgba(255,255,255,0.05)";
+                
+                if(headerXPEvent) {
+                    headerXPEvent.classList.add('hidden');
+                    headerXPEvent.classList.remove('flex');
+                }
+            }
+
+            const globalBanner = document.getElementById('globalEventBanner');
+            if(globalBanner) {
+                if(mapActive || lootActive || xpActive) {
+                    globalBanner.classList.remove('hidden');
+                    globalBanner.classList.add('flex');
+                } else {
+                    globalBanner.classList.add('hidden');
+                    globalBanner.classList.remove('flex');
+                }
+            }
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function quickAdjustMap(mapName, delta) {
+            if(!currentConfig.Maps) return;
+            let current = parseFloat(currentConfig.Maps[mapName]) || 0;
+            let newVal = current + delta;
+            if(newVal < 0) newVal = 0;
+            newVal = Math.round(newVal * 10) / 10;
+            
+            currentConfig.Maps[mapName] = newVal;
+            saveToLocalStorage();
+            renderMapList(); 
+        }
+
+        function renderMapList() {
+            const container = document.getElementById('mapList');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const maps = currentConfig.Maps || {};
+            const mapKeys = Object.keys(maps);
+            
+            let totalWeight = 0;
+            mapKeys.forEach(k => totalWeight += parseFloat(maps[k]) || 0);
+
+            if (mapKeys.length === 0) {
+                 container.innerHTML = `<div class="col-span-full text-center font-mono font-bold text-zinc-500 py-10 uppercase text-xs tracking-widest">Keine Maps in der Config gefunden.</div>`;
+                 return;
+            }
+
+            mapKeys.sort((a, b) => (parseFloat(maps[b]) || 0) - (parseFloat(maps[a]) || 0));
+
+            mapKeys.forEach(mapName => {
+                const weight = parseFloat(maps[mapName]) || 0;
+                const percentage = totalWeight > 0 ? ((weight / totalWeight) * 100).toFixed(1) : 0;
+                
+                let colorClass = "text-emerald-500 bg-emerald-500";
+                if(percentage < 5) colorClass = "text-zinc-400 bg-zinc-500";
+                else if(percentage > 15) colorClass = "text-amber-400 bg-amber-400";
+
+                const div = document.createElement('div');
+                div.className = "bg-[#09090b] border border-zinc-800 rounded p-4 relative flex flex-col transition-colors shadow-sm overflow-hidden group";
+                
+                div.innerHTML = `
+                    <div class="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity" style="background: ${colorClass.split(' ')[1]}"></div>
+                    
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded bg-[#050505] border border-zinc-800 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            </div>
+                            <h4 class="font-tactical text-lg font-bold text-zinc-200">${mapName}</h4>
+                        </div>
+                        <button onclick="deleteMap('${mapName}')" class="text-zinc-600 hover:text-red-400 transition-colors p-1" title="Map Löschen">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between relative z-10">
+                        <div>
+                            <label class="block font-mono text-[9px] font-semibold uppercase text-zinc-500 mb-1 ml-1">Gewicht (Lose)</label>
+                            <div class="flex items-stretch h-8 w-28">
+                                <button onclick="quickAdjustMap('${mapName}', -1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">-</button>
+                                <input type="number" step="0.1" value="${weight}" class="tarkov-input py-0 px-1 text-sm font-mono text-zinc-300 text-center rounded-none border-x-0 h-full focus:z-10" onchange="updateMapWeight('${mapName}', this.value)">
+                                <button onclick="quickAdjustMap('${mapName}', 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right shrink-0">
+                            <label class="block font-mono text-[9px] font-semibold uppercase text-zinc-500 mb-1">Live Chance</label>
+                            <span class="font-mono font-black text-xl ${colorClass.split(' ')[0]} drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">${percentage}%</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar mt-4 relative z-10">
+                        <div class="progress-fill ${colorClass.split(' ')[1]}" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateMapWeight(mapName, newWeight) {
+            if(!currentConfig.Maps) currentConfig.Maps = {};
+            let parsed = parseFloat(newWeight) || 0;
+            if(parsed < 0) parsed = 0;
+            currentConfig.Maps[mapName] = parsed;
+            saveToLocalStorage();
+            renderMapList();
+        }
+
+        function addNewMap() {
+            const nameEl = document.getElementById('newMapName');
+            const weightEl = document.getElementById('newMapWeight');
+            if(!nameEl || !weightEl) return;
+
+            const name = nameEl.value.trim();
+            const weight = parseFloat(weightEl.value) || 0;
+
+            if(!name) { showToast("Bitte Map-Namen eingeben", true); return; }
+
+            if(!currentConfig.Maps) currentConfig.Maps = {};
+            currentConfig.Maps[name] = weight;
+            
+            nameEl.value = '';
+            weightEl.value = '5';
+            
+            saveToLocalStorage();
+            syncUiFromJson();
+            showToast(`MAP HINZUGEFÜGT: ${name}`);
+        }
+
+        function deleteMap(mapName) {
+            if(confirm(`Möchtest du die Map '${mapName}' wirklich löschen?`)) {
+                delete currentConfig.Maps[mapName];
+                saveToLocalStorage();
+                syncUiFromJson();
+                showToast(`MAP GELÖSCHT: ${mapName}`);
+            }
+        }
+
+        function debounceCodeRender() {
+            clearTimeout(codeTimeout);
+            codeTimeout = setTimeout(() => {
+                try {
+                    const val = document.getElementById('jsonOutput')?.value;
+                    if(!val) return;
+                    currentConfig = JSON.parse(val);
+                    ensureEventsExist();
+                    localStorage.setItem('tarkov_loot_game_config', val);
+                    syncUiFromJson();
+                    const toast = document.getElementById('toast');
+                    if(toast) toast.classList.remove('show');
+                } catch(e) {
+                    console.log("JSON Incomplete while typing...");
+                }
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

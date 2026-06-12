@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loot-Game Leaderboard by Coregenetic (LIVE)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Moderne taktische Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: rgba(9, 9, 11, 0.75);
+            --border-color: #27272a;
+            --accent-emerald: #10b981;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: #e4e4e7; 
+            font-family: 'Inter', sans-serif; 
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            background-attachment: fixed;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-emerald); }
+
+        .tarkov-input { 
+            background-color: #09090b; 
+            border: 1px solid #3f3f46; 
+            color: #f4f4f5; 
+            padding: 0.75rem 1rem; 
+            border-radius: 0.25rem; 
+            transition: all 0.2s ease; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .tarkov-input:focus { 
+            outline: none; 
+            border-color: var(--accent-emerald); 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 12px rgba(16, 185, 129, 0.2); 
+            background-color: #000000;
+        }
+        
+        .tarkov-btn { 
+            padding: 0.75rem 1.2rem; 
+            border-radius: 0.25rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.5rem;
+            text-transform: uppercase;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        .tarkov-btn-primary { 
+            background: #059669; 
+            color: white; 
+            border: 1px solid #10b981;
+            box-shadow: 0 0 15px rgba(5, 150, 105, 0.3);
+        }
+        .tarkov-btn-primary:hover { 
+            background: #047857; 
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+            border-color: #34d399;
+            transform: translateY(-2px);
+        }
+        
+        .tarkov-btn-danger {
+            background: rgba(153, 27, 27, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .tarkov-btn-danger:hover {
+            background: #991b1b;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border-radius: 0.5rem;
+        }
+
+        /* Leaderboard Specific Styles */
+        .rank-badge {
+            display: flex; align-items: center; justify-content: center;
+            width: 3rem; height: 3rem; border-radius: 0.5rem;
+            font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 800;
+            background: #050505; border: 1px solid #3f3f46; color: #a1a1aa;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+        
+        .card-gold { border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 0 20px rgba(251, 191, 36, 0.15), inset 0 0 20px rgba(251, 191, 36, 0.05); }
+        .card-gold .rank-badge { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.8); }
+        .card-gold .username { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        
+        .card-silver { border-color: rgba(148, 163, 184, 0.5); box-shadow: 0 0 20px rgba(148, 163, 184, 0.15), inset 0 0 20px rgba(148, 163, 184, 0.05); }
+        .card-silver .rank-badge { background: rgba(148, 163, 184, 0.1); border-color: #94a3b8; color: #94a3b8; text-shadow: 0 0 10px rgba(148, 163, 184, 0.8); }
+        .card-silver .username { color: #f8fafc; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+
+        .card-bronze { border-color: rgba(180, 83, 9, 0.5); box-shadow: 0 0 20px rgba(180, 83, 9, 0.15), inset 0 0 20px rgba(180, 83, 9, 0.05); }
+        .card-bronze .rank-badge { background: rgba(180, 83, 9, 0.1); border-color: #b45309; color: #d97706; text-shadow: 0 0 10px rgba(180, 83, 9, 0.8); }
+        .card-bronze .username { color: #d97706; text-shadow: 0 0 10px rgba(180, 83, 9, 0.3); }
+
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+    </style>
+</head>
+<body class="p-3 md:p-5 h-screen flex flex-col overflow-hidden">
+
+    <!-- Main Content Wrapper -->
+    <div class="max-w-[1200px] mx-auto w-full flex flex-col h-full gap-5">
+        
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 bg-[#09090b]/80 p-5 rounded-xl border border-zinc-800 backdrop-blur-md shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded bg-[#050505] border border-emerald-500/40 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.15)] relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
+                    <svg class="w-7 h-7 text-emerald-400 relative z-10 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-tactical text-3xl md:text-4xl text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)] font-bold tracking-wider">STASH LEADERBOARD</h1>
+                    <p class="text-emerald-500/80 text-xs font-mono uppercase mt-0.5 flex items-center gap-1.5 font-semibold tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399] animate-ping"></span>
+                        GLOBAL ECONOMY TRACKER // BY COREGENETIC
+                    </p>
+                </div>
+            </div>
+
+            <!-- Globale Stats -->
+            <div class="flex gap-4 md:gap-8 bg-[#050505] p-3 md:p-4 rounded-lg border border-zinc-800 w-full md:w-auto">
+                <div>
+                    <p class="font-mono text-[10px] uppercase text-zinc-500 font-bold tracking-wider mb-1">Spieler Gesamt</p>
+                    <p class="font-tactical text-2xl text-zinc-200 font-bold" id="statPlayers">0</p>
+                </div>
+                <div class="w-px bg-zinc-800"></div>
+                <div>
+                    <p class="font-mono text-[10px] uppercase text-zinc-500 font-bold tracking-wider mb-1">Globaler Marktwert</p>
+                    <p class="font-mono text-xl text-emerald-400 font-black tracking-widest drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]" id="statGlobalValue">0 ₽</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid (Chart + Actions) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 shrink-0">
+            <!-- Diagramm Panel -->
+            <div class="lg:col-span-2 glass-panel p-4 h-[220px] flex flex-col">
+                <h3 class="font-tactical text-xs text-zinc-500 font-bold tracking-widest mb-2 uppercase flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Wealth Distribution (Top 5)
+                </h3>
+                <div class="flex-grow relative">
+                    <canvas id="wealthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="glass-panel p-5 flex flex-col justify-between gap-4">
+                <div class="space-y-3">
+                    
+                    <!-- NEU: Live Ordner Überwachung -->
+                    <button onclick="startFolderSync()" class="tarkov-btn tarkov-btn-primary w-full py-4 font-bold tracking-widest text-lg relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-emerald-400/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        <svg class="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        <span class="relative z-10">ORDNER ÜBERWACHEN</span>
+                    </button>
+
+                    <!-- Status Indikator -->
+                    <div id="syncStatusBadge" class="flex items-center justify-center gap-2 text-zinc-500 font-mono text-[10px] md:text-xs font-bold uppercase tracking-widest p-2 bg-black/40 rounded border border-zinc-800 transition-colors">
+                        <span id="syncDot" class="w-2 h-2 rounded-full bg-zinc-600 transition-colors"></span>
+                        <span id="syncText">Live-Sync: Inaktiv</span>
+                    </div>
+
+                    <!-- Backup Aktionen (Manuell / Leeren) -->
+                    <div class="flex gap-2">
+                        <input type="file" id="inventoryUpload" accept=".json" multiple class="hidden" onchange="processInventories(event)">
+                        <button onclick="document.getElementById('inventoryUpload').click()" class="tarkov-btn bg-[#27272a] hover:bg-[#3f3f46] text-zinc-300 w-1/2 py-2 text-xs font-bold border border-zinc-700">
+                            MANUELL
+                        </button>
+                        <button onclick="resetData()" class="tarkov-btn tarkov-btn-danger w-1/2 py-2 text-xs font-bold">
+                            RESET
+                        </button>
+                    </div>
+
+                </div>
+                
+                <div class="relative mt-1">
+                    <svg class="w-5 h-5 absolute left-3 top-2.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="playerSearch" class="tarkov-input pl-10 w-full font-mono font-bold text-sm" placeholder="SPIELER SUCHEN..." oninput="renderCards()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Instruktionen / Info -->
+        <div id="instructions" class="flex-grow flex flex-col items-center justify-center text-center p-8 bg-[#09090b]/50 rounded-xl border border-zinc-800 border-dashed">
+            <svg class="w-16 h-16 text-emerald-500/50 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <h2 class="font-tactical text-2xl text-zinc-300 font-bold tracking-widest mb-2">ORDNER AUSWÄHLEN</h2>
+            <p class="font-mono text-zinc-500 text-sm max-w-md">Klicke auf <strong>"ORDNER ÜBERWACHEN"</strong> und wähle deinen <span class="text-emerald-400">inventories</span> Ordner aus. Das Leaderboard aktualisiert sich dann automatisch live im Hintergrund.</p>
+        </div>
+
+        <!-- Leaderboard Liste -->
+        <div id="leaderboardList" class="flex-grow overflow-y-auto hidden flex-col gap-3 pr-2 custom-scroll pb-10">
+            <!-- Cards werden hier generiert -->
+        </div>
+
+    </div>
+
+    <script>
+        let playersData = [];
+        let wealthChart = null;
+        let syncInterval = null;
+        let currentDirHandle = null;
+
+        // Initialisierung des Diagramms
+        function initChart() {
+            const ctx = document.getElementById('wealthChart').getContext('2d');
+            wealthChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Stash Value (₽)',
+                        data: [],
+                        backgroundColor: 'rgba(16, 185, 129, 0.4)',
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 500 // Schnelle Animation für Live-Updates
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { 
+                                color: '#71717a', 
+                                font: { size: 10, family: 'JetBrains Mono' },
+                                callback: function(value) { return (value / 1000000).toFixed(0) + 'M'; }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#a1a1aa', font: { size: 10, family: 'Rajdhani', weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(topPlayers) {
+            if (!wealthChart) initChart();
+            wealthChart.data.labels = topPlayers.map(p => p.username.toUpperCase());
+            wealthChart.data.datasets[0].data = topPlayers.map(p => p.stashValue);
+            wealthChart.update();
+        }
+
+        function formatPrice(price) {
+            if (price >= 1000000) return (price / 1000000).toFixed(2) + 'M ₽';
+            if (price >= 1000) return Math.floor(price / 1000) + 'K ₽';
+            return price + ' ₽';
+        }
+
+        function resetData() {
+            if (!confirm("Alle Daten leeren und Live-Sync beenden?")) return;
+            
+            // Interval beenden
+            if(syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+            }
+            currentDirHandle = null;
+
+            // UI Reset
+            const syncDot = document.getElementById('syncDot');
+            const syncText = document.getElementById('syncText');
+            syncDot.className = 'w-2 h-2 rounded-full bg-zinc-600 transition-colors';
+            syncText.textContent = 'Live-Sync: Inaktiv';
+            syncText.className = 'text-zinc-500';
+            document.getElementById('syncStatusBadge').classList.remove('border-red-500/50');
+
+            playersData = [];
+            document.getElementById('instructions').classList.remove('hidden');
+            document.getElementById('leaderboardList').classList.add('hidden');
+            document.getElementById('statPlayers').textContent = "0";
+            document.getElementById('statGlobalValue').textContent = "0 ₽";
+            if (wealthChart) {
+                wealthChart.data.labels = [];
+                wealthChart.data.datasets[0].data = [];
+                wealthChart.update();
+            }
+        }
+
+        // ==========================================
+        // NEU: LIVE ORDNER ÜBERWACHUNG (File System API)
+        // ==========================================
+        async function startFolderSync() {
+            try {
+                // Ordner Picker öffnen
+                currentDirHandle = await window.showDirectoryPicker({ mode: 'read' });
+                
+                // UI auf Aktiv (Rot blinkend) setzen
+                const syncDot = document.getElementById('syncDot');
+                const syncText = document.getElementById('syncText');
+                const syncBadge = document.getElementById('syncStatusBadge');
+                
+                syncDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+                syncText.textContent = 'Live-Sync: AKTIV (5s)';
+                syncText.className = 'text-red-400 font-bold';
+                syncBadge.classList.add('border-red-500/50');
+
+                document.getElementById('instructions').classList.add('hidden');
+                document.getElementById('leaderboardList').classList.remove('hidden');
+
+                // Direkt das erste Mal den Ordner scannen
+                await scanDirectory();
+
+                // Automatisches Scannen alle 5 Sekunden
+                if(syncInterval) clearInterval(syncInterval);
+                syncInterval = setInterval(scanDirectory, 5000);
+
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    alert("Dein System unterstützt diese Funktion eventuell nicht oder die Berechtigung wurde verweigert.");
+                    console.error(err);
+                }
+            }
+        }
+
+        // Liest den gesamten Ordner aus (Wird automatisch vom Interval aufgerufen)
+        async function scanDirectory() {
+            if (!currentDirHandle) return;
+
+            let tempPlayersData = [];
+            let tempGlobalValue = 0;
+
+            try {
+                // Iteriere über alle Dateien im Ordner
+                for await (const entry of currentDirHandle.values()) {
+                    if (entry.kind === 'file' && entry.name.endsWith('.json')) {
+                        try {
+                            const file = await entry.getFile();
+                            const text = await readFileAsync(file);
+                            const inventory = JSON.parse(text);
+                            
+                            const username = entry.name.replace('.json', '');
+                            const parsedData = calculateInventoryData(username, inventory);
+                            
+                            tempGlobalValue += parsedData.stashValue;
+                            tempPlayersData.push(parsedData);
+                        } catch(e) {
+                            console.warn("Fehlerhafte JSON übersprungen:", entry.name);
+                        }
+                    }
+                }
+
+                // Daten sortieren und überschreiben
+                playersData = tempPlayersData.sort((a, b) => b.stashValue - a.stashValue);
+                
+                // UI Aktualisieren
+                document.getElementById('statPlayers').textContent = playersData.length;
+                document.getElementById('statGlobalValue').textContent = formatPrice(tempGlobalValue);
+
+                renderCards();
+                updateChart(playersData.slice(0, 5));
+
+            } catch (err) {
+                console.error("Fehler beim Background-Sync:", err);
+            }
+        }
+
+        // ==========================================
+        // ALTES MANUELLES LADEN (Fallback)
+        // ==========================================
+        async function processInventories(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            // Stoppe Sync falls aktiv, da man jetzt manuell lädt
+            if(syncInterval) resetData();
+
+            let tempPlayersData = [];
+            let tempGlobalValue = 0;
+
+            document.getElementById('instructions').classList.add('hidden');
+            document.getElementById('leaderboardList').classList.remove('hidden');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.name.endsWith('.json')) continue;
+                
+                try {
+                    const text = await readFileAsync(file);
+                    const inventory = JSON.parse(text);
+                    const username = file.name.replace('.json', '');
+                    
+                    const parsedData = calculateInventoryData(username, inventory);
+                    tempGlobalValue += parsedData.stashValue;
+                    tempPlayersData.push(parsedData);
+
+                } catch (e) { console.error(`Fehler bei ${file.name}`, e); }
+            }
+
+            playersData = tempPlayersData.sort((a, b) => b.stashValue - a.stashValue);
+            document.getElementById('statPlayers').textContent = playersData.length;
+            document.getElementById('statGlobalValue').textContent = formatPrice(tempGlobalValue);
+            
+            renderCards();
+            updateChart(playersData.slice(0, 5));
+        }
+
+        // Hilfsfunktion zum Berechnen der Werte einer einzelnen JSON
+        function calculateInventoryData(username, inventory) {
+            let stashValue = 0;
+            let totalItemsCount = 0;
+            let topItemName = "-";
+            let topItemTotalValue = 0;
+
+            for (const itemName in inventory) {
+                const itemData = inventory[itemName];
+                const count = itemData.Count || 0;
+                const singleValue = itemData.Value || 0;
+                const itemTotalVal = count * singleValue;
+
+                stashValue += itemTotalVal;
+                totalItemsCount += count;
+
+                if (singleValue > topItemTotalValue) {
+                    topItemTotalValue = singleValue;
+                    topItemName = itemName;
+                }
+            }
+
+            return { username, stashValue, totalItems: totalItemsCount, topItem: topItemName, topItemValue: topItemTotalValue };
+        }
+
+        function readFileAsync(file) {
+            return new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function renderCards() {
+            const container = document.getElementById('leaderboardList');
+            const search = document.getElementById('playerSearch').value.toLowerCase();
+            container.innerHTML = '';
+
+            let filteredPlayers = playersData;
+            if (search) {
+                filteredPlayers = playersData.filter(p => p.username.toLowerCase().includes(search));
+            }
+
+            if (filteredPlayers.length === 0) {
+                container.innerHTML = `<div class="text-zinc-500 font-mono text-center py-10 uppercase tracking-widest font-bold">KEINE SPIELER GEFUNDEN.</div>`;
+                return;
+            }
+
+            filteredPlayers.forEach((player, index) => {
+                const realRank = playersData.findIndex(p => p.username === player.username) + 1;
+                
+                let rankClass = "";
+                if (realRank === 1) rankClass = "card-gold";
+                else if (realRank === 2) rankClass = "card-silver";
+                else if (realRank === 3) rankClass = "card-bronze";
+
+                const card = document.createElement('div');
+                card.className = `bg-[#09090b]/90 border border-zinc-800 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300 hover:bg-[#0f0f13] hover:-translate-y-1 ${rankClass}`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="rank-badge shrink-0">#${realRank}</div>
+                        <div class="overflow-hidden">
+                            <h3 class="username font-tactical text-xl md:text-2xl font-bold tracking-wider text-zinc-100 truncate w-48 md:w-auto">${player.username}</h3>
+                            <p class="font-mono text-[10px] md:text-xs text-zinc-500 font-semibold uppercase tracking-widest mt-1">Looted Items: <span class="text-zinc-300">${player.totalItems}</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-2 md:gap-1 pl-16 md:pl-0">
+                        <div class="font-mono text-xl md:text-3xl font-black text-emerald-400 tracking-widest drop-shadow-md">
+                            ${formatPrice(player.stashValue)}
+                        </div>
+                        <div class="font-mono text-[10px] uppercase text-zinc-400 font-medium">
+                            Top Item: <span class="text-amber-400 font-bold ml-1">${player.topItem}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Init Chart auf Window Load
+        window.addEventListener('load', initChart);
+    </script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loot-Game Simulator PRO by Coregenetic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Modern Tactical Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --panel-bg: rgba(9, 9, 11, 0.9);
+            --border-color: #27272a;
+            --accent-emerald: #10b981;
+            --accent-blue: #3b82f6;
+            --rarity-common: #71717a;
+            --rarity-uncommon: #10b981;
+            --rarity-rare: #3b82f6;
+            --rarity-epic: #a855f7;
+            --rarity-legendary: #fbbf24;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: #e4e4e7; 
+            font-family: 'Inter', sans-serif; 
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-emerald); }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #52525b; border-radius: 4px; }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono';
+            text-transform: uppercase;
+        }
+
+        .tarkov-input { 
+            background-color: #09090b; 
+            border: 1px solid #3f3f46; 
+            color: #f4f4f5; 
+            padding: 0.5rem 0.75rem; 
+            border-radius: 0.375rem; 
+            transition: all 0.2s ease; 
+        }
+        .tarkov-input:focus { outline: none; border-color: var(--accent-emerald); }
+
+        .tarkov-btn { 
+            padding: 0.75rem 1.25rem; 
+            border-radius: 0.375rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.6rem;
+            text-transform: uppercase;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .tarkov-btn-primary { 
+            background: #059669; 
+            color: white; 
+            border: 1px solid #10b981;
+        }
+        .tarkov-btn-primary:hover:not(:disabled) { 
+            background: #047857; 
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        .tarkov-btn-primary:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+        
+        .tarkov-btn-secondary {
+            background: #18181b; 
+            color: #a1a1aa; 
+            border: 1px solid #3f3f46;
+        }
+
+        /* Modern Log List */
+        .log-row {
+            display: grid;
+            grid-template-columns: 70px 140px 1fr 140px;
+            align-items: center;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            transition: background 0.2s;
+        }
+        .log-row:hover { background: rgba(255,255,255,0.02); }
+        .log-header {
+            background: rgba(0,0,0,0.4);
+            font-weight: 700;
+            color: #52525b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .item-pip {
+            width: 8px; height: 8px; border-radius: 1px;
+            display: inline-block; margin-right: 3px;
+        }
+        .pip-common { background: var(--rarity-common); }
+        .pip-uncommon { background: var(--rarity-uncommon); }
+        .pip-rare { background: var(--rarity-rare); }
+        .pip-epic { background: var(--rarity-epic); }
+        .pip-legendary { background: var(--rarity-legendary); box-shadow: 0 0 5px var(--rarity-legendary); }
+
+        .advice-card {
+            background: rgba(9, 9, 11, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 overflow-hidden relative">
+
+    <!-- ADVISOR MODAL (Popup) -->
+    <div id="advisorModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity">
+        <div class="bg-[#09090b] border border-blue-500/30 p-6 md:p-8 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_50px_rgba(59,130,246,0.15)] relative flex flex-col max-h-[85vh]">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6 shrink-0 border-b border-zinc-800 pb-4">
+                <h2 class="font-tactical text-2xl text-blue-400 font-bold tracking-widest flex items-center gap-3">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    SYSTEM ADVISOR REPORT
+                </h2>
+                <button onclick="closeAdvisorModal()" class="text-zinc-500 hover:text-red-400 transition-colors bg-zinc-900 hover:bg-zinc-800 rounded p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Content List -->
+            <div id="modalAdviceList" class="overflow-y-auto custom-scroll space-y-4 pr-3 flex-grow">
+                <!-- Advices werden hier per JS eingefügt -->
+            </div>
+            
+            <!-- Footer -->
+            <div class="mt-6 shrink-0 pt-4 border-t border-zinc-800 flex justify-end">
+                <button onclick="closeAdvisorModal()" class="tarkov-btn tarkov-btn-secondary text-sm">Verstanden</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1800px] mx-auto w-full flex flex-col h-full gap-5">
+        
+        <!-- Header Dashboard -->
+        <header class="grid grid-cols-1 lg:grid-cols-4 gap-4 shrink-0">
+            <div class="lg:col-span-2 glass-panel p-5 flex items-center gap-5">
+                <div class="w-16 h-16 rounded-xl bg-[#050505] border border-emerald-500/30 flex items-center justify-center relative overflow-hidden shrink-0">
+                    <div class="absolute inset-0 bg-emerald-500/5 animate-pulse"></div>
+                    <svg class="w-8 h-8 text-emerald-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-tactical text-2xl text-emerald-400 font-bold tracking-wider leading-none">ECO-BALANCING HUB</h1>
+                    <p class="text-emerald-500/80 text-[10px] font-mono uppercase mt-1 mb-2 flex items-center gap-1.5 font-semibold tracking-wide">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399] animate-ping"></span>
+                        BY COREGENETIC
+                    </p>
+                    <div class="flex gap-3">
+                        <span id="badgeItems" class="status-badge bg-red-900/20 text-red-400 border border-red-500/20">Items Offline</span>
+                        <span id="badgeConfig" class="status-badge bg-red-900/20 text-red-400 border border-red-500/20">Config Offline</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Stats Overlay -->
+            <div class="glass-panel p-4 flex flex-col justify-center bg-emerald-950/10 border-l-4 border-l-emerald-500">
+                <p class="font-mono text-[9px] text-zinc-500 uppercase font-bold mb-1">Globale Profitabilität</p>
+                <div class="flex items-baseline gap-2">
+                    <span id="avgValueGlobal" class="font-mono text-2xl font-black text-zinc-100">0 ₽</span>
+                    <span class="text-[10px] text-emerald-500 font-bold uppercase">/ RUN</span>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 flex gap-3 bg-black/30">
+                <button onclick="document.getElementById('dbInput').click()" class="flex-1 tarkov-btn tarkov-btn-primary text-[10px] py-1 h-full bg-[#121214] border-zinc-800 hover:border-emerald-500" title="Items laden">
+                    LADE ITEMS
+                </button>
+                <button onclick="document.getElementById('configInput').click()" class="flex-1 tarkov-btn tarkov-btn-primary text-[10px] py-1 h-full bg-[#121214] border-zinc-800 hover:border-blue-500" title="Config laden">
+                    LADE CONFIG
+                </button>
+                <input type="file" id="dbInput" class="hidden" accept=".json" onchange="loadDatabase(event)">
+                <input type="file" id="configInput" class="hidden" accept=".json" onchange="loadGameConfig(event)">
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-5 flex-grow overflow-hidden">
+            
+            <!-- Linker Bereich: Steuerung & Balancing Advisor -->
+            <div class="lg:col-span-4 flex flex-col gap-5 overflow-y-auto pr-2 custom-scroll pb-10">
+                
+                <!-- SETUP PANEL -->
+                <div class="glass-panel p-5">
+                    <h2 class="font-tactical text-xs text-zinc-500 font-bold mb-4 tracking-[0.2em] uppercase">Einstellungs-Parameter</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-[#0a0a0c] rounded border border-white/5 cursor-pointer hover:border-zinc-700 transition" onclick="toggleGlobal()">
+                            <div>
+                                <p class="text-[11px] font-bold text-zinc-300 uppercase leading-none">Globale Gewichtung</p>
+                                <p class="text-[8px] text-zinc-500 font-mono mt-1">Config Weights benutzen</p>
+                            </div>
+                            <input type="checkbox" id="globalSimToggle" checked class="w-4 h-4 accent-emerald-500 pointer-events-none">
+                        </div>
+                        
+                        <div id="manualMapSelector" class="hidden">
+                            <label class="block font-mono text-[10px] text-zinc-500 uppercase mb-1 ml-1">Test-Umgebung</label>
+                            <select id="mapFilter" class="tarkov-input w-full font-bold text-xs bg-black"></select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block font-mono text-[10px] text-zinc-500 uppercase mb-1 ml-1">Simulationen</label>
+                                <input type="number" id="simCount" value="100" class="tarkov-input w-full font-mono text-center font-bold text-xs">
+                            </div>
+                            <div>
+                                <label class="block font-mono text-[10px] text-zinc-500 uppercase mb-1 ml-1">Loot-Slots</label>
+                                <input type="number" id="itemsPerDrop" value="1" class="tarkov-input w-full font-mono text-center font-bold text-xs">
+                            </div>
+                        </div>
+
+                        <button onclick="runSimulation()" id="simBtn" class="tarkov-btn tarkov-btn-primary w-full py-4 text-lg tracking-widest uppercase mt-2" disabled>
+                            ANALYSE STARTEN
+                        </button>
+                    </div>
+                </div>
+
+                <!-- INTEGRATED BALANCING ADVISOR -->
+                <div class="glass-panel overflow-hidden border border-blue-500/20 flex flex-col">
+                    <div class="bg-blue-900/10 p-3 border-b border-zinc-800 flex items-center justify-between">
+                        <h3 class="font-tactical text-xs text-blue-400 font-bold tracking-widest uppercase">System Optimierung</h3>
+                        <svg class="w-4 h-4 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div class="p-5 flex items-center justify-center bg-zinc-950/50">
+                        <button id="btnOpenAdvisor" onclick="openAdvisorModal()" class="tarkov-btn tarkov-btn-secondary w-full py-4 opacity-50 cursor-not-allowed transition-all duration-300" disabled>
+                            <span id="advisorBtnText" class="tracking-wider">Warte auf Simulation...</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PERFORMANCE PER MAP -->
+                <div class="glass-panel overflow-hidden">
+                    <div class="bg-zinc-900/50 p-3 border-b border-zinc-800">
+                        <h3 class="font-tactical text-xs text-zinc-300 font-bold tracking-widest uppercase">Map Profit Ranking</h3>
+                    </div>
+                    <div id="mapProfitList" class="divide-y divide-zinc-900 max-h-[250px] overflow-y-auto custom-scroll">
+                        <div class="p-4 text-center text-zinc-600 font-mono text-[10px] italic">Wird nach der Simulation generiert.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechter Bereich: Analytics & Detailed Log -->
+            <div class="lg:col-span-8 flex flex-col gap-5 overflow-hidden">
+                
+                <!-- TOP ANALYTICS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 shrink-0">
+                    <div class="glass-panel p-4 h-56 bg-black/40 border-l-4 border-l-blue-500">
+                        <h3 class="font-tactical text-[10px] text-zinc-500 font-bold mb-3 uppercase tracking-widest">Raritäts-Verteilung</h3>
+                        <div class="flex-grow h-40">
+                            <canvas id="rarityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 h-56 bg-emerald-950/5 flex flex-col justify-center gap-6">
+                        <div class="flex justify-between items-end border-b border-zinc-800 pb-2">
+                            <span class="text-[10px] font-mono text-zinc-500 uppercase">Jackpot Chance (Legendär):</span>
+                            <span id="legendaryChance" class="text-3xl font-black text-amber-400 font-mono">0.00%</span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-zinc-800 pb-2">
+                            <span class="text-[10px] font-mono text-zinc-500 uppercase">Gezogene Items Gesamt:</span>
+                            <span id="totalItemsLooted" class="text-2xl font-bold text-zinc-300 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODERN LOG TABLE -->
+                <div class="glass-panel flex-grow flex flex-col overflow-hidden border border-zinc-800/50 bg-[#070708]">
+                    <div class="log-row log-header">
+                        <div>ID</div>
+                        <div>Einsatzort</div>
+                        <div>Gefundener Loot (Preview)</div>
+                        <div class="text-right">Run Profit</div>
+                    </div>
+                    
+                    <div id="dropResults" class="flex-grow overflow-y-auto custom-scroll">
+                        <div class="flex flex-col items-center justify-center h-full text-zinc-800">
+                            <svg class="w-12 h-12 mb-2 opacity-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                            <p class="text-[9px] uppercase tracking-widest font-bold">Warte auf System Analyse</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let itemDatabase = null;
+        let gameConfig = null;
+        let rarityChart = null;
+        let currentAdvices = [];
+
+        function toggleGlobal() {
+            const toggle = document.getElementById('globalSimToggle');
+            toggle.checked = !toggle.checked;
+            document.getElementById('manualMapSelector').style.display = toggle.checked ? 'none' : 'block';
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('rarityChart').getContext('2d');
+            rarityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: ['#71717a', '#10b981', '#3b82f6', '#a855f7', '#fbbf24'],
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 } } },
+                        x: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { family: 'Rajdhani', size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        function loadDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    itemDatabase = JSON.parse(e.target.result);
+                    updateStatus('badgeItems', 'Items Online', true);
+                    checkReady();
+                    populateMapSelector();
+                } catch(err) { alert("Items JSON Lesefehler."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadGameConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    gameConfig = JSON.parse(e.target.result);
+                    if(gameConfig.Maps) {
+                        updateStatus('badgeConfig', 'Config Online', true);
+                        checkReady();
+                    }
+                } catch(err) { alert("Config JSON Lesefehler."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function updateStatus(id, text, online) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            if(online) {
+                el.classList.replace('bg-red-900/20', 'bg-emerald-900/20');
+                el.classList.replace('text-red-400', 'text-emerald-400');
+            }
+        }
+
+        function checkReady() {
+            if(itemDatabase && gameConfig) {
+                const btn = document.getElementById('simBtn');
+                btn.disabled = false;
+                btn.textContent = "ANALYSE STARTEN";
+            }
+        }
+
+        function populateMapSelector() {
+            const select = document.getElementById('mapFilter');
+            const foundMaps = new Set();
+            Object.values(itemDatabase).forEach(item => {
+                const ms = Array.isArray(item.map) ? item.map : [item.map];
+                ms.forEach(m => { if(m) foundMaps.add(m); });
+            });
+            select.innerHTML = '';
+            Array.from(foundMaps).sort().forEach(map => {
+                const opt = document.createElement('option');
+                opt.value = map; opt.textContent = map;
+                select.appendChild(opt);
+            });
+        }
+
+        function parsePrice(priceStr) {
+            if (!priceStr) return 0;
+            let val = priceStr.toString().replace(/Rubel/gi, '').trim().replace(',', '.');
+            let mult = 1;
+            if (val.toLowerCase().endsWith('m') || val.toLowerCase().endsWith('mio')) { mult = 1000000; val = val.replace(/m|io/gi, ''); }
+            else if (val.toLowerCase().endsWith('k')) { mult = 1000; val = val.slice(0, -1); }
+            return parseFloat(val) * mult || 0;
+        }
+
+        function getRarity(val) {
+            if (val >= 1000000) return 'legendary';
+            if (val >= 500000) return 'epic';
+            if (val >= 200000) return 'rare';
+            if (val >= 50000) return 'uncommon';
+            return 'common';
+        }
+
+        function pickWeightedMap() {
+            const entries = Object.entries(gameConfig.Maps);
+            const totalWeight = entries.reduce((sum, [_, w]) => sum + w, 0);
+            let random = Math.random() * totalWeight;
+            for (const [name, weight] of entries) {
+                if (random < weight) return name;
+                random -= weight;
+            }
+            return entries[0][0];
+        }
+
+        function runSimulation() {
+            const count = parseInt(document.getElementById('simCount').value);
+            const itemsPerDrop = parseInt(document.getElementById('itemsPerDrop').value);
+            const isGlobal = document.getElementById('globalSimToggle').checked;
+            const fixedMap = document.getElementById('mapFilter').value;
+            
+            const resultsContainer = document.getElementById('dropResults');
+            resultsContainer.innerHTML = '';
+            
+            let totalValue = 0;
+            let rarityCounts = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+            let mapStats = {}; 
+
+            for (let i = 0; i < count; i++) {
+                const selectedMap = isGlobal ? pickWeightedMap() : fixedMap;
+                if(!mapStats[selectedMap]) mapStats[selectedMap] = { val: 0, runs: 0 };
+                mapStats[selectedMap].runs++;
+
+                const pool = Object.entries(itemDatabase).filter(([_, data]) => {
+                    const maps = Array.isArray(data.map) ? data.map : [data.map];
+                    return maps.includes(selectedMap) || maps.includes("All");
+                });
+
+                let currentDrop = [];
+                let runValue = 0;
+
+                if (pool.length > 0) {
+                    for (let j = 0; j < itemsPerDrop; j++) {
+                        const randomItem = pool[Math.floor(Math.random() * pool.length)];
+                        const val = parsePrice(randomItem[1].value);
+                        const rar = getRarity(val);
+                        currentDrop.push({ name: randomItem[0], rar, val });
+                        rarityCounts[rar]++;
+                        runValue += val;
+                    }
+                } else {
+                    currentDrop.push({ name: "NO ITEMS IN POOL", rar: 'common', val: 0 });
+                }
+                
+                totalValue += runValue;
+                mapStats[selectedMap].val += runValue;
+
+                // Create Row
+                const row = document.createElement('div');
+                row.className = 'log-row';
+                const pips = currentDrop.map(it => `<span class="item-pip pip-${it.rar}" title="${it.name}"></span>`).join('');
+                
+                row.innerHTML = `
+                    <div class="text-zinc-600 font-bold">#${(i+1).toString().padStart(3, '0')}</div>
+                    <div class="text-zinc-200 font-bold truncate pr-3 uppercase">${selectedMap}</div>
+                    <div class="flex items-center truncate opacity-70">
+                        ${pips} <span class="ml-2 truncate text-zinc-500 italic">${currentDrop.map(it => it.name).join(', ')}</span>
+                    </div>
+                    <div class="text-right font-black ${runValue >= 1000000 ? 'text-amber-400 drop-shadow-[0_0_5px_#fbbf24]' : (runValue > 500000 ? 'text-purple-400' : 'text-zinc-400')}">
+                        ${runValue >= 1000000 ? (runValue/1000000).toFixed(2)+'M' : (runValue >= 1000 ? Math.floor(runValue/1000)+'K' : runValue)} ₽
+                    </div>
+                `;
+                resultsContainer.appendChild(row);
+            }
+
+            // Map Analyse Update
+            const mapProfitList = document.getElementById('mapProfitList');
+            mapProfitList.innerHTML = '';
+            Object.entries(mapStats).sort((a,b) => (b[1].val/b[1].runs) - (a[1].val/a[1].runs)).forEach(([name, data]) => {
+                const avg = Math.floor(data.val / data.runs) || 0;
+                const div = document.createElement('div');
+                div.className = 'p-3 flex justify-between items-center bg-white/[0.01]';
+                div.innerHTML = `
+                    <span class="text-xs font-bold text-zinc-400 font-tactical">${name}</span>
+                    <span class="font-mono text-xs font-bold text-blue-400">${avg >= 1000000 ? (avg/1000000).toFixed(2)+'M' : (avg >= 1000 ? Math.floor(avg/1000)+'K' : avg)} ₽</span>
+                `;
+                mapProfitList.appendChild(div);
+            });
+
+            // Advisor Update
+            updateAdvisor(rarityCounts, totalValue / count, mapStats);
+
+            // Chart & Stats Update
+            document.getElementById('avgValueGlobal').textContent = Math.floor(totalValue / count).toLocaleString('de-DE') + " ₽";
+            const totalLooted = Object.values(rarityCounts).reduce((a, b) => a + b, 0);
+            document.getElementById('legendaryChance').textContent = totalLooted > 0 ? ((rarityCounts.legendary / totalLooted) * 100).toFixed(2) + "%" : "0.00%";
+            document.getElementById('totalItemsLooted').textContent = totalLooted;
+            rarityChart.data.datasets[0].data = [rarityCounts.common, rarityCounts.uncommon, rarityCounts.rare, rarityCounts.epic, rarityCounts.legendary];
+            rarityChart.update();
+        }
+
+        function updateAdvisor(rarityCounts, avgProfit, mapStats) {
+            currentAdvices = []; // Reset old advices
+
+            const totalItems = Object.values(rarityCounts).reduce((a, b) => a + b, 0);
+            const legRate = totalItems > 0 ? (rarityCounts.legendary / totalItems) * 100 : 0;
+
+            // 1. Check Jackpot-Rate
+            if (legRate < 0.5) {
+                currentAdvices.push({
+                    title: "Jackpot Chance extrem niedrig", 
+                    text: "Deine Spieler werden kaum Millionen-Loot finden (unter 0.5%). Erhöhe die Preise einiger High-Tier Items in der Datenbank auf über 1M ₽ oder erhöhe in der Config die Map-Wahrscheinlichkeit (Weight) für Maps wie Labs, die teuren Loot haben.", 
+                    color: "blue"
+                });
+            } else if (legRate > 5) {
+                currentAdvices.push({
+                    title: "Ökonomie-Risiko: Zu viele Legendaries", 
+                    text: "Über 5% deiner Drops sind Legendär (1M+ ₽). Das macht das Spiel zu einfach und zerstört die Langzeitmotivation. Reduziere ein paar Preise auf unter 1.000.000 ₽ oder senke das Gewicht deiner High-Tier Maps.", 
+                    color: "amber"
+                });
+            }
+
+            // 2. Check Map Performance
+            const sortedMaps = Object.entries(mapStats).sort((a,b) => (a[1].val/a[1].runs) - (b[1].val/b[1].runs));
+            if (sortedMaps.length > 1) {
+                const worstMap = sortedMaps[0][0];
+                const bestMap = sortedMaps[sortedMaps.length-1][0];
+                currentAdvices.push({
+                    title: `Map-Tuning: ${worstMap} ist am schlechtesten`, 
+                    text: `Die Map <b>${worstMap}</b> wirft am wenigsten ab, während <b>${bestMap}</b> extrem lukrativ ist. Überlege, ob du ein oder zwei wertvollere Items in die Map-Liste von ${worstMap} einfügst, um sie für Spieler attraktiver zu machen.`, 
+                    color: "zinc"
+                });
+            }
+
+            // 3. Overall Profit
+            if (avgProfit < 100000) {
+                currentAdvices.push({
+                    title: "Geringer Durchschnittsprofit", 
+                    text: "Deine Spieler verdienen im Schnitt weniger als 100k ₽ pro Runde. Das könnte frustrierend sein. Setze ein paar mehr 'Rare' oder 'Epic' Items in den Preisbereich von 200k-500k ₽.", 
+                    color: "emerald"
+                });
+            } else if (avgProfit > 800000) {
+                currentAdvices.push({
+                    title: "Massive Inflation", 
+                    text: "Im Durchschnitt machen die Spieler fast eine Million pro Runde. Wenn es kein Risiko gibt, alles zu verlieren, wird Geld schnell wertlos.", 
+                    color: "red"
+                });
+            }
+
+            // Update UI Button
+            const btn = document.getElementById('btnOpenAdvisor');
+            const btnText = document.getElementById('advisorBtnText');
+
+            if(currentAdvices.length > 0) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'tarkov-btn-secondary');
+                // Tactical blue style for the button to make it pop
+                btn.style.backgroundColor = '#1e3a8a'; 
+                btn.style.borderColor = '#3b82f6';
+                btn.style.color = '#fff';
+                btn.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
+                btnText.innerHTML = `⚠️ ${currentAdvices.length} VORSCHLÄGE GEFUNDEN`;
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'tarkov-btn-secondary');
+                btn.style.backgroundColor = '';
+                btn.style.borderColor = '';
+                btn.style.boxShadow = 'none';
+                btnText.innerHTML = `✓ SYSTEM OPTIMAL`;
+            }
+        }
+
+        // --- Modal Logic ---
+        function openAdvisorModal() {
+            const list = document.getElementById('modalAdviceList');
+            list.innerHTML = '';
+            
+            currentAdvices.forEach(adv => {
+                const div = document.createElement('div');
+                div.className = 'advice-card border-l-4';
+                
+                // Color mapping
+                let borderColor = '#71717a'; // zinc
+                if(adv.color === 'blue') borderColor = '#3b82f6';
+                if(adv.color === 'amber') borderColor = '#f59e0b';
+                if(adv.color === 'emerald') borderColor = '#10b981';
+                if(adv.color === 'red') borderColor = '#ef4444';
+                
+                div.style.borderLeftColor = borderColor;
+                div.innerHTML = `
+                    <h4 class="font-bold text-zinc-100 uppercase mb-2 text-base flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full inline-block" style="background-color: ${borderColor}"></span>
+                        ${adv.title}
+                    </h4>
+                    <p class="text-zinc-400 text-sm leading-relaxed">${adv.text}</p>
+                `;
+                list.appendChild(div);
+            });
+            
+            const modal = document.getElementById('advisorModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAdvisorModal() {
+            const modal = document.getElementById('advisorModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        window.onload = initChart;
+    </script>
+</body>
+</html>

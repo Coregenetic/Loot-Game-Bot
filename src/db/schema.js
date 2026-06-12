@@ -146,3 +146,28 @@ async function initSchema() {
 }
 
 module.exports = { getDb, saveDb, initSchema, run, get, all, exec };
+
+// ─── Dashboard Users Schema ───────────────────────────────────────────────────
+async function initDashboardUsers() {
+    const db = await getDb();
+    db.run(`
+        CREATE TABLE IF NOT EXISTS dashboard_users (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            username     TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            password_hash TEXT NOT NULL,
+            created_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+            updated_at   INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS dashboard_sessions (
+            token      TEXT PRIMARY KEY,
+            user_id    INTEGER NOT NULL REFERENCES dashboard_users(id) ON DELETE CASCADE,
+            username   TEXT NOT NULL,
+            expires_at INTEGER NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+    `);
+    saveDb();
+}
+
+module.exports.initDashboardUsers = initDashboardUsers;

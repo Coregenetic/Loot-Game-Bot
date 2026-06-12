@@ -1,7 +1,8 @@
 require('dotenv').config();
 
-const { initSchema } = require('./db/schema');
-const { createBot }  = require('./bot');
+const { initSchema, initDashboardUsers } = require('./db/schema');
+const { getUserCount } = require('./db/users');
+const { createBot }   = require('./bot');
 const { startServer } = require('./api/server');
 
 async function main() {
@@ -11,16 +12,21 @@ async function main() {
     console.log('  ╚══════════════════════════════════════╝');
     console.log('');
 
-    // 1. Datenbank
     console.log('[BOOT] Initialisiere Datenbank...');
     await initSchema();
+    await initDashboardUsers();
     console.log('[BOOT] Datenbank bereit.');
 
-    // 2. API Server
+    // Warnung wenn noch keine User angelegt sind
+    const userCount = getUserCount();
+    if (userCount === 0) {
+        console.log('[WARN] Keine Dashboard-User angelegt!');
+        console.log('[WARN] Führe aus: npm run setup-users');
+    }
+
     console.log('[BOOT] Starte API Server...');
     startServer();
 
-    // 3. Bot
     console.log('[BOOT] Verbinde Bot mit Twitch...');
     const bot = createBot();
     await bot.connect();

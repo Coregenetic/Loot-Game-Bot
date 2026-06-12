@@ -1,44 +1,44 @@
 const express    = require('express');
 const path       = require('path');
-const auth       = require('./middleware/auth');
+const sessionAuth   = require('./middleware/session');
+const authRoutes    = require('./routes/auth');
 const configRoutes  = require('./routes/config');
 const itemsRoutes   = require('./routes/items');
 const playersRoutes = require('./routes/players');
 const eventsRoutes  = require('./routes/events');
 
+const PUBLIC_DIR = path.join(__dirname, '../../public');
+
 function createServer() {
     const app = express();
 
-    // ─── Middleware ───────────────────────────────────────────────────────────
     app.use(express.json({ limit: '5mb' }));
 
-    // CORS — erlaubt Game Center lokal und deployed
     app.use((req, res, next) => {
         res.header('Access-Control-Allow-Origin', '*');
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, x-dashboard-token');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token, x-dashboard-token');
         if (req.method === 'OPTIONS') return res.sendStatus(200);
         next();
     });
 
-    // ─── Public Routes (kein Auth) ────────────────────────────────────────────
+    // ─── Static Files ─────────────────────────────────────────────────────────
+    app.use(express.static(PUBLIC_DIR));
 
-    // Health Check
+    // Root → Login prüfen, dann Control Center
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(PUBLIC_DIR, 'Control_Center.html'));
+    });
+
+    // ─── Public Routes ────────────────────────────────────────────────────────
     app.get('/health', (req, res) => {
         res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
     });
 
-    // Auth prüfen
-    app.post('/api/auth', (req, res) => {
-        const token = req.body.password || req.body.token;
-        if (token === process.env.DASHBOARD_PASSWORD) {
-            res.json({ success: true });
-        } else {
-            res.status(401).json({ success: false, error: 'Wrong password' });
-        }
-    });
+    // Auth Routes (login/logout/me/change-password)
+    app.use('/api/auth', authRoutes);
 
-    // Overlay-Daten — kein Auth nötig (werden von OBS gelesen)
+    // Overlay-Daten — kein Auth nötig (OBS liest diese)
     app.get('/overlay/leaderboard', (req, res) => {
         try {
             const { getLeaderboard } = require('../db/players');
@@ -55,26 +55,21 @@ function createServer() {
                     hasKappa:       p.has_kappa === 1
                 }))
             });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
+        } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
     app.get('/overlay/level/:username', (req, res) => {
         try {
-            const { getPlayer, getStashValue } = require('../db/players');
-            const { getLeveling }              = require('../db/config');
-            const { calcXPForLevel, getRankName, formatCurrency } = require('../utils/format');
-
-            const player   = getPlayer(req.params.username);
+            const { getPlayer, getStashValue }             = require('../db/players');
+            const { getLeveling }                          = require('../db/config');
+            const { calcXPForLevel, getRankName }          = require('../utils/format');
+            const player = getPlayer(req.params.username);
             if (!player) return res.status(404).json({ error: 'Player not found' });
-
             const leveling = getLeveling();
             const xpForCur = calcXPForLevel(player.level, leveling);
             const xpForNxt = calcXPForLevel(player.level + 1, leveling);
             const xpInLvl  = Math.max(0, player.xp - xpForCur);
             const xpNeeded = Math.max(1, xpForNxt - xpForCur);
-
             res.json({
                 timestamp:    Date.now(),
                 user:         player.username,
@@ -90,16 +85,14 @@ function createServer() {
                 raidsSurvived:player.raids_survived,
                 raidsDied:    player.raids_died
             });
-        } catch (err) {
-            res.status(500).json({ error: err.message });
-        }
+        } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    // ─── Protected Routes (Auth required) ────────────────────────────────────
-    app.use('/api/config',  auth, configRoutes);
-    app.use('/api/items',   auth, itemsRoutes);
-    app.use('/api/players', auth, playersRoutes);
-    app.use('/api/events',  auth, eventsRoutes);
+    // ─── Protected Routes (Session required) ─────────────────────────────────
+    app.use('/api/config',  sessionAuth, configRoutes);
+    app.use('/api/items',   sessionAuth, itemsRoutes);
+    app.use('/api/players', sessionAuth, playersRoutes);
+    app.use('/api/events',  sessionAuth, eventsRoutes);
 
     return app;
 }
@@ -107,12 +100,9 @@ function createServer() {
 function startServer() {
     const app  = createServer();
     const port = process.env.PORT || 3000;
-
     app.listen(port, () => {
         console.log(`[API] Server läuft auf http://localhost:${port}`);
-        console.log(`[API] Health: http://localhost:${port}/health`);
     });
-
     return app;
 }
 
