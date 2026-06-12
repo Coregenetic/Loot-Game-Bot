@@ -1,0 +1,29 @@
+app = "lootgamebot"
+primary_region = "fra"  # Frankfurt — nah an euch
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "3000"
+
+[http_service]
+  internal_port       = 3000
+  force_https         = true
+  auto_stop_machines  = false   # Bot läuft IMMER — nie einschlafen
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"
+
+[mounts]
+  source      = "lootgame_data"
+  destination = "/app/data"

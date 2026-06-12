@@ -2,7 +2,9 @@ const initSqlJs = require('sql.js');
 const path = require('path');
 const fs   = require('fs');
 
-const DB_PATH = path.join(__dirname, '../../data/lootgame.db');
+const DB_PATH = process.env.NODE_ENV === 'production'
+    ? '/app/data/lootgame.db'
+    : path.join(__dirname, '../../data/lootgame.db');
 
 let db = null;
 
