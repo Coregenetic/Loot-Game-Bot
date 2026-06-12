@@ -173,3 +173,21 @@ async function initDashboardUsers() {
 }
 
 module.exports.initDashboardUsers = initDashboardUsers;
+
+// ─── Messages Schema ──────────────────────────────────────────────────────────
+async function initMessages() {
+    const db = await getDb();
+    db.run(`
+        CREATE TABLE IF NOT EXISTS messages (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            type     TEXT NOT NULL,  -- 'exfil' oder 'death'
+            map      TEXT NOT NULL DEFAULT 'Default',
+            text     TEXT NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_messages_type_map ON messages(type, map);
+    `);
+    saveDb();
+}
+
+module.exports.initMessages = initMessages;

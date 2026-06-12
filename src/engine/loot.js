@@ -1,5 +1,6 @@
 const { getItemsForMap } = require('../db/items');
 const { getGeneral, getMaps, getActiveEvents, getLeveling } = require('../db/config');
+const { getRandomMessage } = require('../db/messages');
 const { formatCurrency, calcLevelFromXP, calcXPForLevel, getRankName } = require('../utils/format');
 
 // ─── Map Emojis ───────────────────────────────────────────────────────────────
@@ -104,7 +105,8 @@ function formatInfiltrationMsg(user, map) {
 
 function formatLootMsg(user, loot, hasKappa = false) {
     const kappaTag = hasKappa ? ' 🧳' : '';
-    const emoji    = getMapEmoji(loot[0].map);
+    const map      = loot[0].map;
+    const emoji    = getMapEmoji(map);
 
     if (loot.length > 1) {
         const v1 = formatCurrency(loot[0].item.value);
@@ -112,20 +114,40 @@ function formatLootMsg(user, loot, hasKappa = false) {
         return `${emoji} 🔥 DOPPEL-LOOT! @${user}${kappaTag} entkommt mit ${loot[0].item.text} [${v1}] & ${loot[1].item.text} [${v2}]!`;
     }
 
-    return `${emoji} @${user}${kappaTag} entkommt mit ${loot[0].item.text} [${formatCurrency(loot[0].item.value)}]!`;
+    const item       = loot[0].item;
+    const itemName   = item.text || item.name;
+    const itemValue  = formatCurrency(item.value);
+
+    // Exfil-Nachricht aus DB laden
+    const template = getRandomMessage('exfil', map);
+    if (template) {
+        const msg = template
+            .replace(/{user}/g, `@${user}${kappaTag}`)
+            .replace(/@{user}/g, `@${user}${kappaTag}`)
+            .replace(/{itemName}/g, `${itemName} [${itemValue}]`);
+        return `${emoji} ${msg}`;
+    }
+
+    // Fallback
+    return `${emoji} @${user}${kappaTag} entkommt mit ${itemName} [${itemValue}]!`;
 }
 
 function formatDeathMsg(user, map) {
     const emoji = getMapEmoji(map);
-    const msgs  = [
+
+    // Tod-Nachricht aus DB laden
+    const msg = getRandomMessage('death', map);
+    if (msg) {
+        return `${emoji} 💀 @${user} ${msg}`;
+    }
+
+    // Fallback
+    const fallbacks = [
         `ist auf ${map} verreckt. Pech gehabt, Timmy.`,
         `wurde auf ${map} ausgelöscht. GG.`,
-        `hat ${map} nicht überlebt. Typisch.`,
-        `ist auf ${map} gestorben wie ein Anfänger.`,
-        `liegt jetzt irgendwo auf ${map}. Schande.`
+        `hat ${map} nicht überlebt. Typisch.`
     ];
-    const msg = msgs[Math.floor(Math.random() * msgs.length)];
-    return `${emoji} 💀 @${user} ${msg}`;
+    return `${emoji} 💀 @${user} ${fallbacks[Math.floor(Math.random() * fallbacks.length)]}`;
 }
 
 module.exports = {

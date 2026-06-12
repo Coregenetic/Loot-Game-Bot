@@ -1,5 +1,6 @@
 const express    = require('express');
 const path       = require('path');
+const messagesRoutes = require('./routes/messages');
 const sessionAuth   = require('./middleware/session');
 const authRoutes    = require('./routes/auth');
 const configRoutes  = require('./routes/config');
@@ -88,11 +89,35 @@ function createServer() {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
+    // ─── Admin Routes ─────────────────────────────────────────────────────────
+    app.delete('/api/admin/cooldowns', sessionAuth, (req, res) => {
+        try {
+            const { run } = require('../db/schema');
+            run('DELETE FROM cooldowns');
+            res.json({ success: true, message: 'Alle Cooldowns gelöscht' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    app.delete('/api/admin/cooldowns/:username', sessionAuth, (req, res) => {
+        try {
+            const { run, get } = require('../db/schema');
+            const player = get('SELECT id FROM players WHERE lower(username) = lower(?)', [req.params.username]);
+            if (!player) return res.status(404).json({ error: 'Player not found' });
+            run('DELETE FROM cooldowns WHERE player_id = ?', [player.id]);
+            res.json({ success: true, username: req.params.username });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
     // ─── Protected Routes (Session required) ─────────────────────────────────
-    app.use('/api/config',  sessionAuth, configRoutes);
-    app.use('/api/items',   sessionAuth, itemsRoutes);
-    app.use('/api/players', sessionAuth, playersRoutes);
-    app.use('/api/events',  sessionAuth, eventsRoutes);
+    app.use('/api/config',   sessionAuth, configRoutes);
+    app.use('/api/items',    sessionAuth, itemsRoutes);
+    app.use('/api/players',  sessionAuth, playersRoutes);
+    app.use('/api/events',   sessionAuth, eventsRoutes);
+    app.use('/api/messages', sessionAuth, messagesRoutes);
 
     return app;
 }

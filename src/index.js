@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { initSchema, initDashboardUsers } = require('./db/schema');
+const { initSchema, initDashboardUsers, initMessages } = require('./db/schema');
 const { getUserCount } = require('./db/users');
 const { createBot }   = require('./bot');
 const { startServer } = require('./api/server');
@@ -15,6 +15,7 @@ async function main() {
     console.log('[BOOT] Initialisiere Datenbank...');
     await initSchema();
     await initDashboardUsers();
+    await initMessages();
     console.log('[BOOT] Datenbank bereit.');
 
     // Warnung wenn noch keine User angelegt sind
