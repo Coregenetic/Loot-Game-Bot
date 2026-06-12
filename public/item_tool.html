@@ -475,7 +475,7 @@
         });
 
         window.onload = async () => {
-            if (LootGameAPI.isConfigured()) {
+            if (LootGameAPI.isLoggedIn()) {
                 try {
                     const apiItems = await LootGameAPI.items.getAll();
                     if (apiItems && Object.keys(apiItems).length) {
@@ -507,7 +507,7 @@
             localStorage.setItem('tarkov_loot_game_items', jsonStr);
 
             // API sync
-            if (LootGameAPI.isConfigured()) {
+            if (LootGameAPI.isLoggedIn()) {
                 try {
                     const items = JSON.parse(jsonStr);
                     // Nur geänderte Items senden — wir senden alle auf einmal

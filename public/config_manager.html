@@ -737,7 +737,7 @@
 
         window.onload = async () => {
             // API verfügbar? → von Bot laden
-            if (LootGameAPI.isConfigured()) {
+            if (LootGameAPI.isLoggedIn()) {
                 try {
                     const apiConfig = await LootGameAPI.config.getAll();
                     if (apiConfig && Object.keys(apiConfig).length) {
@@ -793,7 +793,7 @@
             if(output) output.value = JSON.stringify(currentConfig, null, 2);
 
             // API sync — wenn Bot verbunden
-            if (LootGameAPI.isConfigured()) {
+            if (LootGameAPI.isLoggedIn()) {
                 Promise.all(
                     Object.entries(currentConfig).map(([section, value]) =>
                         LootGameAPI.config.setSection(section, value).catch(() => null)
