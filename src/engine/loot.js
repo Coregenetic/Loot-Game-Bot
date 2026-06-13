@@ -122,7 +122,7 @@ function formatLootMsg(user, loot, hasKappa = false) {
     const template = getRandomMessage('exfil', map);
     if (template) {
         const msg = template
-            .replace(/{user}/g, `@${user}${kappaTag}`)
+            .replace(/{user}/g, `${user}${kappaTag}`)
             .replace(/@{user}/g, `@${user}${kappaTag}`)
             .replace(/{itemName}/g, `${itemName} [${itemValue}]`);
         return `${emoji} ${msg}`;
