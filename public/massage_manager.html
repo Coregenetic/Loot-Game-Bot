@@ -633,8 +633,8 @@
                 return;
             }
 
-            const choice  = confirm('Welchen Typ senden?\nOK = Exfil-Nachrichten\nAbbrechen = Tod-Nachrichten');
-            const msgType = choice ? 'exfil' : 'death';
+            const choice  = confirm('Welchen Typ senden?\nOK = Map-Nachrichten (Loot-Ergebnis)\nAbbrechen = Tod-Nachrichten');
+            const msgType = choice ? 'map' : 'death';
 
             try {
                 const token = LootGameAPI.getToken();
@@ -645,7 +645,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('✓ ' + (choice ? 'Exfil' : 'Tod') + '-Nachrichten an Bot gesendet!');
+                    alert('✓ ' + (choice ? 'Map' : 'Tod') + '-Nachrichten an Bot gesendet!');
                 } else {
                     alert('Fehler: ' + (data.error || 'Unbekannt'));
                 }

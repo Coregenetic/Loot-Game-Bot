@@ -89,23 +89,22 @@ async function handler({ client, channel, user }) {
             const newLevel = calcLevelFromXP(newXP, leveling);
 
             updatePlayer(user, {
-                xp:             newXP,
-                level:          newLevel,
+                xp:             Math.max(0, newXP || 0),
+                level:          Math.max(1, newLevel || 1),
                 raids_total:    raidsTotal,
                 raids_survived: raidsSurvived,
                 raids_died:     raidsDied
             });
 
-            // Loot-Nachricht
-            client.say(channel, formatLootMsg(user, loot, player.has_kappa === 1));
-
-            // Level-Up?
+            // Loot-Nachricht + XP
+            let lootMsg = formatLootMsg(user, loot, player.has_kappa === 1);
             if (newLevel > oldLevel) {
                 const rankName = getRankName(newLevel, leveling.Ranks);
-                client.say(channel,
-                    `⬆️ @${user} ist jetzt Level ${newLevel} — ${rankName}! (+${xpGain} XP)`
-                );
+                lootMsg += ` 🎉 LEVEL UP! @${user} ist nun Level ${newLevel} — ${rankName}!`;
+            } else {
+                lootMsg += ` ✨ (+${xpGain} XP)`;
             }
+            client.say(channel, lootMsg);
         } catch (err) {
             console.error(`[LOOT] Fehler im Exfil-Timer für ${user}:`, err.message);
             client.say(channel, `❌ @${user}, beim Exfil ist etwas schiefgelaufen!`);

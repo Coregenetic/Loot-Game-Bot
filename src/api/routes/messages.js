@@ -11,12 +11,12 @@ router.get('/', (req, res) => {
     }
 });
 
-// PUT /api/messages/:type — exfil oder death
+// PUT /api/messages/:type — exfil, death oder map
 router.put('/:type', (req, res) => {
     try {
         const type = req.params.type;
-        if (!['exfil', 'death'].includes(type)) {
-            return res.status(400).json({ error: 'Type muss exfil oder death sein' });
+        if (!['exfil', 'death', 'map'].includes(type)) {
+            return res.status(400).json({ error: 'Type muss exfil, death oder map sein' });
         }
         setMessages(type, req.body);
         res.json({ success: true, type });

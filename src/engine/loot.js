@@ -111,21 +111,22 @@ function formatLootMsg(user, loot, hasKappa = false) {
     if (loot.length > 1) {
         const v1 = formatCurrency(loot[0].item.value);
         const v2 = formatCurrency(loot[1].item.value);
-        return `${emoji} 🔥 DOPPEL-LOOT! @${user}${kappaTag} entkommt mit ${loot[0].item.text} [${v1}] & ${loot[1].item.text} [${v2}]!`;
+        return `${emoji} 🔥 DOPPEL-LOOT! @${user}${kappaTag} entkommt von ${map} mit ${loot[0].item.text} [${v1}] & ${loot[1].item.text} [${v2}]!`;
     }
 
-    const item       = loot[0].item;
-    const itemName   = item.text || item.name;
-    const itemValue  = formatCurrency(item.value);
+    const item      = loot[0].item;
+    const itemName  = item.text || item.name;
+    const itemValue = formatCurrency(item.value);
 
-    // Exfil-Nachricht aus DB laden
-    const template = getRandomMessage('exfil', map);
+    // Map-Nachricht aus DB laden (map_massages)
+    const template = getRandomMessage('map', map);
     if (template) {
         const msg = template
-            .replace(/{user}/g, `${user}${kappaTag}`)
-            .replace(/@{user}/g, `@${user}${kappaTag}`)
-            .replace(/{itemName}/g, `${itemName} [${itemValue}]`);
-        return `${emoji} ${msg}`;
+            .replace(/{user}/g,    `@${user}${kappaTag}`)
+            .replace(/@{user}/g,   `@${user}${kappaTag}`)
+            .replace(/{itemName}/g, `${itemName}`)
+            .replace(/{mapName}/g,  map);
+        return `${emoji} @${user}${kappaTag} ${msg} [${itemValue}]`;
     }
 
     // Fallback
