@@ -48,61 +48,67 @@ async function handler({ client, channel, user }) {
 
     // Nach Exfil-Zeit: überleben oder sterben
     setTimeout(async () => {
-        const survivalChance = general.SurvivalChance || 0.75;
-        const survived = Math.random() <= survivalChance;
+        try {
+            const survivalChance = general.SurvivalChance || 0.75;
+            const survived = Math.random() <= survivalChance;
 
-        // Raid-Stats aktualisieren
-        const raidsTotal    = (player.raids_total    || 0) + 1;
-        const raidsSurvived = (player.raids_survived  || 0) + (survived ? 1 : 0);
-        const raidsDied     = (player.raids_died      || 0) + (survived ? 0 : 1);
+            // Raid-Stats aktualisieren
+            const raidsTotal    = (player.raids_total    || 0) + 1;
+            const raidsSurvived = (player.raids_survived  || 0) + (survived ? 1 : 0);
+            const raidsDied     = (player.raids_died      || 0) + (survived ? 0 : 1);
 
-        if (!survived) {
-            updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
-            client.say(channel, formatDeathMsg(user, map));
-            return;
-        }
+            if (!survived) {
+                updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
+                client.say(channel, formatDeathMsg(user, map));
+                return;
+            }
 
-        // Items ins Inventar
-        for (const { item } of loot) {
-            addOrUpdateInventoryItem(player.id, item.text, 1, item.value);
-        }
+            // Items ins Inventar
+            for (const { item } of loot) {
+                const itemName = item.text || item.name || 'Unbekanntes Item';
+                addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0);
+            }
 
-        // XP berechnen
-        const events      = getActiveEvents();
-        const now         = Math.floor(Date.now() / 1000);
-        const leveling    = getLeveling();
-        let xpMultiplier  = 1;
+            // XP berechnen
+            const events      = getActiveEvents();
+            const now         = Math.floor(Date.now() / 1000);
+            const leveling    = getLeveling();
+            let xpMultiplier  = 1;
 
-        if (events.XPBoost && events.XPBoost.Multiplier > 1 &&
-            events.XPBoost.ExpiresAt > now) {
-            xpMultiplier = events.XPBoost.Multiplier;
-        }
+            if (events.XPBoost && events.XPBoost.Multiplier > 1 &&
+                events.XPBoost.ExpiresAt > now) {
+                xpMultiplier = events.XPBoost.Multiplier;
+            }
 
-        const totalItemValue = loot.reduce((sum, { item }) => sum + item.value, 0);
-        const xpGain = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
-        const newXP  = (player.xp || 0) + xpGain;
+            const totalItemValue = loot.reduce((sum, { item }) => sum + (item.value || 0), 0);
+            const xpGain = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
+            const newXP  = (player.xp || 0) + xpGain;
 
-        // Level berechnen
-        const oldLevel = player.level || 1;
-        const newLevel = calcLevelFromXP(newXP, leveling);
+            // Level berechnen
+            const oldLevel = player.level || 1;
+            const newLevel = calcLevelFromXP(newXP, leveling);
 
-        updatePlayer(user, {
-            xp:            newXP,
-            level:         newLevel,
-            raids_total:   raidsTotal,
-            raids_survived: raidsSurvived,
-            raids_died:    raidsDied
-        });
+            updatePlayer(user, {
+                xp:             newXP,
+                level:          newLevel,
+                raids_total:    raidsTotal,
+                raids_survived: raidsSurvived,
+                raids_died:     raidsDied
+            });
 
-        // Loot-Nachricht
-        client.say(channel, formatLootMsg(user, loot, player.has_kappa === 1));
+            // Loot-Nachricht
+            client.say(channel, formatLootMsg(user, loot, player.has_kappa === 1));
 
-        // Level-Up?
-        if (newLevel > oldLevel) {
-            const rankName = getRankName(newLevel, leveling.Ranks);
-            client.say(channel,
-                `⬆️ @${user} ist jetzt Level ${newLevel} — ${rankName}! (+${xpGain} XP)`
-            );
+            // Level-Up?
+            if (newLevel > oldLevel) {
+                const rankName = getRankName(newLevel, leveling.Ranks);
+                client.say(channel,
+                    `⬆️ @${user} ist jetzt Level ${newLevel} — ${rankName}! (+${xpGain} XP)`
+                );
+            }
+        } catch (err) {
+            console.error(`[LOOT] Fehler im Exfil-Timer für ${user}:`, err.message);
+            client.say(channel, `❌ @${user}, beim Exfil ist etwas schiefgelaufen!`);
         }
 
     }, exfilTime * 1000);
