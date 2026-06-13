@@ -107,7 +107,8 @@ async function main() {
             General: {
                 CooldownSeconds: 600, CooldownMessageDelaySeconds: 300,
                 DoubleLootChance: 0.03, KappaDoubleLootBonus: 0.10,
-                MinExfilSeconds: 5, MaxExfilSeconds: 15, SurvivalChance: 0.75
+                MinExfilSeconds: 5, MaxExfilSeconds: 15, SurvivalChance: 0.75,
+                XPDivisor: 1000
             },
             Maps: {
                 Customs: 10, Factory: 8, "Ground Zero": 9, Interchange: 10,

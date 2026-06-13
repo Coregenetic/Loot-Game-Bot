@@ -421,6 +421,19 @@
                                 <button onclick="quickAdjustInput('slider_SurvivalChance', 1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50">+</button>
                             </div>
                         </div>
+
+                        <!-- XP Divisor -->
+                        <div class="setting-block">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="font-mono text-[9px] uppercase text-zinc-500 cursor-help">XP Divisor <span class="tooltip-icon">?</span><div class="tooltip-text">Teilt den Rubelwert durch diesen Wert um die XP zu berechnen. Kleiner = mehr XP. (Standard: 1000)</div></label>
+                                <span id="lbl_XPDivisor" class="font-mono text-base text-blue-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-blue-500/20">1000</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="quickAdjustInput('slider_XPDivisor', -1, 100, 10000)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50">-</button>
+                                <input type="range" id="slider_XPDivisor" min="100" max="10000" value="1000" step="100" class="tarkov-slider m-0" style="--slider-color:#60a5fa" oninput="updateSliders()">
+                                <button onclick="quickAdjustInput('slider_XPDivisor', 1, 100, 10000)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50">+</button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Number Inputs with +/- -->
@@ -1026,6 +1039,15 @@
                     updateSliderFill(sliderSrv, '#10b981'); 
                 }
 
+                const xpDiv = currentConfig.General?.XPDivisor || 1000;
+                const sliderXPD = document.getElementById('slider_XPDivisor');
+                if(sliderXPD) {
+                    sliderXPD.value = xpDiv;
+                    const lblXPD = document.getElementById('lbl_XPDivisor');
+                    if(lblXPD) lblXPD.textContent = xpDiv;
+                    updateSliderFill(sliderXPD, '#60a5fa');
+                }
+
                 renderMapList();
                 renderRankList();
                 renderXpPreview();
@@ -1049,6 +1071,12 @@
                 const lblSrv = document.getElementById('lbl_SurvivalChance');
                 if(lblSrv) lblSrv.textContent = sliderSrv.value + "%";
                 updateSliderFill(sliderSrv, '#10b981');
+            }
+            const sliderXPD = document.getElementById('slider_XPDivisor');
+            if(sliderXPD) {
+                const lblXPD = document.getElementById('lbl_XPDivisor');
+                if(lblXPD) lblXPD.textContent = sliderXPD.value;
+                updateSliderFill(sliderXPD, '#60a5fa');
             }
             updateGeneralSettings();
         }
@@ -1075,6 +1103,8 @@
             
             if(sDbl) currentConfig.General.DoubleLootChance = parseFloat(sDbl.value) / 100;
             if(sSrv) currentConfig.General.SurvivalChance = parseFloat(sSrv.value) / 100;
+            const sXPD = document.getElementById('slider_XPDivisor');
+            if(sXPD) currentConfig.General.XPDivisor = parseInt(sXPD.value) || 1000;
 
             saveToLocalStorage();
         }

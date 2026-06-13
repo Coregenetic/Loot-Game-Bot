@@ -91,10 +91,12 @@ function generateLoot(hasKappa = false) {
 
 // ─── XP berechnen ────────────────────────────────────────────────────────────
 function calculateXPGain(itemValue, prestige = 0) {
-    const leveling = getLeveling();
-    const malus    = leveling.PrestigeXPMalus || 0.1;
-    const baseXP   = Math.max(10, Math.floor(itemValue / 5000));
-    const modifier = Math.max(0.1, 1 - (prestige * malus));
+    const leveling  = getLeveling();
+    const general   = getGeneral();
+    const malus     = leveling.PrestigeXPMalus || 0.1;
+    const divisor   = general.XPDivisor || 1000;
+    const baseXP    = Math.max(10, Math.floor(itemValue / divisor));
+    const modifier  = Math.max(0.1, 1 - (prestige * malus));
     return Math.floor(baseXP * modifier);
 }
 
