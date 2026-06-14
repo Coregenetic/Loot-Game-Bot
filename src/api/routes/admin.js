@@ -4,6 +4,38 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Command Control ──────────────────────────────────────────────────────────
+
+// GET /api/admin/commands — Status aller Commands
+router.get('/commands', (req, res) => {
+    try {
+        const bot = global.botInstance;
+        if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+        res.json(bot.getCommandStatus());
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/admin/commands/:cmd — Command ein/aus
+router.post('/commands/:cmd', (req, res) => {
+    try {
+        const { password } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        const bot = global.botInstance;
+        if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+
+        const cmd    = req.params.cmd.toLowerCase();
+        const active = req.body.active !== false;
+        bot.setCommandActive(cmd, active);
+
+        res.json({ success: true, cmd, active });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Channel Control ──────────────────────────────────────────────────────────
 
 // GET /api/admin/channels — Status aller Channels
