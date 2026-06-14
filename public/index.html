@@ -19,6 +19,25 @@
             850: '#141c27',
             950: '#0a0f16',
           }
+        },
+        animation: {
+          'float': 'float 15s ease-in-out infinite',
+          'float-reverse': 'float-reverse 18s ease-in-out infinite',
+          'grid-drift': 'drift 30s linear infinite',
+        },
+        keyframes: {
+          float: {
+            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+            '50%': { transform: 'translateY(-20px) scale(1.05)' },
+          },
+          'float-reverse': {
+            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+            '50%': { transform: 'translateY(20px) scale(0.95)' },
+          },
+          drift: {
+            '0%': { backgroundPosition: '0 0' },
+            '100%': { backgroundPosition: '50px 50px' },
+          }
         }
       }
     }
@@ -51,14 +70,24 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
+
+  /* Reveal Animation */
+  @keyframes revealTile {
+    0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(4px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  .animate-reveal {
+    opacity: 0;
+    animation: revealTile 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-300 selection:bg-emerald-500/30">
 
-<div class="bg-grid pointer-events-none"></div>
+<div class="bg-grid pointer-events-none animate-grid-drift"></div>
 <div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
-  <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-900/20 blur-[120px] rounded-full"></div>
-  <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full"></div>
+  <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-900/20 blur-[120px] rounded-full animate-float"></div>
+  <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 blur-[120px] rounded-full animate-float-reverse"></div>
 </div>
 
 <div class="flex-1 flex flex-col w-full max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 h-screen overflow-hidden min-h-0">
@@ -127,7 +156,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 flex-1 overflow-y-auto pr-2 pb-4">
       
       <!-- TILE 1: Items -->
-      <div onclick="go('item_tool.html')" class="group glass border border-slate-800/60 hover:border-emerald-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)] relative overflow-hidden">
+      <div onclick="go('item_tool.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-emerald-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)] relative overflow-hidden" style="animation-delay: 100ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">
@@ -157,7 +186,7 @@
       </div>
 
       <!-- TILE 2: Messages -->
-      <div onclick="go('massage_manager.html')" class="group glass border border-slate-800/60 hover:border-amber-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(245,158,11,0.1)] relative overflow-hidden">
+      <div onclick="go('massage_manager.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-amber-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(245,158,11,0.1)] relative overflow-hidden" style="animation-delay: 200ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">
@@ -186,7 +215,7 @@
       </div>
 
       <!-- TILE 3: Config -->
-      <div onclick="go('config_manager.html')" class="group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden">
+      <div onclick="go('config_manager.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden" style="animation-delay: 300ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">
@@ -216,7 +245,7 @@
       </div>
 
       <!-- TILE 4: Simulator -->
-      <div onclick="go('loot_simulator.html')" class="group glass border border-slate-800/60 hover:border-purple-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(168,85,247,0.1)] relative overflow-hidden">
+      <div onclick="go('loot_simulator.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-purple-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(168,85,247,0.1)] relative overflow-hidden" style="animation-delay: 400ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-purple-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">
@@ -245,7 +274,7 @@
       </div>
 
       <!-- TILE 5: Admin Panel -->
-      <div onclick="go('admin.html')" class="group glass border border-slate-800/60 hover:border-teal-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(20,184,166,0.1)] relative overflow-hidden">
+      <div onclick="go('admin.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-teal-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(20,184,166,0.1)] relative overflow-hidden" style="animation-delay: 500ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-teal-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">
@@ -275,7 +304,7 @@
       </div>
 
       <!-- TILE 6: Server Control -->
-      <div onclick="go('admin.html')" class="group glass border border-slate-800/60 hover:border-rose-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(244,63,94,0.1)] relative overflow-hidden">
+      <div onclick="go('admin.html')" class="animate-reveal group glass border border-slate-800/60 hover:border-rose-500/50 rounded-2xl p-5 sm:p-6 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(244,63,94,0.1)] relative overflow-hidden" style="animation-delay: 600ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-rose-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         
         <div class="flex justify-between items-start mb-4">

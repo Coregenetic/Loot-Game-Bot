@@ -16,6 +16,25 @@
         },
         colors: {
           slate: { 850: '#141c27', 950: '#0a0f16' }
+        },
+        animation: {
+          'float': 'float 15s ease-in-out infinite',
+          'float-reverse': 'float-reverse 18s ease-in-out infinite',
+          'grid-drift': 'drift 30s linear infinite',
+        },
+        keyframes: {
+          float: {
+            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+            '50%': { transform: 'translateY(-20px) scale(1.05)' },
+          },
+          'float-reverse': {
+            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+            '50%': { transform: 'translateY(20px) scale(0.95)' },
+          },
+          drift: {
+            '0%': { backgroundPosition: '0 0' },
+            '100%': { backgroundPosition: '50px 50px' },
+          }
         }
       }
     }
@@ -59,12 +78,12 @@
   input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden text-slate-300 selection:bg-emerald-500/30">
+<body class="flex flex-col min-h-screen text-slate-300 selection:bg-emerald-500/30">
 
-<div class="bg-grid pointer-events-none"></div>
+<div class="bg-grid pointer-events-none animate-grid-drift"></div>
 <div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
-  <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 blur-[100px] rounded-full"></div>
-  <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full"></div>
+  <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 blur-[100px] rounded-full animate-float"></div>
+  <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full animate-float-reverse"></div>
 </div>
 
 <!-- TOP BAR -->
@@ -303,53 +322,53 @@
             <div class="flex gap-3">
               <button class="flex-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setDoubleLoot()">AKTIVIEREN</button>
               <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('doubleloot')">STOP</button>
-            </div>
-          </div>
-
-          <!-- XP Boost -->
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-xs font-mono tracking-widest text-purple-400 uppercase mb-4 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              XP BOOST
-            </h3>
-            <div class="space-y-3 mb-5">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostMult" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostDur" placeholder="Dauer (Min)" value="30">
-            </div>
-            <div class="flex gap-3">
-              <button class="flex-1 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setXPBoost()">AKTIVIEREN</button>
-              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('xpboost')">STOP</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- USERS TAB -->
-    <div id="tab-users" class="max-w-5xl w-full mx-auto hidden h-full">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pb-4">
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="max-w-7xl w-full mx-auto space-y-6 hidden">
+      <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-white tracking-widest uppercase mb-2">Dashboard</h1>
         
-        <div class="glass-card border border-slate-700/50 rounded-2xl flex flex-col overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">DASHBOARD USERS</div>
-          <div class="flex-1 overflow-y-auto p-2" id="userList">
-            <!-- Users injected here -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        
+        <!-- Player Card -->
+        <div class="glass-card border border-emerald-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <svg class="absolute bottom-0 left-0 w-full h-1/2 opacity-30 z-0 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 30" id="spark-players"></svg>
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500 group-hover:scale-110 transition-transform z-10"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+          <div class="relative z-10">
+            <div class="text-[10px] font-mono text-emerald-500 tracking-[0.1em] uppercase mb-1">Spieler Total</div>
+            <div class="text-4xl font-bold text-white tracking-tight" id="stat-players">—</div>
+            <div class="text-xs text-slate-400 mt-2">registrierte Accounts</div>
           </div>
         </div>
 
-        <div class="glass-card border border-slate-700/50 rounded-2xl h-fit">
-          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">NEUEN USER ANLEGEN</div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
-              <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername">
-            </div>
-            <div>
-              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
-              <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 6 Zeichen">
-            </div>
-            <div id="userMsg" class="text-xs hidden"></div>
-            <button class="w-full px-4 py-2.5 mt-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]" onclick="createUser()">USER ANLEGEN</button>
+        <!-- Items Card -->
+        <div class="glass-card border border-blue-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <svg class="absolute bottom-0 left-0 w-full h-1/2 opacity-30 z-0 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 30" id="spark-items"></svg>
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 group-hover:scale-110 transition-transform z-10"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+          <div class="relative z-10">
+            <div class="text-[10px] font-mono text-blue-500 tracking-[0.1em] uppercase mb-1">Items in Pool</div>
+            <div class="text-4xl font-bold text-white tracking-tight" id="stat-items">—</div>
+            <div class="text-xs text-slate-400 mt-2">lootbare Items</div>
+          </div>
+        </div>
+
+        <!-- Cooldowns Card -->
+        <div class="glass-card border border-amber-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <svg class="absolute bottom-0 left-0 w-full h-1/2 opacity-30 z-0 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 30" id="spark-cooldowns"></svg>
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-amber-500 group-hover:scale-110 transition-transform z-10"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="relative z-10">
+            <div class="text-[10px] font-mono text-amber-500 tracking-[0.1em] uppercase mb-1">Aktive Cooldowns</div>
+            <div class="text-4xl font-bold text-white tracking-tight" id="stat-cooldowns">—</div>
+            <div class="text-xs text-slate-400 mt-2">Spieler im CD</div>
+          </div>
+        </div>
+
+        <!-- Messages Card -->
+        <div class="glass-card border border-purple-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <svg class="absolute bottom-0 left-0 w-full h-1/2 opacity-30 z-0 pointer-events-none" preserveAspectRatio="none" viewBox="0 0 100 30" id="spark-messages"></svg>
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-purple-500 group-hover:scale-110 transition-transform z-10"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+          <div class="relative z-10">
+            <div class="text-[10px] font-mono text-purple-500 tracking-[0.1em] uppercase mb-1">Messages</div>
+            <div class="text-4xl font-bold text-white tracking-tight" id="stat-messages">—</div>
+            <div class="text-xs text-slate-400 mt-2">Chat-Nachrichten</div>
           </div>
         </div>
 
@@ -940,6 +959,46 @@ async function serverAction(action) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 showTab('dashboard'); // Initialisiert den aktiven Tab optisch korrekt beim Laden
+
+// ─── Sparkline Animation (Live Charts) ────────────────────────────────────────
+function initSparklines() {
+  const configs = [
+    { id: 'spark-players', color: 'rgba(16, 185, 129, 0.1)', stroke: 'rgba(16, 185, 129, 0.4)' },
+    { id: 'spark-items', color: 'rgba(59, 130, 246, 0.1)', stroke: 'rgba(59, 130, 246, 0.4)' },
+    { id: 'spark-cooldowns', color: 'rgba(245, 158, 11, 0.1)', stroke: 'rgba(245, 158, 11, 0.4)' },
+    { id: 'spark-messages', color: 'rgba(168, 85, 247, 0.1)', stroke: 'rgba(168, 85, 247, 0.4)' }
+  ];
+
+  configs.forEach(cfg => {
+    const el = document.getElementById(cfg.id);
+    if (!el) return;
+    
+    // Initial random data
+    let data = Array.from({length: 10}, () => Math.random() * 20 + 5);
+    
+    function drawPath() {
+      let path = `M 0 30 L 0 ${30 - data[0]} `;
+      for(let i=1; i<data.length; i++) {
+        let x = i * 11.11; // 100 / 9 segments
+        let y = 30 - data[i];
+        path += `L ${x} ${y} `;
+      }
+      path += `L 100 30 Z`;
+      el.innerHTML = `<path d="${path}" fill="${cfg.color}" stroke="${cfg.stroke}" stroke-width="1.5" vector-effect="non-scaling-stroke" style="transition: d 1.5s ease-in-out;"></path>`;
+    }
+    
+    drawPath();
+    
+    // Update every 2.5 seconds
+    setInterval(() => {
+      data.shift();
+      data.push(Math.random() * 20 + 5);
+      drawPath();
+    }, 2500);
+  });
+}
+initSparklines();
+
 </script>
 </body>
 </html>
