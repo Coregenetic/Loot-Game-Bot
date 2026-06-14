@@ -927,6 +927,9 @@
                     const item = currentJson[key];
                     const numValue = parseCurrencyToNumber(item.value);
                     const tier = getLootTier(numValue);
+                    const safeKey = key.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const displayKey = key.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const displayText = (item.text || 'KEINE BESCHREIBUNG').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
                     const div = document.createElement('div');
                     div.className = `${tier.class} cursor-pointer bg-[#09090b] border border-zinc-800 rounded p-4 relative group transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-full hover:shadow-[0_0_15px_var(--item-color)] overflow-hidden`;
@@ -959,19 +962,19 @@
                                     <div class="bg-[#050505] rounded p-1.5 border border-zinc-800 shrink-0">
                                         <img src="${imgUrl}" class="w-10 h-10 object-contain drop-shadow-sm">
                                     </div>
-                                    <h4 class="font-tactical text-base xl:text-lg font-bold text-zinc-100 leading-tight group-hover:text-emerald-400 transition-colors line-clamp-2" title="${key}">${key}</h4>
+                                    <h4 class="font-tactical text-base xl:text-lg font-bold text-zinc-100 leading-tight group-hover:text-emerald-400 transition-colors line-clamp-2" title="${displayKey}">${displayKey}</h4>
                                 </div>
                                 
                                 <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-[#050505] p-1 rounded border border-zinc-800 z-10 shadow-md">
-                                    <button onclick="duplicateItem('${key}'); event.stopPropagation();" class="text-zinc-500 hover:text-blue-400 transition-colors p-1.5" title="Duplizieren">
+                                    <button onclick="duplicateItem('${safeKey}'); event.stopPropagation();" class="text-zinc-500 hover:text-blue-400 transition-colors p-1.5" title="Duplizieren">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                                     </button>
-                                    <button onclick="deleteItem('${key}'); event.stopPropagation();" class="text-zinc-500 hover:text-red-400 transition-colors p-1.5" title="Löschen">
+                                    <button onclick="deleteItem('${safeKey}'); event.stopPropagation();" class="text-zinc-500 hover:text-red-400 transition-colors p-1.5" title="Löschen">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-[11px] font-mono text-zinc-400 mb-3 pl-1 line-clamp-2" title="${item.text || ''}">> ${item.text || 'KEINE BESCHREIBUNG'}</p>
+                            <p class="text-[11px] font-mono text-zinc-400 mb-3 pl-1 line-clamp-2" title="${displayText}">> ${displayText}</p>
                         </div>
                         <div class="flex justify-between items-end mt-auto pt-3 border-t border-zinc-800/80 pl-1">
                             <div class="flex flex-wrap gap-1.5 max-w-[60%]">
