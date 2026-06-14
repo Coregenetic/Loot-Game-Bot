@@ -1,116 +1,180 @@
-const { getOrCreatePlayer, updatePlayer, addOrUpdateInventoryItem,
-        isOnCooldown, setCooldown, getRemainingCooldown } = require('../db/players');
-const { getGeneral, getActiveEvents, getLeveling } = require('../db/config');
-const { generateLoot, calculateXPGain,
-        formatInfiltrationMsg, formatLootMsg, formatDeathMsg } = require('../engine/loot');
-const { calcLevelFromXP, calcXPForLevel, getRankName, formatDuration } = require('../utils/format');
+const { getItemsForMap } = require('../db/items');
+const { getGeneral, getMaps, getActiveEvents, getLeveling } = require('../db/config');
+const { getRandomMessage } = require('../db/messages');
+const { formatCurrency, calcLevelFromXP, calcXPForLevel, getRankName } = require('../utils/format');
 
-const COMMAND = '!loot';
+// ─── Map Emojis ───────────────────────────────────────────────────────────────
+const MAP_EMOJIS = {
+    'Customs':       '🏭',
+    'Factory':       '🔧',
+    'Ground Zero':   '💥',
+    'Interchange':   '🏬',
+    'Icebreaker':    '🧊',
+    'Lighthouse':    '🔦',
+    'Reserve':       '🪖',
+    'Shoreline':     '🌊',
+    'Streets':       '🌆',
+    'Lab':           '🔬',
+    'Woods':         '🌲',
+    'The Labyrinth': '🌀'
+};
 
-async function handler({ client, channel, user }) {
-    const general  = getGeneral();
-    const cooldown = general.CooldownSeconds || 600;
-
-    // Spieler laden / anlegen
-    const player = await getOrCreatePlayer(user);
-
-    // Cooldown prüfen
-    const remaining = getRemainingCooldown(player.id, 'loot');
-    if (remaining > 0) {
-        const delay = general.CooldownMessageDelaySeconds || 0;
-        setTimeout(() => {
-            client.say(channel,
-                `⏳ @${user}, du bist noch im Cooldown! Warte noch ${formatDuration(remaining)}.`
-            );
-        }, delay * 1000);
-        return;
-    }
-
-    // Cooldown setzen
-    setCooldown(player.id, 'loot', cooldown);
-
-    // Loot generieren
-    const loot = generateLoot(player.has_kappa === 1);
-    if (!loot) {
-        client.say(channel, `⚠️ @${user}, keine Items in der Datenbank gefunden.`);
-        return;
-    }
-
-    const map = loot[0].map;
-
-    // Erste Nachricht — nur Infiltration
-    client.say(channel, formatInfiltrationMsg(user, map));
-
-    // Exfil-Zeit berechnen
-    const minExfil = general.MinExfilSeconds || 5;
-    const maxExfil = general.MaxExfilSeconds || 15;
-    const exfilTime = Math.floor(Math.random() * (maxExfil - minExfil + 1)) + minExfil;
-
-    // Nach Exfil-Zeit: überleben oder sterben
-    setTimeout(async () => {
-        try {
-            const survivalChance = general.SurvivalChance || 0.75;
-            const survived = Math.random() <= survivalChance;
-
-            // Raid-Stats aktualisieren
-            const raidsTotal    = (player.raids_total    || 0) + 1;
-            const raidsSurvived = (player.raids_survived  || 0) + (survived ? 1 : 0);
-            const raidsDied     = (player.raids_died      || 0) + (survived ? 0 : 1);
-
-            if (!survived) {
-                updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
-                client.say(channel, formatDeathMsg(user, map));
-                return;
-            }
-
-            // Items ins Inventar
-            for (const { item } of loot) {
-                const itemName = item.text || item.name || 'Unbekanntes Item';
-                addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0);
-            }
-
-            // XP berechnen
-            const events      = getActiveEvents();
-            const now         = Math.floor(Date.now() / 1000);
-            const leveling    = getLeveling();
-            let xpMultiplier  = 1;
-
-            if (events.XPBoost && events.XPBoost.Multiplier > 1 &&
-                events.XPBoost.ExpiresAt > now) {
-                xpMultiplier = events.XPBoost.Multiplier;
-            }
-
-            const totalItemValue = loot.reduce((sum, { item }) => sum + (item.value || 0), 0);
-            const xpGain = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
-            const newXP  = (player.xp || 0) + xpGain;
-
-            // Level berechnen
-            const oldLevel = player.level || 1;
-            const newLevel = calcLevelFromXP(newXP, leveling);
-
-            updatePlayer(user, {
-                xp:             Math.max(0, newXP || 0),
-                level:          Math.max(1, newLevel || 1),
-                raids_total:    raidsTotal,
-                raids_survived: raidsSurvived,
-                raids_died:     raidsDied
-            });
-
-            // Loot-Nachricht + XP
-            let lootMsg = formatLootMsg(user, loot, player.has_kappa === 1);
-            if (newLevel > oldLevel) {
-                const rankName = getRankName(newLevel, leveling.Ranks);
-                lootMsg += ` 🎉 LEVEL UP! @${user} ist nun Level ${newLevel} — ${rankName}!`;
-            } else {
-                lootMsg += ` ✨ (+${xpGain} XP)`;
-            }
-            client.say(channel, lootMsg);
-        } catch (err) {
-            console.error(`[LOOT] Fehler im Exfil-Timer für ${user}:`, err.message);
-            client.say(channel, `❌ @${user}, beim Exfil ist etwas schiefgelaufen!`);
-        }
-
-    }, exfilTime * 1000);
+function getMapEmoji(map) {
+    return MAP_EMOJIS[map] || '🗺️';
 }
 
-module.exports = { command: COMMAND, handler };
+// ─── Map auswählen ────────────────────────────────────────────────────────────
+function selectMap(config) {
+    const maps    = getMaps();
+    const events  = getActiveEvents();
+    const now     = Math.floor(Date.now() / 1000);
+
+    // Forced Map Event aktiv?
+    if (events.ForcedMap && events.ForcedMap.MapName &&
+        events.ForcedMap.ExpiresAt > now) {
+        return events.ForcedMap.MapName;
+    }
+
+    // Gewichtete Zufallsauswahl
+    const entries = Object.entries(maps);
+    if (!entries.length) return 'Customs';
+
+    const total  = entries.reduce((sum, [, w]) => sum + w, 0);
+    let   random = Math.random() * total;
+
+    for (const [map, weight] of entries) {
+        random -= weight;
+        if (random <= 0) return map;
+    }
+    return entries[0][0];
+}
+
+// ─── Item auswählen ───────────────────────────────────────────────────────────
+function selectItem(mapName) {
+    const items = getItemsForMap(mapName);
+    if (!items.length) return null;
+
+    // Map-spezifische Items 3x höher gewichten
+    const weighted = [];
+    for (const item of items) {
+        try {
+            const maps = JSON.parse(item.map);
+            const isSpecific = Array.isArray(maps) ? maps.length <= 3 : true;
+            weighted.push({ item, weight: isSpecific ? 3 : 1 });
+        } catch {
+            weighted.push({ item, weight: 3 }); // single map = spezifisch
+        }
+    }
+
+    const total  = weighted.reduce((sum, w) => sum + w.weight, 0);
+    let   random = Math.random() * total;
+
+    for (const { item, weight } of weighted) {
+        random -= weight;
+        if (random <= 0) return item;
+    }
+    return weighted[weighted.length - 1].item;
+}
+
+// ─── Loot generieren ─────────────────────────────────────────────────────────
+function generateLoot(hasKappa = false) {
+    const general = getGeneral();
+    const events  = getActiveEvents();
+    const now     = Math.floor(Date.now() / 1000);
+
+    const map  = selectMap();
+    const item = selectItem(map);
+    if (!item) return null;
+
+    let doubleLootChance = general.DoubleLootChance || 0.03;
+
+    // Event Override
+    if (events.DoubleLootOverride && events.DoubleLootOverride.Chance > 0 &&
+        events.DoubleLootOverride.ExpiresAt > now) {
+        doubleLootChance = events.DoubleLootOverride.Chance;
+    }
+
+    // Kappa Bonus
+    if (hasKappa) {
+        doubleLootChance += (general.KappaDoubleLootBonus || 0.10);
+    }
+
+    const loot = [{ item, map }];
+
+    if (Math.random() <= doubleLootChance) {
+        const item2 = selectItem(map);
+        if (item2) loot.push({ item: item2, map });
+    }
+
+    return loot;
+}
+
+// ─── XP berechnen ────────────────────────────────────────────────────────────
+function calculateXPGain(itemValue, prestige = 0) {
+    const leveling  = getLeveling();
+    const general   = getGeneral();
+    const malus     = leveling.PrestigeXPMalus || 0.1;
+    const divisor   = general.XPDivisor || 1000;
+    const baseXP    = Math.max(10, Math.floor(itemValue / divisor));
+    const modifier  = Math.max(0.1, 1 - (prestige * malus));
+    return Math.floor(baseXP * modifier);
+}
+
+// ─── Nachrichten formatieren ──────────────────────────────────────────────────
+function formatInfiltrationMsg(user, map) {
+    return `${getMapEmoji(map)} @${user} ist auf ${map} infiltriert.`;
+}
+
+function formatLootMsg(user, loot, hasKappa = false) {
+    const kappaTag = hasKappa ? ' 🧳' : '';
+    const map      = loot[0].map;
+    const emoji    = getMapEmoji(map);
+
+    if (loot.length > 1) {
+        const v1 = formatCurrency(loot[0].item.value);
+        const v2 = formatCurrency(loot[1].item.value);
+        return `${emoji} 🔥 DOPPEL-LOOT! @${user}${kappaTag} entkommt von ${map} mit ${loot[0].item.text} [${v1}] & ${loot[1].item.text} [${v2}]!`;
+    }
+
+    const item      = loot[0].item;
+    const itemName  = item.text || item.name;
+    const itemValue = formatCurrency(item.value);
+
+    // Map-Nachricht aus DB laden (map_massages)
+    const template = getRandomMessage('map', map);
+    if (template) {
+        const msg = template
+            .replace(/{user}/g,    `@${user}${kappaTag}`)
+            .replace(/@{user}/g,   `@${user}${kappaTag}`)
+            .replace(/{itemName}/g, `${itemName}`)
+            .replace(/{mapName}/g,  map);
+        return `${emoji} @${user}${kappaTag} ${msg} [${itemValue}]`;
+    }
+
+    // Fallback
+    return `${emoji} @${user}${kappaTag} entkommt mit ${itemName} [${itemValue}]!`;
+}
+
+function formatDeathMsg(user, map) {
+    const emoji = getMapEmoji(map);
+
+    // Tod-Nachricht aus DB laden
+    const msg = getRandomMessage('death', map);
+    if (msg) {
+        return `${emoji} 💀 @${user} ${msg}`;
+    }
+
+    // Fallback
+    const fallbacks = [
+        `ist auf ${map} verreckt. Pech gehabt, Timmy.`,
+        `wurde auf ${map} ausgelöscht. GG.`,
+        `hat ${map} nicht überlebt. Typisch.`
+    ];
+    return `${emoji} 💀 @${user} ${fallbacks[Math.floor(Math.random() * fallbacks.length)]}`;
+}
+
+module.exports = {
+    generateLoot, selectMap, calculateXPGain,
+    formatInfiltrationMsg, formatLootMsg, formatDeathMsg,
+    getMapEmoji
+};
