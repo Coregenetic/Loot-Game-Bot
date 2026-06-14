@@ -436,16 +436,33 @@ function connectWS() {
 
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     const token = LootGameAPI.getToken();
-    ws = new WebSocket(`${proto}://${location.host}/ws?token=${token}`);
+    const url   = `${proto}://${location.host}/ws?token=${token}`;
+
+    console.log('[WS] Verbinde mit:', url);
+
+    try {
+        ws = new WebSocket(url);
+    } catch (err) {
+        console.error('[WS] Fehler beim Erstellen:', err);
+        document.getElementById('wsLabel').textContent = 'FEHLER: ' + err.message;
+        return;
+    }
 
     ws.onopen = () => {
+        console.log('[WS] Verbunden!');
         document.getElementById('wsDot').className   = 'ws-dot ws-connected';
         document.getElementById('wsLabel').textContent = 'LIVE';
     };
 
-    ws.onclose = () => {
+    ws.onerror = (err) => {
+        console.error('[WS] Error:', err);
+        document.getElementById('wsLabel').textContent = 'ERROR';
+    };
+
+    ws.onclose = (e) => {
+        console.log('[WS] Getrennt:', e.code, e.reason);
         document.getElementById('wsDot').className   = 'ws-dot ws-disconnected';
-        document.getElementById('wsLabel').textContent = 'OFFLINE';
+        document.getElementById('wsLabel').textContent = 'OFFLINE (' + e.code + ')';
         setTimeout(() => { if (activeTab === 'logs') connectWS(); }, 3000);
     };
 
