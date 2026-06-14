@@ -1,11 +1,17 @@
 const { all, run } = require('./schema');
+const cache = require('./cache');
 
 function getAllItems() {
-    return all(`SELECT * FROM items`);
+    const cached = cache.get(cache.KEYS.ITEMS);
+    if (cached) return cached;
+
+    const items = all(`SELECT * FROM items`);
+    cache.set(cache.KEYS.ITEMS, items);
+    return items;
 }
 
 function getKappaItems() {
-    return all(`SELECT * FROM items WHERE is_kappa = 1`);
+    return getAllItems().filter(i => i.is_kappa === 1);
 }
 
 function getItemsForMap(mapName) {
@@ -33,16 +39,17 @@ function upsertItem(name, data) {
             data.text || '', data.value || 0,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
             data.icon || '', data.isKappa ? 1 : 0,
-            // UPDATE values
             data.text || '', data.value || 0,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
             data.icon || '', data.isKappa ? 1 : 0
         ]
     );
+    cache.invalidate(cache.KEYS.ITEMS);
 }
 
 function deleteItem(name) {
     run(`DELETE FROM items WHERE name = ?`, [name]);
+    cache.invalidate(cache.KEYS.ITEMS);
 }
 
 module.exports = { getAllItems, getKappaItems, getItemsForMap, upsertItem, deleteItem };

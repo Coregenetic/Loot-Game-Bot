@@ -1,32 +1,28 @@
 const { all, run, saveDb } = require('./schema');
-
-// ─── Messages laden ───────────────────────────────────────────────────────────
-
-function getMessages(type, map) {
-    // Map-spezifische + Default Messages
-    const mapMessages     = all(`SELECT text FROM messages WHERE type = ? AND map = ?`, [type, map]);
-    const defaultMessages = all(`SELECT text FROM messages WHERE type = ? AND map = 'Default'`, [type]);
-
-    const combined = [
-        ...mapMessages.map(r => r.text),
-        ...defaultMessages.map(r => r.text)
-    ];
-
-    return combined.length ? combined : null;
-}
+const cache = require('./cache');
 
 function getAllMessages() {
+    const cached = cache.get(cache.KEYS.MESSAGES);
+    if (cached) return cached;
+
     const rows = all(`SELECT type, map, text FROM messages ORDER BY type, map, id`);
-    // Als verschachteltes Objekt zurückgeben wie die JSON-Files
-    const result = { exfil: {}, death: {} };
+    const result = { exfil: {}, death: {}, map: {} };
     for (const row of rows) {
-        const type = row.type;
-        const map  = row.map;
-        if (!result[type]) result[type] = {};
-        if (!result[type][map]) result[type][map] = [];
-        result[type][map].push(row.text);
+        if (!result[row.type]) result[row.type] = {};
+        if (!result[row.type][row.map]) result[row.type][row.map] = [];
+        result[row.type][row.map].push(row.text);
     }
+    cache.set(cache.KEYS.MESSAGES, result);
     return result;
+}
+
+function getMessages(type, map) {
+    const all_msgs = getAllMessages();
+    const byType   = all_msgs[type] || {};
+    const mapMsgs  = byType[map]      || [];
+    const defMsgs  = byType['Default'] || [];
+    const combined = [...mapMsgs, ...defMsgs];
+    return combined.length ? combined : null;
 }
 
 function getRandomMessage(type, map) {
@@ -36,10 +32,7 @@ function getRandomMessage(type, map) {
 }
 
 function setMessages(type, messagesObj) {
-    // Alle alten Messages dieses Typs löschen
     run(`DELETE FROM messages WHERE type = ?`, [type]);
-
-    // Neue einfügen
     for (const [map, texts] of Object.entries(messagesObj)) {
         if (!Array.isArray(texts)) continue;
         for (const text of texts) {
@@ -49,6 +42,7 @@ function setMessages(type, messagesObj) {
         }
     }
     saveDb();
+    cache.invalidate(cache.KEYS.MESSAGES);
 }
 
 function countMessages() {
