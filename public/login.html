@@ -2,119 +2,127 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Loot-Game Hub — Login</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        },
+        colors: {
+          slate: { 850: '#141c27', 950: '#0a0f16' }
+        }
+      }
+    }
+  }
+</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--green:#10b981;--green2:rgba(16,185,129,0.12);--green3:rgba(16,185,129,0.25);--red:#f87171;--text:#c8cdd2;--text2:#4a5260;--text3:#2a3240;--bg:#070809;--bg1:#0d0e0f;--border:#1a1c1e;--border2:#252729}
-html,body{height:100%;background:var(--bg);font-family:'Rajdhani',sans-serif}
-body{display:flex;align-items:center;justify-content:center;min-height:100vh;position:relative;overflow:hidden}
+  /* Base Adjustments */
+  body { background-color: #05080c; color: #e2e8f0; overflow: hidden; }
+  
+  /* Animated background grid */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  }
 
-.bg-grid{position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.4}
-.bg-glow{position:fixed;top:20%;left:50%;transform:translateX(-50%);width:600px;height:300px;background:rgba(16,185,129,0.03);border-radius:50%;pointer-events:none}
-.scanline{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:0}
+  /* Glassmorphism utility */
+  .glass-card { 
+    background: rgba(15, 23, 42, 0.5); 
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px); 
+  }
 
-.card{position:relative;z-index:1;width:400px}
-
-.logo-area{text-align:center;margin-bottom:28px}
-.logo-wrap{position:relative;display:inline-block;margin-bottom:16px}
-.logo-outer{position:absolute;inset:-8px;border:1px solid rgba(16,185,129,0.08)}
-.logo-inner{position:absolute;inset:-4px;border:1px solid rgba(16,185,129,0.12)}
-.logo-mark{width:56px;height:56px;background:#0a120e;border:1px solid var(--green3);display:flex;align-items:center;justify-content:center;position:relative}
-.logo-mark svg{width:24px;height:24px;stroke:var(--green);fill:none;stroke-width:1.5}
-.logo-title{font-size:28px;font-weight:700;color:#f0ede8;letter-spacing:0.1em;text-transform:uppercase;line-height:1;margin-bottom:5px}
-.logo-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);letter-spacing:0.25em;text-transform:uppercase}
-
-.form-box{background:var(--bg1);border:1px solid var(--border);padding:28px;position:relative}
-.form-box::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(16,185,129,0.35),transparent)}
-.corner{position:absolute;width:12px;height:12px;border-color:var(--green3);border-style:solid}
-.c-tl{top:-1px;left:-1px;border-width:1px 0 0 1px}
-.c-tr{top:-1px;right:-1px;border-width:1px 1px 0 0}
-.c-bl{bottom:-1px;left:-1px;border-width:0 0 1px 1px}
-.c-br{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
-
-.restricted{background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.15);padding:7px 12px;margin-bottom:22px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);letter-spacing:0.1em}
-.r-dot{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0}
-
-.field{margin-bottom:14px}
-.field-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px;display:block}
-.field-wrap{position:relative}
-.field-inp{width:100%;background:#050607;border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 36px 10px 12px;outline:none;transition:border-color 0.2s}
-.field-inp:focus{border-color:rgba(16,185,129,0.35)}
-.field-inp::placeholder{color:var(--text3)}
-.field-icon{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--text3)}
-.field-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}
-
-.submit-btn{width:100%;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;padding:12px;cursor:pointer;text-transform:uppercase;margin-top:6px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.submit-btn:hover{background:rgba(16,185,129,0.18);border-color:rgba(16,185,129,0.5)}
-.submit-btn:active{transform:scale(0.99)}
-.submit-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
-
-.error{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);text-align:center;margin-top:10px;min-height:14px}
-
-.footer{margin-top:20px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.1em}
-
-.dots{display:flex;justify-content:center;gap:5px;margin:14px 0}
-.dot{width:4px;height:4px;border-radius:50%;background:var(--border2)}
-.dot.on{background:var(--green)}
+  /* Loading Spinner animation */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-slow { animation: spin 2s linear infinite; }
 </style>
 </head>
-<body>
-<div class="bg-grid"></div>
-<div class="bg-glow"></div>
-<div class="scanline"></div>
+<body class="flex items-center justify-center min-h-screen selection:bg-emerald-500/30">
 
-<div class="card">
-  <div class="logo-area">
-    <div class="logo-wrap">
-      <div class="logo-outer"></div>
-      <div class="logo-inner"></div>
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      </div>
-    </div>
-    <div class="logo-title">Loot-Game Hub</div>
-    <div class="logo-sub">// Control Center · by Coregenetic</div>
-  </div>
+<div class="bg-grid pointer-events-none"></div>
 
-  <div class="form-box">
-    <div class="corner c-tl"></div><div class="corner c-tr"></div>
-    <div class="corner c-bl"></div><div class="corner c-br"></div>
-
-    <div class="restricted">
-      <div class="r-dot"></div>
-      RESTRICTED ACCESS · AUTHORIZED PERSONNEL ONLY
-    </div>
-
-    <div class="field">
-      <label class="field-label">Benutzername</label>
-      <div class="field-wrap">
-        <input class="field-inp" id="username" type="text" placeholder="z.B. coregenetic" autocomplete="username">
-        <div class="field-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label class="field-label">Passwort</label>
-      <div class="field-wrap">
-        <input class="field-inp" id="password" type="password" placeholder="••••••••" autocomplete="current-password">
-        <div class="field-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
-      </div>
-    </div>
-
-    <button class="submit-btn" id="loginBtn" onclick="doLogin()">
-      <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      SYSTEM INITIALISIEREN
-    </button>
-
-    <div class="error" id="errorMsg"></div>
-  </div>
-
-  <div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
-  <div class="footer">LOOT-GAME HUB v2.0 · by Coregenetic</div>
+<!-- Ambient Glow Orbs -->
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
+  <div class="absolute top-[20%] left-[20%] w-[40%] h-[40%] bg-emerald-900/20 blur-[120px] rounded-full"></div>
+  <div class="absolute bottom-[20%] right-[20%] w-[40%] h-[40%] bg-blue-900/10 blur-[120px] rounded-full"></div>
 </div>
 
+<main class="w-full max-w-md px-6 relative z-10">
+  
+  <!-- Logo Header -->
+  <div class="text-center mb-8">
+    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mb-4 text-emerald-400 relative group">
+      <div class="absolute inset-0 bg-emerald-500/20 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <svg class="w-8 h-8 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <h1 class="text-2xl font-bold text-white tracking-widest uppercase">Loot-Game Hub</h1>
+    <p class="text-[10px] font-mono text-emerald-500 tracking-[0.2em] uppercase mt-2">// Control Center</p>
+  </div>
+
+  <!-- Login Card -->
+  <div class="glass-card border border-slate-700/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <!-- Highlight Line -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+
+    <div class="flex items-center gap-3 bg-rose-500/5 border border-rose-500/10 rounded-xl p-3 mb-6">
+      <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0"></div>
+      <p class="text-[10px] font-mono text-rose-400 tracking-widest uppercase">Restricted Access · Authorized Only</p>
+    </div>
+
+    <div class="space-y-5">
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-2 ml-1">Benutzername</label>
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <input type="text" id="username" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono" placeholder="z.B. coregenetic" autocomplete="username">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-2 ml-1">Passwort</label>
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          <input type="password" id="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono tracking-widest" placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+
+      <div id="errorMsg" class="text-[10px] font-mono text-rose-400 text-center min-h-[16px]"></div>
+
+      <button id="loginBtn" onclick="doLogin()" class="w-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 py-3.5 rounded-xl font-mono text-[11px] font-bold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-3">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+        <span>System Initialisieren</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="text-center mt-8 space-y-3">
+    <div class="flex justify-center gap-1.5">
+      <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></div>
+      <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+      <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+    </div>
+    <div class="text-[9px] font-mono text-slate-500 tracking-widest">
+      LOOT-GAME HUB v2.0 · BY COREGENETIC
+    </div>
+  </div>
+
+</main>
+
 <script>
+  // Check if already logged in via token
   const token = localStorage.getItem('lootgame_session_token');
   if (token) {
     fetch('/api/auth/me', {headers:{'x-session-token':token}})
@@ -122,6 +130,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pos
       .catch(()=>{});
   }
 
+  // Handle Enter Key
   document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
   async function doLogin() {
@@ -130,29 +139,60 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pos
     const errorEl  = document.getElementById('errorMsg');
     const btn      = document.getElementById('loginBtn');
 
-    if (!username || !password) { errorEl.textContent = '⚠ Alle Felder ausfüllen'; return; }
+    if (!username || !password) { 
+      errorEl.textContent = '⚠ Alle Felder ausfüllen'; 
+      return; 
+    }
 
+    // Loading State
     btn.disabled = true;
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> VERBINDE...';
+    btn.innerHTML = `
+      <svg class="w-4 h-4 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <span>Verbinde...</span>
+    `;
+    btn.classList.replace('text-emerald-400', 'text-slate-400');
+    btn.classList.replace('border-emerald-500/30', 'border-slate-700');
+    btn.classList.replace('bg-emerald-500/10', 'bg-slate-800/50');
     errorEl.textContent = '';
 
     try {
-      const res  = await fetch('/api/auth/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+      const res  = await fetch('/api/auth/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({username,password})
+      });
       const data = await res.json();
+      
       if (data.success) {
         localStorage.setItem('lootgame_session_token', data.token);
         localStorage.setItem('lootgame_username', data.username);
-        window.location.href = '/index.html';
+        
+        // Success State (briefly show before redirect)
+        btn.innerHTML = `
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <span class="text-emerald-400">Verbunden</span>
+        `;
+        setTimeout(() => window.location.href = '/index.html', 300);
+
       } else {
         errorEl.textContent = '✗ ' + (data.error || 'Login fehlgeschlagen');
-        btn.disabled = false;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> SYSTEM INITIALISIEREN';
+        resetBtnState(btn);
       }
     } catch {
       errorEl.textContent = '✗ Server nicht erreichbar';
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> SYSTEM INITIALISIEREN';
+      resetBtnState(btn);
     }
+  }
+
+  function resetBtnState(btn) {
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+      <span>System Initialisieren</span>
+    `;
+    btn.classList.replace('text-slate-400', 'text-emerald-400');
+    btn.classList.replace('border-slate-700', 'border-emerald-500/30');
+    btn.classList.replace('bg-slate-800/50', 'bg-emerald-500/10');
   }
 </script>
 </body>

@@ -3,480 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarkov Loot-Game Config Manager by Coregenetic</title>
+    <title>Config Manager — Loot-Game Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="api-client.js"></script>
-    
-    <!-- Modern Tactical Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              slate: { 850: '#141c27', 950: '#0a0f16' }
+            }
+          }
+        }
+      }
+    </script>
     <style>
-        :root {
-            --bg-color: #050505;
-            --panel-bg: rgba(9, 9, 11, 0.85);
-            --border-color: #27272a;
-        }
-
-        body { 
-            background-color: var(--bg-color); 
-            color: #e4e4e7; 
-            font-family: 'Inter', sans-serif; 
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.15) 0%, transparent 40%),
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 24px 24px, 24px 24px;
-            background-attachment: fixed;
-        }
-        
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
-
+        /* Base Adjustments */
+        body { background-color: #05080c; color: #e2e8f0; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
-
-        /* Eingabefelder (Pfeile STRIKT verstecken) */
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none !important;
-            margin: 0 !important;
-            display: none !important;
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        
+        /* Animated background grid */
+        .bg-grid {
+          position: fixed; inset: 0; z-index: -1;
+          background-image: 
+            linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+          background-size: 50px 50px;
+          mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+          -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
         }
-        input[type="number"] {
-            -moz-appearance: textfield !important;
-            appearance: textfield !important;
-        }
+      
+        /* Glassmorphism utility */
+        .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+        .setting-block { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(51, 65, 85, 0.5); padding: 1rem; border-radius: 0.75rem; }
+        
+        /* Input fields hiding arrows for number types */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
+        /* Custom Input Styling to match the theme */
         .tarkov-input { 
-            background-color: #09090b; border: 1px solid #3f3f46; color: #f4f4f5; 
-            padding: 0.6rem 0.8rem; border-radius: 0.25rem; transition: all 0.2s ease; 
-            width: 100%; box-sizing: border-box;
+            background-color: rgba(15, 23, 42, 0.5); border: 1px solid rgba(51, 65, 85, 0.5); color: #f8fafc; 
+            padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: all 0.2s ease; 
+            width: 100%; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;
         }
-        .tarkov-input:focus { 
-            outline: none; border-color: #10b981; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(16, 185, 129, 0.2); 
-            background-color: #000000;
-        }
+        .tarkov-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 1px #10b981; background-color: rgba(15, 23, 42, 0.8); }
+        
+        /* Custom Dotted Border for Buffer */
+        .buffer-input { border: 1px dashed rgba(51, 65, 85, 0.8); background: rgba(15, 23, 42, 0.3); }
+        .buffer-input:focus { border: 1px dashed #10b981; }
 
-        select.tarkov-input {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1em; padding-right: 2.25rem;
-        }
-
-        /* --- SLIDERS --- */
+        /* Sliders */
         .tarkov-slider {
-            -webkit-appearance: none; width: 100%; height: 10px; border-radius: 5px; outline: none;
-            border: 1px solid #3f3f46; background: #27272a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-            margin-top: 10px; margin-bottom: 10px;
+            -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; outline: none;
+            background: rgba(30, 41, 59, 0.8); margin-top: 10px; margin-bottom: 10px;
         }
         .tarkov-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
-            background: #10b981; cursor: pointer; border: 3px solid #09090b;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8), inset 0 0 4px rgba(255,255,255,0.4);
-            transition: transform 0.1s;
+            -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: #10b981; cursor: pointer; transition: transform 0.1s;
         }
-        .tarkov-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-        .tarkov-slider.slider-amber::-webkit-slider-thumb {
-            background: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.8), inset 0 0 4px rgba(255,255,255,0.4);
-        }
-        
-        /* --- BUTTONS --- */
-        .tarkov-btn { 
-            padding: 0.6rem 1rem; border-radius: 0.25rem; font-weight: 600; cursor: pointer; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-            text-transform: uppercase; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em;
-        }
-        .tarkov-btn-primary { background: #059669; color: white; border: 1px solid #10b981; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
-        .tarkov-btn-primary:hover { background: #047857; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); border-color: #34d399; }
-        .tarkov-btn-secondary { background-color: #18181b; color: #a1a1aa; border: 1px solid #3f3f46; }
-        .tarkov-btn-secondary:hover { background-color: #27272a; color: #f4f4f5; border-color: #52525b; }
-        .tarkov-btn-danger { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #b91c1c; }
-        .tarkov-btn-danger:hover { background-color: #991b1b; color: white; border-color: #ef4444; }
-        
-        .tarkov-btn-small { 
-            padding: 0; font-size: 1.2rem; border-radius: 0.25rem; background: #18181b; border: 1px solid #3f3f46; 
-            color: #a1a1aa; cursor: pointer; transition: all 0.1s; display: flex; align-items: center; justify-content: center;
-        }
-        .tarkov-btn-small:hover { background: #27272a; }
+        .tarkov-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .tarkov-slider.slider-amber::-webkit-slider-thumb { background: #f59e0b; }
+        .tarkov-slider.slider-blue::-webkit-slider-thumb { background: #3b82f6; }
 
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); border-radius: 0.4rem; }
-
-        #toast { 
-            position: fixed; bottom: 20px; right: 20px; background: #064e3b; color: #34d399; 
-            padding: 1rem 1.5rem; border-radius: 0.25rem; box-shadow: 0 0 15px rgba(4, 120, 87, 0.3); 
-            transform: translateY(150%); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            z-index: 50; border: 1px solid #10b981; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase;
-        }
-        #toast.show { transform: translateY(0); }
-        #toast.error { background: #450a0a; color: #f87171; border-color: #ef4444; box-shadow: 0 0 15px rgba(220, 38, 38, 0.3); }
-
-        .tab-btn { 
-            border-bottom: 2px solid transparent; padding-bottom: 0.6rem; color: #52525b; 
-            transition: all 0.2s; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em;
-        }
-        .tab-btn:hover { color: #a1a1aa; }
-        .tab-btn.active { border-color: #10b981; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-
-        #dropOverlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px);
-            z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #10b981; transition: all 0.2s;
-        }
-        #dropOverlay.hidden { display: none; opacity: 0; pointer-events: none; }
-        
-        .progress-bar { height: 4px; background: #27272a; border-radius: 2px; overflow: hidden; margin-top: 8px; }
-        .progress-fill { height: 100%; background: #10b981; box-shadow: 0 0 10px #10b981; transition: width 0.3s ease; }
-        
-        .preset-badge {
-            cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-family: 'JetBrains Mono'; font-weight: bold; text-transform: uppercase;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #a1a1aa; transition: all 0.2s;
-        }
-        .preset-badge:hover { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
-        
-        .setting-block { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.4rem; }
-        
         /* Tooltip */
         .tooltip-icon {
             display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px;
-            border-radius: 50%; background: #3f3f46; color: #09090b; font-size: 9px; font-weight: bold; font-family: 'Inter';
-            cursor: help; margin-left: 6px; vertical-align: middle; transition: background 0.2s;
+            border-radius: 50%; background: rgba(51, 65, 85, 0.8); color: #94a3b8; font-size: 9px; font-weight: bold; font-family: 'Inter';
+            cursor: help; margin-left: 6px; vertical-align: middle; transition: background 0.2s, color 0.2s;
         }
-        .tooltip-icon:hover { background: #10b981; }
+        .tooltip-icon:hover { background: #10b981; color: #022c22; }
         .tooltip-text {
             visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
-            background: #09090b; border: 1px solid #10b981; color: #d4d4d8; padding: 8px 12px; border-radius: 4px;
-            font-size: 10px; width: max-content; max-width: 250px; z-index: 50; transition: opacity 0.2s; font-family: 'Inter'; text-transform: none; line-height: 1.4; font-weight: normal; box-shadow: 0 5px 15px rgba(0,0,0,0.8); pointer-events: none; text-align: center;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border: 1px solid rgba(16, 185, 129, 0.5); color: #cbd5e1; padding: 8px 12px; border-radius: 0.5rem;
+            font-size: 10px; width: max-content; max-width: 250px; z-index: 50; transition: opacity 0.2s; font-family: 'Inter'; text-transform: none; line-height: 1.4; font-weight: normal; box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: none; text-align: center;
         }
         .group:hover .tooltip-text { visibility: visible; opacity: 1; }
-        
-        /* Custom Dotted Border for Buffer */
-        .buffer-input {
-            border: 1px dashed #52525b;
-            background: #000;
+
+        /* Drag Overlay */
+        #dropOverlay {
+            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(8px);
+            z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #10b981; transition: all 0.2s;
         }
-        .buffer-input:focus {
-            border: 1px dashed #10b981;
-        }
+        #dropOverlay.hidden { display: none; opacity: 0; pointer-events: none; }
+
+        /* Progress Bar */
+        .progress-bar { height: 4px; background: rgba(30, 41, 59, 0.8); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; transition: width 0.3s ease; }
 
         /* Rank Highlight Animation */
         @keyframes highlightRank {
-            0% { background-color: rgba(6, 182, 212, 0.4); }
+            0% { background-color: rgba(6, 182, 212, 0.2); }
             100% { background-color: transparent; }
         }
         .rank-flash { animation: highlightRank 1s ease-out; }
     </style>
 </head>
-<body class="p-3 md:p-5 h-screen flex flex-col overflow-hidden">
+<body class="flex flex-col min-h-screen text-slate-300 selection:bg-emerald-500/30">
+
+    <div class="bg-grid pointer-events-none"></div>
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
+        <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 blur-[100px] rounded-full"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full"></div>
+    </div>
 
     <!-- Drag & Drop Dropzone -->
     <div id="dropOverlay" class="hidden">
-        <svg class="w-24 h-24 text-emerald-500 mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-        <h2 class="font-tactical text-3xl md:text-4xl font-bold text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">UPLOAD CONFIG</h2>
-        <p class="text-zinc-400 mt-3 font-mono text-sm uppercase tracking-wider">Warte auf game_config.json Datei...</p>
+        <svg class="w-20 h-20 text-emerald-500 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        <h2 class="text-2xl font-bold text-white tracking-widest uppercase">Upload Config</h2>
+        <p class="text-slate-400 mt-2 font-mono text-[10px] uppercase tracking-widest">Lasse die game_config.json hier los...</p>
     </div>
 
-    <!-- GLOBALE KOPFZEILE MIT LIVE-EVENT-STATUS -->
-    <header class="glass-panel shrink-0 z-20 flex flex-wrap items-center justify-between px-5 py-3 mb-5 border-b-2 border-emerald-500/50 shadow-md">
+    <!-- TOP BAR -->
+    <header class="glass border-b border-slate-800/80 h-16 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-md">
         
-        <div class="flex items-center gap-4 md:gap-8">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded bg-[#09090b] border border-emerald-500/40 flex items-center justify-center relative overflow-hidden shrink-0">
-                    <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
-                    <svg class="w-5 h-5 text-emerald-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                </div>
-                <div>
-                    <h1 class="font-tactical text-xl md:text-2xl text-emerald-400 font-bold tracking-wider leading-none">CONFIG MANAGER</h1>
-                    <p class="text-emerald-500/80 text-[10px] font-mono uppercase mt-1 flex items-center gap-1.5 font-semibold tracking-wide">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399] animate-ping"></span>
-                        BY COREGENETIC
-                    </p>
-                </div>
+        <div class="flex items-center gap-4 sm:gap-6">
+            <div class="font-bold text-slate-100 tracking-wider text-sm flex items-center gap-3">
+                <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                CONFIG MANAGER
             </div>
-
+            
             <!-- EVENT STATUS BANNER IM HEADER -->
-            <div id="globalEventBanner" class="hidden flex-col xl:flex-row gap-2 border-l-2 border-zinc-800 pl-4 md:pl-6 my-1">
-                <div id="headerMapEvent" class="hidden items-center gap-2 bg-blue-900/20 border border-blue-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(59,130,246,0.1)]">
-                    <span class="animate-pulse w-2 h-2 rounded-full bg-blue-400 shrink-0"></span>
-                    <span class="font-tactical text-blue-400 font-bold tracking-widest text-[11px] md:text-xs">FORCED MAP: <span id="headerMapName" class="text-zinc-100"></span></span>
-                    <span id="headerMapTime" class="font-mono text-blue-300 font-bold text-[10px] md:text-[11px] ml-1 bg-blue-950/50 px-1.5 rounded"></span>
+            <div id="globalEventBanner" class="hidden items-center gap-3 border-l border-slate-700/50 pl-4 sm:pl-6 overflow-x-auto">
+                <div id="headerMapEvent" class="hidden items-center gap-2 bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                    <span class="font-mono text-blue-400 font-bold tracking-wider text-[10px] uppercase">Forced Map: <span id="headerMapName" class="text-slate-200"></span></span>
+                    <span id="headerMapTime" class="font-mono text-blue-300 font-bold text-[10px] ml-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-blue-500/20"></span>
                 </div>
-                <div id="headerLootEvent" class="hidden items-center gap-2 bg-amber-900/20 border border-amber-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(245,158,11,0.1)]">
-                    <span class="animate-pulse w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
-                    <span class="font-tactical text-amber-400 font-bold tracking-widest text-[11px] md:text-xs">DOUBLE LOOT: <span id="headerLootChance" class="text-zinc-100"></span></span>
-                    <span id="headerLootTime" class="font-mono text-amber-300 font-bold text-[10px] md:text-[11px] ml-1 bg-amber-950/50 px-1.5 rounded"></span>
+                <div id="headerLootEvent" class="hidden items-center gap-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span class="font-mono text-amber-400 font-bold tracking-wider text-[10px] uppercase">Double Loot: <span id="headerLootChance" class="text-slate-200"></span></span>
+                    <span id="headerLootTime" class="font-mono text-amber-300 font-bold text-[10px] ml-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-amber-500/20"></span>
                 </div>
                 <!-- XP BOOST HEADER -->
-                <div id="headerXPEvent" class="hidden items-center gap-2 bg-purple-900/20 border border-purple-500/30 px-3 py-1 rounded shadow-[0_0_10px_rgba(168,85,247,0.1)]">
-                    <span class="animate-pulse w-2 h-2 rounded-full bg-purple-400 shrink-0"></span>
-                    <span class="font-tactical text-purple-400 font-bold tracking-widest text-[11px] md:text-xs">XP BOOST: <span id="headerXPMultiplier" class="text-zinc-100"></span>x</span>
-                    <span id="headerXPTime" class="font-mono text-purple-300 font-bold text-[10px] md:text-[11px] ml-1 bg-purple-950/50 px-1.5 rounded"></span>
+                <div id="headerXPEvent" class="hidden items-center gap-2 bg-purple-500/10 border border-purple-500/30 px-3 py-1.5 rounded-lg whitespace-nowrap">
+                    <span class="animate-pulse w-2 h-2 rounded-full bg-purple-500 shrink-0"></span>
+                    <span class="font-mono text-purple-400 font-bold tracking-wider text-[10px] uppercase">XP Boost: <span id="headerXPMultiplier" class="text-slate-200"></span>x</span>
+                    <span id="headerXPTime" class="font-mono text-purple-300 font-bold text-[10px] ml-1 bg-slate-900/50 px-1.5 py-0.5 rounded border border-purple-500/20"></span>
                 </div>
             </div>
         </div>
 
-        <div class="flex gap-2 lg:gap-3 items-center mt-3 md:mt-0 shrink-0">
+        <div class="flex gap-2 items-center shrink-0">
             <input type="file" id="fileUpload" accept=".json" class="hidden" onchange="importJsonEvent(event)">
-            <button onclick="document.getElementById('fileUpload').click()" class="tarkov-btn tarkov-btn-secondary text-xs px-3 py-1.5">
+            <button onclick="document.getElementById('fileUpload').click()" class="text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                Lade JSON
+                <span class="hidden sm:inline">JSON</span>
             </button>
-            <div class="w-px h-5 bg-zinc-700 mx-1"></div>
-            <button onclick="copyJson()" class="text-zinc-400 hover:text-emerald-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2">
+            <div class="w-px h-5 bg-slate-700 mx-1 hidden sm:block"></div>
+            <button onclick="copyJson()" class="hidden sm:flex text-[10px] font-mono px-3 py-1.5 rounded-lg text-slate-400 hover:text-emerald-400 transition-colors items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                Kopieren
+                Copy
             </button>
-            <button onclick="downloadJson()" class="tarkov-btn tarkov-btn-primary text-xs px-4 py-1.5 ml-1">
+            <button onclick="downloadJson()" class="bg-emerald-500 text-slate-950 font-semibold text-[10px] font-mono px-4 py-1.5 rounded-lg hover:bg-emerald-400 transition-colors shadow-[0_0_10px_rgba(16,185,129,0.2)] flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Datei Speichern
+                <span class="hidden sm:inline">Save</span>
             </button>
-            <button onclick="syncConfigToBot()" class="tarkov-btn text-xs px-4 py-1.5 ml-1" style="border-color:rgba(16,185,129,0.5);color:#10b981;background:rgba(16,185,129,0.1);">
+            <button onclick="syncConfigToBot()" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold text-[10px] font-mono px-4 py-1.5 rounded-lg hover:bg-emerald-500/20 transition-colors flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                Sync zu Bot
+                <span class="hidden sm:inline">Sync</span>
             </button>
+            
+            <!-- Navigation back -->
+            <div class="w-px h-5 bg-slate-700 mx-1"></div>
+            <a href="admin.html" class="text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                &larr; Admin
+            </a>
         </div>
     </header>
 
     <!-- HAUPT-LAYOUT -->
-    <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-hidden">
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 sm:p-6 gap-6 relative">
         
         <!-- LINKE SEITE: Einstellungen -->
-        <div class="lg:col-span-5 flex flex-col gap-5 overflow-y-auto pr-2 pb-6 custom-scroll">
+        <div class="w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 pb-6 relative z-10">
             
             <!-- LIVE EVENTS -->
-            <div class="glass-panel p-5 relative border-t-2 border-t-blue-500">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-tactical font-semibold text-lg text-blue-400 flex items-center gap-2">
+            <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-sm font-bold text-white tracking-widest uppercase flex items-center gap-2">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        LIVE EVENTS (BOOSTS)
+                        Live Events (Boosts)
                     </h2>
                 </div>
 
                 <div class="space-y-4">
                     <!-- Forced Map -->
-                    <div class="setting-block p-3" id="boxMapEvent">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-300">Map Erzwingen</label>
-                            <span id="countdownMapEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                    <div class="setting-block" id="boxMapEvent">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-emerald-400">Map Erzwingen</label>
+                            <span id="countdownMapEvent" class="font-mono text-[10px] text-slate-500 tracking-widest bg-slate-900/50 px-2 py-0.5 rounded border border-slate-800">INAKTIV</span>
                         </div>
-                        <div class="flex gap-2 mb-2">
-                            <select id="eventMapSelect" class="tarkov-input text-sm py-1.5 font-semibold text-zinc-200 flex-grow"></select>
+                        <div class="flex gap-2 mb-3">
+                            <div class="flex-grow relative">
+                                <select id="eventMapSelect" class="tarkov-input w-full appearance-none"></select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                  <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
+                            </div>
                             
                             <!-- Dauer -->
                             <div class="flex items-stretch w-24 shrink-0 relative group">
-                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
-                                <button onclick="quickAdjustInput('eventMapMinutes', -5, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
-                                <input type="number" id="eventMapMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="15">
-                                <button onclick="quickAdjustInput('eventMapMinutes', 5, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                                <span class="absolute -top-4 right-0 text-[9px] text-slate-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventMapMinutes', -5, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" id="eventMapMinutes" class="tarkov-input text-center rounded-none border-x-0 px-0" value="15">
+                                <button onclick="quickAdjustInput('eventMapMinutes', 5, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                             
                             <!-- Transfer-Puffer -->
                             <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
-                                <span class="absolute -top-3 right-0 text-[8px] text-blue-400/70 uppercase font-mono">Puffer</span>
-                                <input type="number" id="eventMapBuffer" class="tarkov-input buffer-input text-center font-bold text-blue-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <span class="absolute -top-4 right-0 text-[9px] text-blue-400 uppercase font-mono flex items-center gap-1">Puffer<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span></span>
+                                <input type="number" id="eventMapBuffer" class="tarkov-input buffer-input text-center text-blue-400 px-1" value="1" min="0">
                                 <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer. Das Event startet virtuell erst nach Ablauf dieses Puffers, läuft für den Bot aber die volle Zeit.</div>
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="startMapEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5">Aktivieren</button>
-                            <button onclick="clearMapEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                            <button onclick="startMapEvent()" class="flex-grow bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 py-2 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-colors">Aktivieren</button>
+                            <button onclick="clearMapEvent()" class="bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 px-4 rounded-lg transition-colors flex items-center justify-center" title="Event Beenden">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
                     </div>
 
                     <!-- Double Loot -->
-                    <div class="setting-block p-3" id="boxLootEvent">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block font-mono text-[10px] font-bold uppercase text-amber-400">Doppel-Loot Event</label>
-                            <span id="countdownLootEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                    <div class="setting-block" id="boxLootEvent">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-amber-400">Double Loot Event</label>
+                            <span id="countdownLootEvent" class="font-mono text-[10px] text-slate-500 tracking-widest bg-slate-900/50 px-2 py-0.5 rounded border border-slate-800">INAKTIV</span>
                         </div>
-                        <div class="flex gap-2 mb-2">
+                        <div class="flex gap-2 mb-3">
                             
-                            <div class="flex items-stretch flex-grow relative">
-                                <span class="absolute -top-3 left-1 text-[8px] text-zinc-500 uppercase font-mono">Chance</span>
-                                <button onclick="quickAdjustInput('eventLootChance', -0.1, 0, 1, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-amber-400 transition-colors">-</button>
-                                <input type="number" step="0.01" id="eventLootChance" class="tarkov-input text-center font-bold text-amber-400 rounded-none border-x-0 py-0 h-full focus:z-10 px-1 text-sm" placeholder="1.0" value="1.0">
-                                <button onclick="quickAdjustInput('eventLootChance', 0.1, 0, 1, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-amber-400 transition-colors">+</button>
+                            <div class="flex items-stretch flex-grow relative group">
+                                <span class="absolute -top-4 left-1 text-[9px] text-slate-500 uppercase font-mono">Chance</span>
+                                <button onclick="quickAdjustInput('eventLootChance', -0.1, 0, 1, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-amber-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" step="0.01" id="eventLootChance" class="tarkov-input text-center text-amber-400 rounded-none border-x-0 px-1" placeholder="1.0" value="1.0">
+                                <button onclick="quickAdjustInput('eventLootChance', 0.1, 0, 1, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-amber-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                             
                             <!-- Dauer -->
                             <div class="flex items-stretch w-24 shrink-0 relative group">
-                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
-                                <button onclick="quickAdjustInput('eventLootMinutes', -5, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
-                                <input type="number" id="eventLootMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="30">
-                                <button onclick="quickAdjustInput('eventLootMinutes', 5, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                                <span class="absolute -top-4 right-0 text-[9px] text-slate-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventLootMinutes', -5, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" id="eventLootMinutes" class="tarkov-input text-center rounded-none border-x-0 px-0" value="30">
+                                <button onclick="quickAdjustInput('eventLootMinutes', 5, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
 
                             <!-- Transfer-Puffer -->
                             <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
-                                <span class="absolute -top-3 right-0 text-[8px] text-amber-400/70 uppercase font-mono">Puffer</span>
-                                <input type="number" id="eventLootBuffer" class="tarkov-input buffer-input text-center font-bold text-amber-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <span class="absolute -top-4 right-0 text-[9px] text-amber-400 uppercase font-mono flex items-center gap-1">Puffer<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span></span>
+                                <input type="number" id="eventLootBuffer" class="tarkov-input buffer-input text-center text-amber-400 px-1" value="1" min="0">
                                 <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer. Das Event startet virtuell erst nach Ablauf dieses Puffers, läuft für den Bot aber die volle Zeit.</div>
                             </div>
                             
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="startLootEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5" style="background:#b45309; border-color:#d97706; box-shadow: 0 0 10px rgba(217,119,6,0.2);">Aktivieren</button>
-                            <button onclick="clearLootEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                            <button onclick="startLootEvent()" class="flex-grow bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 py-2 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-colors">Aktivieren</button>
+                            <button onclick="clearLootEvent()" class="bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 px-4 rounded-lg transition-colors flex items-center justify-center" title="Event Beenden">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
                     </div>
 
                     <!-- XP BOOST EVENT -->
-                    <div class="setting-block p-3" id="boxXPEvent">
-                        <div class="flex justify-between items-center mb-2">
+                    <div class="setting-block" id="boxXPEvent">
+                        <div class="flex justify-between items-center mb-3">
                             <label class="block font-mono text-[10px] font-bold uppercase text-purple-400">XP Boost Event</label>
-                            <span id="countdownXPEvent" class="font-mono text-xs font-bold text-zinc-500 tracking-widest bg-black px-2 py-0.5 rounded border border-transparent">INAKTIV</span>
+                            <span id="countdownXPEvent" class="font-mono text-[10px] text-slate-500 tracking-widest bg-slate-900/50 px-2 py-0.5 rounded border border-slate-800">INAKTIV</span>
                         </div>
-                        <div class="flex gap-2 mb-2">
+                        <div class="flex gap-2 mb-3">
                             
                             <div class="flex items-stretch flex-grow relative group">
-                                <span class="absolute -top-3 left-1 text-[8px] text-zinc-500 uppercase font-mono cursor-help">Multiplikator<span class="tooltip-icon">?</span><div class="tooltip-text">Um welchen Faktor sich die verdienten XP vervielfachen (z.B. 2.0 = doppelte XP).</div></span>
-                                <button onclick="quickAdjustInput('eventXPMultiplier', -0.5, 1.0, 10.0, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-purple-400 transition-colors">-</button>
-                                <input type="number" step="0.5" id="eventXPMultiplier" class="tarkov-input text-center font-bold text-purple-400 rounded-none border-x-0 py-0 h-full focus:z-10 px-1 text-sm" placeholder="2.0" value="2.0">
-                                <button onclick="quickAdjustInput('eventXPMultiplier', 0.5, 1.0, 10.0, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-purple-400 transition-colors">+</button>
+                                <span class="absolute -top-4 left-1 text-[9px] text-slate-500 uppercase font-mono flex items-center gap-1 cursor-help">Multiplikator<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Um welchen Faktor sich die verdienten XP vervielfachen (z.B. 2.0 = doppelte XP).</div></span>
+                                <button onclick="quickAdjustInput('eventXPMultiplier', -0.5, 1.0, 10.0, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-purple-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" step="0.5" id="eventXPMultiplier" class="tarkov-input text-center text-purple-400 rounded-none border-x-0 px-1" placeholder="2.0" value="2.0">
+                                <button onclick="quickAdjustInput('eventXPMultiplier', 0.5, 1.0, 10.0, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-purple-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                             
                             <!-- Dauer -->
                             <div class="flex items-stretch w-24 shrink-0 relative group">
-                                <span class="absolute -top-3 right-0 text-[8px] text-zinc-500 uppercase font-mono">Dauer (Min)</span>
-                                <button onclick="quickAdjustInput('eventXPMinutes', -15, 1)" class="tarkov-btn-small w-7 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 transition-colors">-</button>
-                                <input type="number" id="eventXPMinutes" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10 px-0 text-sm" value="60">
-                                <button onclick="quickAdjustInput('eventXPMinutes', 15, 1)" class="tarkov-btn-small w-7 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 transition-colors">+</button>
+                                <span class="absolute -top-4 right-0 text-[9px] text-slate-500 uppercase font-mono">Dauer (Min)</span>
+                                <button onclick="quickAdjustInput('eventXPMinutes', -15, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" id="eventXPMinutes" class="tarkov-input text-center rounded-none border-x-0 px-0" value="60">
+                                <button onclick="quickAdjustInput('eventXPMinutes', 15, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
 
                             <!-- Transfer-Puffer -->
                             <div class="flex items-stretch w-16 shrink-0 relative group cursor-help">
-                                <span class="absolute -top-3 right-0 text-[8px] text-purple-400/70 uppercase font-mono">Puffer</span>
-                                <input type="number" id="eventXPBuffer" class="tarkov-input buffer-input text-center font-bold text-purple-400 py-0 h-full w-full px-1 text-sm" value="1" min="0">
+                                <span class="absolute -top-4 right-0 text-[9px] text-purple-400 uppercase font-mono flex items-center gap-1">Puffer<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span></span>
+                                <input type="number" id="eventXPBuffer" class="tarkov-input buffer-input text-center text-purple-400 px-1" value="1" min="0">
                                 <div class="tooltip-text">Pufferzeit (in Minuten) für den Datei-Transfer.</div>
                             </div>
                             
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="startXPEvent()" class="tarkov-btn tarkov-btn-primary flex-grow text-xs py-1.5" style="background:#7e22ce; border-color:#a855f7; box-shadow: 0 0 10px rgba(168,85,247,0.2);">Aktivieren</button>
-                            <button onclick="clearXPEvent()" class="tarkov-btn tarkov-btn-danger px-3 py-1.5 text-xs" title="Event Beenden">
+                            <button onclick="startXPEvent()" class="flex-grow bg-purple-500/10 text-purple-400 border border-purple-500/30 hover:bg-purple-500/20 py-2 rounded-lg text-[10px] font-mono font-bold tracking-widest uppercase transition-colors">Aktivieren</button>
+                            <button onclick="clearXPEvent()" class="bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 px-4 rounded-lg transition-colors flex items-center justify-center" title="Event Beenden">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
                     </div>
                     
-                    <button onclick="clearAllEvents()" class="w-full mt-2 tarkov-btn tarkov-btn-secondary border-red-900/50 hover:border-red-500 hover:bg-red-900/20 hover:text-red-400 py-2.5 text-[11px] font-bold tracking-widest transition-all">
-                        ⚠️ ALLE EVENTS ABBRECHEN
+                    <button onclick="clearAllEvents()" class="w-full mt-2 bg-slate-800/50 border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 py-2.5 rounded-xl text-[10px] font-mono font-bold tracking-widest uppercase transition-colors">
+                        ⚠ Alle Events abbrechen
                     </button>
                 </div>
             </div>
 
             <!-- General Settings Panel -->
-            <div class="glass-panel p-5 relative border-t-2 border-t-emerald-500">
-                <div class="flex justify-between items-end mb-5">
+            <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+                <div class="flex justify-between items-end mb-6">
                     <div>
-                        <h2 class="font-tactical font-semibold text-xl text-zinc-100 uppercase tracking-widest">Global Parameters</h2>
-                        <p class="text-[10px] font-mono text-zinc-500 uppercase mt-1">Haupt-Ökonomie & Spielgefühl</p>
+                        <h2 class="text-sm font-bold text-white tracking-widest uppercase">Global Parameters</h2>
+                        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1">Ökonomie & Spielgefühl</p>
                     </div>
-                    <div class="flex gap-1.5 bg-[#050505] p-1 rounded border border-zinc-800">
-                        <span class="preset-badge" onclick="loadPreset('default')" title="Standard Settings">STD</span>
-                        <span class="preset-badge" onclick="loadPreset('hardcore')" title="Hardcore Mode">HARD</span>
-                        <span class="preset-badge" onclick="loadPreset('fast')" title="Schnelle Runden">FAST</span>
+                    <div class="flex gap-1.5 bg-slate-900/50 p-1.5 rounded-lg border border-slate-800">
+                        <button onclick="loadPreset('default')" class="px-3 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-800 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors" title="Standard Settings">STD</button>
+                        <button onclick="loadPreset('hardcore')" class="px-3 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-800 text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors" title="Hardcore Mode">HARD</button>
+                        <button onclick="loadPreset('fast')" class="px-3 py-1 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-800 text-slate-400 hover:bg-blue-500/20 hover:text-blue-400 transition-colors" title="Schnelle Runden">FAST</button>
                     </div>
                 </div>
                 
                 <div class="space-y-4">
-                    <div class="setting-block space-y-5">
+                    <div class="setting-block space-y-6">
                         <!-- Doppel Loot Slider -->
                         <div>
                             <div class="flex justify-between items-end mb-2 relative group">
-                                <label class="block font-mono text-[11px] font-bold uppercase text-amber-400 cursor-help">
-                                    Doppel-Loot Chance
-                                    <span class="tooltip-icon">?</span>
+                                <label class="block font-mono text-[10px] font-bold uppercase text-amber-400 flex items-center gap-1 cursor-help">
+                                    Double Loot Chance
+                                    <span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span>
                                     <div class="tooltip-text">Wahrscheinlichkeit, dass ein Spieler bei einem Run ZWEI Items statt einem findet.</div>
                                 </label>
-                                <span id="lbl_DoubleLootChance" class="font-mono text-base text-amber-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-amber-500/20">3%</span>
+                                <span id="lbl_DoubleLootChance" class="font-mono text-sm text-amber-400 font-bold bg-slate-900/50 px-2 py-0.5 rounded border border-amber-500/20">3%</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <button onclick="quickAdjustInput('slider_DoubleLootChance', -1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-500/50">-</button>
+                                <button onclick="quickAdjustInput('slider_DoubleLootChance', -1, 0, 100)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-amber-500/20 hover:text-amber-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">-</button>
                                 <input type="range" id="slider_DoubleLootChance" min="0" max="100" value="3" class="tarkov-slider slider-amber m-0" oninput="updateSliders()">
-                                <button onclick="quickAdjustInput('slider_DoubleLootChance', 1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-amber-900/30 hover:text-amber-400 hover:border-amber-500/50">+</button>
+                                <button onclick="quickAdjustInput('slider_DoubleLootChance', 1, 0, 100)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-amber-500/20 hover:text-amber-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">+</button>
                             </div>
                         </div>
                         
                         <!-- Survival Slider -->
-                        <div class="pt-3 border-t border-zinc-800">
+                        <div class="pt-4 border-t border-slate-700/50">
                             <div class="flex justify-between items-end mb-2 relative group">
-                                <label class="block font-mono text-[11px] font-bold uppercase text-emerald-400 cursor-help">
-                                    Extraktions-Erfolgsrate (Survival)
-                                    <span class="tooltip-icon">?</span>
+                                <label class="block font-mono text-[10px] font-bold uppercase text-emerald-400 flex items-center gap-1 cursor-help">
+                                    Survival Rate
+                                    <span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span>
                                     <div class="tooltip-text">Die Chance, dass der Spieler den gefundenen Loot erfolgreich ins Stash bringt und nicht stirbt.</div>
                                 </label>
-                                <span id="lbl_SurvivalChance" class="font-mono text-base text-emerald-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-emerald-500/20">85%</span>
+                                <span id="lbl_SurvivalChance" class="font-mono text-sm text-emerald-400 font-bold bg-slate-900/50 px-2 py-0.5 rounded border border-emerald-500/20">85%</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <button onclick="quickAdjustInput('slider_SurvivalChance', -1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50">-</button>
+                                <button onclick="quickAdjustInput('slider_SurvivalChance', -1, 0, 100)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">-</button>
                                 <input type="range" id="slider_SurvivalChance" min="0" max="100" value="85" class="tarkov-slider m-0" oninput="updateSliders()">
-                                <button onclick="quickAdjustInput('slider_SurvivalChance', 1, 0, 100)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50">+</button>
+                                <button onclick="quickAdjustInput('slider_SurvivalChance', 1, 0, 100)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-emerald-500/20 hover:text-emerald-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">+</button>
                             </div>
                         </div>
 
                         <!-- XP Divisor -->
-                        <div class="setting-block">
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="font-mono text-[9px] uppercase text-zinc-500 cursor-help">XP Divisor <span class="tooltip-icon">?</span><div class="tooltip-text">Teilt den Rubelwert durch diesen Wert um die XP zu berechnen. Kleiner = mehr XP. (Standard: 1000)</div></label>
-                                <span id="lbl_XPDivisor" class="font-mono text-base text-blue-400 font-black tracking-wider bg-[#050505] px-2 py-0.5 rounded border border-blue-500/20">1000</span>
+                        <div class="pt-4 border-t border-slate-700/50">
+                            <div class="flex justify-between items-end mb-2 relative group">
+                                <label class="block font-mono text-[10px] font-bold uppercase text-blue-400 flex items-center gap-1 cursor-help">
+                                    XP Divisor
+                                    <span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span>
+                                    <div class="tooltip-text">Teilt den Rubelwert durch diesen Wert um die XP zu berechnen. Kleiner = mehr XP. (Standard: 1000)</div>
+                                </label>
+                                <span id="lbl_XPDivisor" class="font-mono text-sm text-blue-400 font-bold bg-slate-900/50 px-2 py-0.5 rounded border border-blue-500/20">1000</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <button onclick="quickAdjustInput('slider_XPDivisor', -1, 100, 10000)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50">-</button>
-                                <input type="range" id="slider_XPDivisor" min="100" max="10000" value="1000" step="100" class="tarkov-slider m-0" style="--slider-color:#60a5fa" oninput="updateSliders()">
-                                <button onclick="quickAdjustInput('slider_XPDivisor', 1, 100, 10000)" class="tarkov-btn-small w-7 h-7 rounded-full shrink-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50">+</button>
+                                <button onclick="quickAdjustInput('slider_XPDivisor', -1, 100, 10000)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">-</button>
+                                <input type="range" id="slider_XPDivisor" min="100" max="10000" value="1000" step="100" class="tarkov-slider slider-blue m-0" oninput="updateSliders()">
+                                <button onclick="quickAdjustInput('slider_XPDivisor', 1, 100, 10000)" class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-xs font-mono transition-colors shrink-0">+</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Number Inputs with +/- -->
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="setting-block">
-                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-400 mb-3 border-b border-zinc-800 pb-1">Wartezeiten</label>
-                            <div class="space-y-3">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-slate-400 mb-3 border-b border-slate-700 pb-1">Wartezeiten</label>
+                            <div class="space-y-4">
                                 <div class="relative group">
-                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">!loot Cooldown (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Zeit in Sekunden, die ein User warten muss, bevor er den Befehl erneut nutzen kann.</div></span>
+                                    <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">!loot Cooldown (Sek.)<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Zeit in Sekunden, die ein User warten muss, bevor er den Befehl erneut nutzen kann.</div></span>
                                     <div class="flex items-stretch h-8">
-                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/50 transition-colors">-</button>
-                                        <input type="number" id="gen_CooldownSeconds" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
-                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', -1, 0)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                        <input type="number" id="gen_CooldownSeconds" class="tarkov-input text-center rounded-none border-x-0 py-0" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_CooldownSeconds', 1, 0)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">+</button>
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Chat-Warnung Delay<span class="tooltip-icon">?</span><div class="tooltip-text">Wenn jemand spamt, schickt der Bot nur alle X Sekunden eine Warnung, um den Chat sauber zu halten.</div></span>
+                                    <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Spam-Warn Delay<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Wenn jemand spamt, schickt der Bot nur alle X Sekunden eine Warnung, um den Chat sauber zu halten.</div></span>
                                     <div class="flex items-stretch h-8">
-                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-red-900/30 hover:text-red-400 hover:border-red-500/50 transition-colors">-</button>
-                                        <input type="number" id="gen_CooldownMessageDelaySeconds" class="tarkov-input text-center font-bold rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
-                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', -1, 0)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                        <input type="number" id="gen_CooldownMessageDelaySeconds" class="tarkov-input text-center rounded-none border-x-0 py-0" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_CooldownMessageDelaySeconds', 1, 0)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-slate-700 hover:text-white transition-colors flex items-center justify-center text-xs font-mono">+</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="setting-block">
-                            <label class="block font-mono text-[10px] font-bold uppercase text-zinc-400 mb-3 border-b border-zinc-800 pb-1">Dauer des Runs</label>
-                            <div class="space-y-3">
+                            <label class="block font-mono text-[10px] font-bold uppercase text-slate-400 mb-3 border-b border-slate-700 pb-1">Run Dauer</label>
+                            <div class="space-y-4">
                                 <div class="relative group">
-                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Exfil Min (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Mindestdauer in Sekunden zwischen der Start-Nachricht und dem Überleben/Tod.</div></span>
+                                    <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Exfil Min (Sek.)<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Mindestdauer in Sekunden zwischen der Start-Nachricht und dem Überleben/Tod.</div></span>
                                     <div class="flex items-stretch h-8">
-                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">-</button>
-                                        <input type="number" id="gen_MinExfilSeconds" class="tarkov-input text-center font-bold text-blue-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
-                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">+</button>
+                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', -1, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-blue-500/20 hover:text-blue-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                        <input type="number" id="gen_MinExfilSeconds" class="tarkov-input text-center text-blue-400 rounded-none border-x-0 py-0" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_MinExfilSeconds', 1, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-blue-500/20 hover:text-blue-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Exfil Max (Sek.)<span class="tooltip-icon">?</span><div class="tooltip-text">Maximale Dauer des Runs. Der Bot wählt einen zufälligen Wert zwischen Min und Max.</div></span>
+                                    <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Exfil Max (Sek.)<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Maximale Dauer des Runs. Der Bot wählt einen zufälligen Wert zwischen Min und Max.</div></span>
                                     <div class="flex items-stretch h-8">
-                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">-</button>
-                                        <input type="number" id="gen_MaxExfilSeconds" class="tarkov-input text-center font-bold text-blue-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateGeneralSettings()">
-                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-blue-900/30 hover:text-blue-400 hover:border-blue-500/50 transition-colors">+</button>
+                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', -1, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-blue-500/20 hover:text-blue-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                        <input type="number" id="gen_MaxExfilSeconds" class="tarkov-input text-center text-blue-400 rounded-none border-x-0 py-0" onchange="updateGeneralSettings()">
+                                        <button onclick="quickAdjustInput('gen_MaxExfilSeconds', 1, 1)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-blue-500/20 hover:text-blue-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                                     </div>
                                 </div>
                             </div>
@@ -486,125 +435,117 @@
             </div>
 
             <!-- Leveling & Progression Panel -->
-            <div class="glass-panel p-5 relative border-t-2 border-t-cyan-500 mt-5">
-                <div class="flex justify-between items-end mb-4">
+            <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+                <div class="flex justify-between items-end mb-6">
                     <div>
-                        <h2 class="font-tactical font-semibold text-xl text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                        <h2 class="text-sm font-bold text-white tracking-widest uppercase flex items-center gap-2">
                             <svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            XP Kurve Basis-Settings
+                            XP Kurve & Ränge
                         </h2>
                     </div>
                 </div>
 
                 <!-- Info Box zur XP-Berechnung -->
-                <div class="bg-cyan-900/10 border border-cyan-500/30 rounded mb-5 shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] transition-all duration-300">
-                    <div onclick="toggleXPInfoBox()" class="flex items-center justify-between p-3 cursor-pointer hover:bg-cyan-500/10 transition-colors group">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-[#050505] p-1.5 rounded border border-cyan-500/30 shrink-0 group-hover:border-cyan-400/50 transition-colors">
+                <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-xl mb-6 transition-all duration-300">
+                    <div onclick="toggleXPInfoBox()" class="flex items-center justify-between p-4 cursor-pointer hover:bg-cyan-500/10 transition-colors rounded-xl group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center group-hover:border-cyan-400/50 transition-colors">
                                 <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
-                            <h3 class="text-cyan-400 uppercase tracking-widest text-xs font-bold m-0">Wie werden XP berechnet?</h3>
+                            <h3 class="text-cyan-400 text-xs font-mono font-bold tracking-widest uppercase m-0">Wie werden XP berechnet?</h3>
                         </div>
                         <svg id="infoXPChevron" class="w-4 h-4 text-cyan-500 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                     
-                    <div id="infoXPContent" class="hidden px-4 pb-4 pt-1 border-t border-cyan-500/20">
-                        <div class="text-[11px] font-mono text-zinc-300 leading-relaxed space-y-3 mt-2">
-                            
-                            <div class="bg-[#050505] border border-zinc-800 p-2.5 rounded">
-                                <strong class="text-emerald-400 block mb-1 uppercase tracking-wide">1. XP erhalten (Loot-Wert)</strong>
-                                <p>Die Spieler erhalten pro <strong>1.000 Rubel</strong> Wert ihres überlebten Loots genau <strong>1 XP</strong> (Minimum ist 10 XP).</p>
-                                <p class="text-zinc-500 mt-1">Beispiel: Ein 500K Item bringt 500 XP. Ein 2.5 Mio Item bringt 2.500 XP.</p>
+                    <div id="infoXPContent" class="hidden px-5 pb-5 pt-2 border-t border-cyan-500/10">
+                        <div class="text-xs text-slate-400 leading-relaxed space-y-4 mt-2">
+                            <div class="bg-slate-900/50 border border-slate-700 p-3 rounded-lg">
+                                <strong class="text-emerald-400 block mb-1 uppercase tracking-wide font-mono text-[10px]">1. XP erhalten (Loot-Wert)</strong>
+                                <p>Spieler erhalten pro <strong class="text-white">1.000 Rubel</strong> Wert ihres überlebten Loots genau <strong class="text-white">1 XP</strong> (Minimum 10 XP).</p>
+                                <p class="text-slate-500 mt-1 font-mono text-[10px]">Beispiel: 500K Item = 500 XP. 2.5 Mio Item = 2.500 XP.</p>
                             </div>
-
-                            <div class="bg-[#050505] border border-zinc-800 p-2.5 rounded">
-                                <strong class="text-amber-400 block mb-1 uppercase tracking-wide">2. XP pro Level (Anzeige)</strong>
-                                <p>Nach jedem Aufstieg beginnt die XP-Anzeige im Chat wieder bei 0. Die Tabelle rechts im "Ränge & XP" Tab zeigt dir genau, wie viele XP du von 0 an sammeln musst, um auf das jeweils nächste Level zu kommen.</p>
-                                <p class="text-zinc-500 mt-1 text-[9px]">(Im Hintergrund werden die XP als Gesamtsumme gespeichert, damit niemals Fortschritt verloren geht).</p>
+                            <div class="bg-slate-900/50 border border-slate-700 p-3 rounded-lg">
+                                <strong class="text-amber-400 block mb-1 uppercase tracking-wide font-mono text-[10px]">2. XP pro Level (Anzeige)</strong>
+                                <p>Nach jedem Aufstieg beginnt die XP-Anzeige im Chat bei 0. Die Tabelle rechts im "Ränge & XP" Tab zeigt, wie viele XP von 0 an für das nächste Level benötigt werden.</p>
+                                <p class="text-slate-500 mt-1 font-mono text-[10px]">(Im Hintergrund werden die XP als Gesamtsumme gespeichert).</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- XP Inputs -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div class="setting-block">
                         <div class="relative group">
-                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Base XP<span class="tooltip-icon">?</span><div class="tooltip-text">Die Grundmenge an XP für Berechnungen. Standard: 500.</div></span>
+                            <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Base XP<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Die Grundmenge an XP für Berechnungen. Standard: 500.</div></span>
                             <div class="flex items-stretch h-8">
-                                <button onclick="quickAdjustInput('lvl_XPBase', -50, 10)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
-                                <input type="number" id="lvl_XPBase" class="tarkov-input text-center font-bold text-cyan-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
-                                <button onclick="quickAdjustInput('lvl_XPBase', 50, 10)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                                <button onclick="quickAdjustInput('lvl_XPBase', -50, 10)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" id="lvl_XPBase" class="tarkov-input text-center text-cyan-400 rounded-none border-x-0 py-0" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_XPBase', 50, 10)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="setting-block">
                         <div class="relative group">
-                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Kurve (Mult)<span class="tooltip-icon">?</span><div class="tooltip-text">Steilheit der XP-Kurve. 1.0 = linear, 1.5 = steil. Standard: 1.5.</div></span>
+                            <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Kurve (Mult)<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Steilheit der XP-Kurve. 1.0 = linear, 1.5 = steil. Standard: 1.5.</div></span>
                             <div class="flex items-stretch h-8">
-                                <button onclick="quickAdjustInput('lvl_XPMultiplier', -0.1, 1.0, 5.0, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
-                                <input type="number" step="0.1" id="lvl_XPMultiplier" class="tarkov-input text-center font-bold text-cyan-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
-                                <button onclick="quickAdjustInput('lvl_XPMultiplier', 0.1, 1.0, 5.0, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                                <button onclick="quickAdjustInput('lvl_XPMultiplier', -0.1, 1.0, 5.0, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" step="0.1" id="lvl_XPMultiplier" class="tarkov-input text-center text-cyan-400 rounded-none border-x-0 py-0" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_XPMultiplier', 0.1, 1.0, 5.0, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-cyan-500/20 hover:text-cyan-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- NEU: PRESTIGE XP MALUS EINSTELLUNG -->
                     <div class="setting-block">
                         <div class="relative group">
-                            <span class="text-[9px] text-zinc-500 uppercase font-mono block mb-1 cursor-help">Prestige Malus<span class="tooltip-icon">?</span><div class="tooltip-text">Wie viel XP-Abzug (%) gibt es PRO Prestige-Level? 0.10 = 10%.</div></span>
+                            <span class="text-[9px] text-slate-500 uppercase font-mono block mb-1 flex items-center gap-1 cursor-help">Prestige Malus<span class="tooltip-icon w-3 h-3 text-[8px] bg-slate-700">?</span><div class="tooltip-text">Wie viel XP-Abzug (%) gibt es PRO Prestige-Level? 0.10 = 10%.</div></span>
                             <div class="flex items-stretch h-8">
-                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', -0.05, 0.0, 0.9, true)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-purple-900/30 hover:text-purple-400 hover:border-purple-500/50 transition-colors">-</button>
-                                <input type="number" step="0.05" id="lvl_PrestigeXPMalus" class="tarkov-input text-center font-bold text-purple-400 rounded-none border-x-0 py-0 h-full focus:z-10" onchange="updateLevelingSettings()">
-                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', 0.05, 0.0, 0.9, true)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-purple-900/30 hover:text-purple-400 hover:border-purple-500/50 transition-colors">+</button>
+                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', -0.05, 0.0, 0.9, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-purple-500/20 hover:text-purple-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" step="0.05" id="lvl_PrestigeXPMalus" class="tarkov-input text-center text-purple-400 rounded-none border-x-0 py-0" onchange="updateLevelingSettings()">
+                                <button onclick="quickAdjustInput('lvl_PrestigeXPMalus', 0.05, 0.0, 0.9, true)" class="w-7 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-purple-500/20 hover:text-purple-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-4 flex justify-between items-center border-t border-zinc-800 pt-3">
-                    <span class="text-[10px] font-mono text-zinc-500 uppercase">Passe die Rang-Namen und XP Vorschau rechts an.</span>
-                    <button onclick="switchTab('ranks')" class="tarkov-btn-secondary px-3 py-1.5 text-[10px] rounded border border-zinc-700 hover:border-cyan-500 hover:text-cyan-400 transition-colors uppercase font-mono shadow-sm">
-                        Ränge & Vorschau ➔
-                    </button>
-                </div>
+                <button onclick="switchTab('ranks')" class="w-full bg-slate-800/50 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 py-3 rounded-xl text-[10px] font-mono font-bold tracking-widest uppercase transition-colors flex items-center justify-center gap-2">
+                    Ränge & Vorschau Bearbeiten &rarr;
+                </button>
             </div>
             
         </div>
 
         <!-- RECHTE SEITE: Ansicht & Code -->
-        <div class="lg:col-span-7 glass-panel flex flex-col h-full overflow-hidden">
+        <div class="w-full lg:w-7/12 glass-card border border-slate-700/50 rounded-2xl flex flex-col h-auto lg:h-full overflow-hidden relative z-10 min-h-[500px]">
             
             <!-- Tabs -->
-            <div class="flex justify-between items-end px-5 pt-4 border-b border-zinc-800 bg-[#09090b]/50">
-                <div class="flex gap-4 md:gap-6 w-full overflow-x-auto custom-scroll">
-                    <button class="tab-btn active text-sm md:text-base shrink-0" onclick="switchTab('visual')">Maps</button>
-                    <button class="tab-btn text-sm md:text-base shrink-0" onclick="switchTab('ranks')">Ränge & XP</button>
-                    <button class="tab-btn text-sm md:text-base shrink-0" onclick="switchTab('code')">Raw JSON Code</button>
-                </div>
+            <div class="flex px-2 pt-2 border-b border-slate-700/50 bg-slate-900/30 overflow-x-auto no-scrollbar">
+                <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-emerald-400 border-b-2 border-emerald-500 transition-colors whitespace-nowrap" onclick="switchTab('visual')" id="btn-tab-visual">Maps</button>
+                <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors whitespace-nowrap" onclick="switchTab('ranks')" id="btn-tab-ranks">Ränge & XP</button>
+                <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors whitespace-nowrap" onclick="switchTab('code')" id="btn-tab-code">Raw JSON</button>
             </div>
 
             <!-- Tab Content: Visuell (Maps) -->
-            <div id="tabVisual" class="p-5 overflow-y-auto flex-grow h-0 relative custom-scroll">
+            <div id="tabVisual" class="flex-1 p-4 sm:p-6 overflow-y-auto flex flex-col">
                 
                 <!-- Add Map Bar -->
-                <div class="flex flex-col sm:flex-row gap-3 mb-5 bg-[#050505] p-3 rounded border border-zinc-800 items-end">
+                <div class="flex flex-col sm:flex-row gap-3 mb-6 bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 items-end">
                     <div class="flex-grow w-full">
-                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Map Name</label>
-                        <input type="text" id="newMapName" placeholder="Neue Map Name..." class="tarkov-input py-2 text-sm font-semibold w-full">
+                        <label class="block font-mono text-[9px] uppercase text-slate-400 mb-1.5">Map Name</label>
+                        <input type="text" id="newMapName" placeholder="Neue Map Name..." class="tarkov-input py-2.5">
                     </div>
                     
                     <div class="w-full sm:w-32 shrink-0">
-                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Weight</label>
+                        <label class="block font-mono text-[9px] uppercase text-slate-400 mb-1.5">Gewicht (Weight)</label>
                         <div class="flex items-stretch h-[38px] w-full">
-                            <button onclick="quickAdjustInput('newMapWeight', -1, 0)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">-</button>
-                            <input type="number" id="newMapWeight" placeholder="Gewicht" value="5" class="tarkov-input py-0 px-1 text-sm text-center font-mono text-emerald-400 font-bold rounded-none border-x-0 focus:z-10 w-full">
-                            <button onclick="quickAdjustInput('newMapWeight', 1, 0)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                            <button onclick="quickAdjustInput('newMapWeight', -1, 0)" class="w-8 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-emerald-500/20 hover:text-emerald-400 flex items-center justify-center text-xs font-mono transition-colors">-</button>
+                            <input type="number" id="newMapWeight" placeholder="Gewicht" value="5" class="tarkov-input py-0 px-1 text-center text-emerald-400 rounded-none border-x-0 w-full">
+                            <button onclick="quickAdjustInput('newMapWeight', 1, 0)" class="w-8 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-emerald-500/20 hover:text-emerald-400 flex items-center justify-center text-xs font-mono transition-colors">+</button>
                         </div>
                     </div>
                     
-                    <button onclick="addNewMap()" class="tarkov-btn tarkov-btn-primary shrink-0 w-full sm:w-auto h-[38px]">
+                    <button onclick="addNewMap()" class="bg-emerald-500 text-slate-950 font-semibold px-4 rounded-lg hover:bg-emerald-400 transition-colors shadow-[0_0_10px_rgba(16,185,129,0.2)] shrink-0 w-full sm:w-auto h-[38px] flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-wide">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         Hinzufügen
                     </button>
@@ -617,87 +558,128 @@
             </div>
 
             <!-- Tab Content: Ranks & XP Preview -->
-            <div id="tabRanks" class="p-5 overflow-y-auto flex-grow hidden h-0 relative custom-scroll">
+            <div id="tabRanks" class="flex-1 p-4 sm:p-6 overflow-y-auto hidden flex-col">
                 
                 <!-- Add Rank Bar -->
-                <div class="flex flex-col sm:flex-row gap-3 mb-6 bg-[#050505] p-3 rounded border border-zinc-800 items-end">
+                <div class="flex flex-col sm:flex-row gap-3 mb-6 bg-slate-900/40 p-4 rounded-xl border border-slate-700/50 items-end">
                     <div class="w-full sm:w-28 shrink-0">
-                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Ab Level</label>
+                        <label class="block font-mono text-[9px] uppercase text-slate-400 mb-1.5">Ab Level</label>
                         <div class="flex items-stretch h-[38px] w-full">
-                            <button onclick="quickAdjustInput('newRankLevel', -1, 1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">-</button>
-                            <input type="number" id="newRankLevel" placeholder="1" value="1" class="tarkov-input py-0 px-1 text-sm text-center font-mono text-cyan-400 font-bold rounded-none border-x-0 focus:z-10 w-full">
-                            <button onclick="quickAdjustInput('newRankLevel', 1, 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-cyan-900/30 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors">+</button>
+                            <button onclick="quickAdjustInput('newRankLevel', -1, 1)" class="w-8 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-cyan-500/20 hover:text-cyan-400 flex items-center justify-center text-xs font-mono transition-colors">-</button>
+                            <input type="number" id="newRankLevel" placeholder="1" value="1" class="tarkov-input py-0 px-1 text-center text-cyan-400 rounded-none border-x-0 w-full">
+                            <button onclick="quickAdjustInput('newRankLevel', 1, 1)" class="w-8 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-cyan-500/20 hover:text-cyan-400 flex items-center justify-center text-xs font-mono transition-colors">+</button>
                         </div>
                     </div>
 
                     <div class="flex-grow w-full">
-                        <label class="block font-mono text-[9px] uppercase text-zinc-500 mb-1 ml-1">Rang-Name</label>
-                        <input type="text" id="newRankName" placeholder="Z.B. Meister-Looter" class="tarkov-input py-2 text-sm font-semibold w-full">
+                        <label class="block font-mono text-[9px] uppercase text-slate-400 mb-1.5">Rang-Name</label>
+                        <input type="text" id="newRankName" placeholder="Z.B. Meister-Looter" class="tarkov-input py-2.5">
                     </div>
                     
-                    <button onclick="addRank()" class="tarkov-btn tarkov-btn-primary shrink-0 w-full sm:w-auto h-[38px]" style="background:#0891b2; border-color:#06b6d4; box-shadow: 0 0 10px rgba(6,182,212,0.2);">
+                    <button onclick="addRank()" class="bg-cyan-500 text-slate-950 font-semibold px-4 rounded-lg hover:bg-cyan-400 transition-colors shadow-[0_0_10px_rgba(6,182,212,0.2)] shrink-0 w-full sm:w-auto h-[38px] flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-wide">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         Speichern
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
                     
                     <!-- Linke Spalte: Aktuelle Ränge -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="bg-[#050505] p-1.5 rounded border border-cyan-500/30 shrink-0">
-                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                            </div>
-                            <h3 class="text-cyan-400 font-tactical text-lg uppercase tracking-widest">Definierte Ränge</h3>
+                    <div class="glass-card border border-slate-700/50 rounded-xl overflow-hidden flex flex-col">
+                        <div class="px-4 py-3 border-b border-slate-700/50 bg-slate-900/30 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                            <h3 class="text-xs font-mono font-bold text-slate-300 tracking-widest uppercase">Definierte Ränge</h3>
                         </div>
-                        <div id="rankList" class="space-y-2">
+                        <div id="rankList" class="p-2 space-y-1.5 max-h-[60vh] overflow-y-auto">
                             <!-- JS Generated Ranks -->
                         </div>
                     </div>
 
                     <!-- Rechte Spalte: XP Kurve / Tabelle -->
-                    <div>
-                        <div class="flex items-center gap-2 mb-3">
-                            <div class="bg-[#050505] p-1.5 rounded border border-emerald-500/30 shrink-0">
+                    <div class="glass-card border border-slate-700/50 rounded-xl overflow-hidden flex flex-col">
+                        <div class="px-4 py-3 border-b border-slate-700/50 bg-slate-900/30 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                                <h3 class="text-xs font-mono font-bold text-slate-300 tracking-widest uppercase">Live XP Vorschau</h3>
                             </div>
-                            <h3 class="text-emerald-400 font-tactical text-lg uppercase tracking-widest">Live XP Vorschau</h3>
                         </div>
                         
-                        <div class="bg-[#050505] border border-zinc-800 rounded flex flex-col max-h-[50vh] xl:max-h-[60vh] overflow-hidden shadow-lg relative">
+                        <div class="flex flex-col max-h-[60vh] overflow-hidden relative">
                             <!-- Header der Tabelle -->
-                            <div class="flex justify-between bg-zinc-900/80 p-3 font-mono text-[10px] text-zinc-400 uppercase border-b border-zinc-700 tracking-wider shadow-md relative z-10 shrink-0">
-                                <span class="w-14 shrink-0">Level</span>
-                                <span class="flex-grow text-center text-cyan-300">Aktueller Rang</span>
-                                <span class="w-32 shrink-0 text-right">XP für Level-Up</span>
+                            <div class="flex justify-between bg-slate-900/50 p-2.5 font-mono text-[9px] text-slate-400 uppercase border-b border-slate-700/50 tracking-wider shrink-0">
+                                <span class="w-12 shrink-0 pl-1">Level</span>
+                                <span class="flex-grow text-center text-cyan-400">Aktueller Rang</span>
+                                <span class="w-24 shrink-0 text-right pr-1">Next Lvl XP</span>
                             </div>
                             
                             <!-- Scrollbarer Inhalt -->
-                            <div id="xpPreviewTable" class="overflow-y-auto custom-scroll p-2 space-y-1 relative z-0 flex-grow">
+                            <div id="xpPreviewTable" class="overflow-y-auto p-1 space-y-0.5 flex-grow">
                                 <!-- JS Generated Table Rows -->
                             </div>
                         </div>
-                        <p class="text-[9px] text-zinc-500 font-mono text-center mt-2 uppercase tracking-wide">Zeigt die Kurve bis zum höchsten Rang + 5 Level an.</p>
+                        <div class="p-2 bg-slate-900/30 border-t border-slate-700/50 text-[9px] text-slate-500 font-mono text-center uppercase tracking-wide">
+                            Zeigt Kurve bis max. Rang + 5 Level.
+                        </div>
                     </div>
 
                 </div>
             </div>
 
             <!-- Tab Content: Code -->
-            <div id="tabCode" class="p-0 overflow-hidden flex-grow hidden h-0 flex-col bg-[#050505]">
-                <div class="bg-amber-500/10 border-b border-amber-500/20 p-2 text-[10px] font-mono font-semibold text-amber-500 text-center flex justify-center items-center gap-1.5 uppercase tracking-wide shadow-inner">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Achtung: Direkte Manipulation des Quellcodes. JSON Syntax-Fehler führen zum Systemausfall.
+            <div id="tabCode" class="flex-1 overflow-hidden hidden flex-col bg-[#05080c] relative">
+                <div class="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-[10px] font-mono text-amber-500 flex items-center justify-center gap-2 uppercase tracking-widest shrink-0">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Achtung: Syntax-Fehler führen zum Systemausfall.
                 </div>
-                <textarea id="jsonOutput" class="w-full h-full bg-transparent text-emerald-400 font-mono text-[13px] p-5 outline-none resize-none leading-relaxed custom-scroll" oninput="debounceCodeRender()"></textarea>
+                <textarea id="jsonOutput" class="w-full h-full bg-transparent text-emerald-400 font-mono text-xs sm:text-sm p-4 sm:p-6 outline-none resize-none leading-relaxed" oninput="debounceCodeRender()"></textarea>
             </div>
         </div>
     </div>
 
-    <div id="toast">SYS: OK</div>
+    <!-- ========================================== -->
+    <!-- CUSTOM TOAST NOTIFICATIONS -->
+    <!-- ========================================== -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[999] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Dummy API für UI-Vorschau -->
+    <script>
+      if (typeof LootGameAPI === 'undefined') {
+        window.LootGameAPI = {
+          isLoggedIn: () => true, 
+          getUsername: () => 'Admin', 
+          getToken: () => 'dummy-token',
+          config: {
+              getAll: async () => { return new Promise(r => setTimeout(() => r(null), 500)); },
+              setSection: async (s, v) => { return new Promise(r => setTimeout(() => r({success:true}), 200)); }
+          }
+        };
+      }
+    </script>
+    <script src="api-client.js"></script>
 
     <script>
+        // --- Custom Toast System ---
+        function showToast(message, isError = false) {
+          const container = document.getElementById('toast-container');
+          const toast = document.createElement('div');
+          const type = isError ? 'error' : 'success';
+          const colors = {
+            success: 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400',
+            error: 'bg-rose-500/10 border-rose-500/50 text-rose-400',
+            info: 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+          };
+          
+          toast.className = `glass-card border ${colors[type]} px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm transform transition-all duration-300 translate-y-4 opacity-0`;
+          toast.innerHTML = `<div class="font-mono text-xs">${message}</div>`;
+          container.appendChild(toast);
+          
+          requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+          setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-x-4');
+            setTimeout(() => toast.remove(), 300);
+          }, 3000);
+        }
+
         // --- Standard Konfiguration ---
         const defaultConfig = {
             "General": {
@@ -729,7 +711,7 @@
             "Leveling": {
                 "XPMultiplier": 1.5,
                 "XPBase": 500,
-                "PrestigeXPMalus": 0.10, // NEUER WERT: 10% Malus pro Prestige
+                "PrestigeXPMalus": 0.10,
                 "Ranks": {
                     "1": "Scav-Anfänger",
                     "5": "Ratten-König",
@@ -753,22 +735,19 @@
         let countdownInterval;
 
         window.onload = async () => {
-            // API verfügbar? → von Bot laden
-            if (LootGameAPI.isLoggedIn()) {
-                try {
-                    const apiConfig = await LootGameAPI.config.getAll();
-                    if (apiConfig && Object.keys(apiConfig).length) {
-                        currentConfig = apiConfig;
-                        document.getElementById('jsonOutput').value = JSON.stringify(currentConfig, null, 2);
-                        showToast('Config vom Bot geladen ✓');
-                    } else {
-                        loadFromLocalStorage();
-                    }
-                } catch {
-                    showToast('Bot nicht erreichbar — lade lokale Config', true);
+            if (!LootGameAPI.isLoggedIn()) window.location.href = '/login.html';
+            
+            try {
+                const apiConfig = await LootGameAPI.config.getAll();
+                if (apiConfig && Object.keys(apiConfig).length) {
+                    currentConfig = apiConfig;
+                    document.getElementById('jsonOutput').value = JSON.stringify(currentConfig, null, 2);
+                    showToast('Config vom Bot geladen ✓');
+                } else {
                     loadFromLocalStorage();
                 }
-            } else {
+            } catch {
+                showToast('Lade lokale Config', true);
                 loadFromLocalStorage();
             }
             ensureEventsExist();
@@ -801,7 +780,7 @@
             if(!currentConfig.ActiveEvents.XPBoost) currentConfig.ActiveEvents.XPBoost = { Multiplier: 2.0, ExpiresAt: 0 };
             
             if(!currentConfig.Leveling) currentConfig.Leveling = JSON.parse(JSON.stringify(defaultConfig.Leveling));
-            if(currentConfig.Leveling.PrestigeXPMalus === undefined) currentConfig.Leveling.PrestigeXPMalus = 0.10; // NEU
+            if(currentConfig.Leveling.PrestigeXPMalus === undefined) currentConfig.Leveling.PrestigeXPMalus = 0.10; 
         }
 
         function saveToLocalStorage() {
@@ -809,57 +788,42 @@
             const output = document.getElementById('jsonOutput');
             if(output) output.value = JSON.stringify(currentConfig, null, 2);
 
-            // API sync — wenn Bot verbunden
             if (LootGameAPI.isLoggedIn()) {
                 Promise.all(
                     Object.entries(currentConfig).map(([section, value]) =>
                         LootGameAPI.config.setSection(section, value).catch(() => null)
                     )
                 ).then(() => {
-                    showToast('Config gespeichert & an Bot gesendet ✓');
+                    // showToast('Gespeichert & Gesynct ✓');
                 }).catch(() => {
-                    showToast('Lokal gespeichert — Bot nicht erreichbar', true);
+                    // showToast('Lokal gespeichert', true);
                 });
             }
         }
 
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            if(!toast) return;
-            toast.innerHTML = isError ? `<span class="text-red-400 mr-2">[ERR]</span> ${message}` : `<span class="text-emerald-400 mr-2">[SYS]</span> ${message}`;
-            if (isError) toast.classList.add('error');
-            else toast.classList.remove('error');
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
         function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            const visual = document.getElementById('tabVisual');
-            const ranks = document.getElementById('tabRanks');
-            const code = document.getElementById('tabCode');
-            
-            if(visual) { visual.classList.add('hidden'); visual.classList.remove('flex'); }
-            if(ranks) { ranks.classList.add('hidden'); ranks.classList.remove('flex'); }
-            if(code) { code.classList.add('hidden'); code.classList.remove('flex'); }
+            ['Visual', 'Ranks', 'Code'].forEach(t => {
+                const el = document.getElementById('tab' + t);
+                const btn = document.getElementById('btn-tab-' + t.toLowerCase());
+                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+                if(btn) { 
+                    btn.classList.remove('text-emerald-400', 'border-emerald-500');
+                    btn.classList.add('text-slate-400', 'border-transparent');
+                }
+            });
 
-            if (tab === 'visual') {
-                document.querySelectorAll('.tab-btn')[0]?.classList.add('active');
-                if(visual) visual.classList.remove('hidden');
-            } else if (tab === 'ranks') {
-                document.querySelectorAll('.tab-btn')[1]?.classList.add('active');
-                if(ranks) ranks.classList.remove('hidden');
-                // Beim Wechsel auf den Tab immer die UI und Vorschau refreshen
+            const actEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+            const actBtn = document.getElementById('btn-tab-' + tab);
+
+            if(actEl) { actEl.classList.remove('hidden'); actEl.classList.add('flex'); }
+            if(actBtn) {
+                actBtn.classList.add('text-emerald-400', 'border-emerald-500');
+                actBtn.classList.remove('text-slate-400', 'border-transparent');
+            }
+
+            if (tab === 'ranks') {
                 renderRankList();
                 renderXpPreview();
-            } else {
-                document.querySelectorAll('.tab-btn')[2]?.classList.add('active');
-                if(code) {
-                    code.classList.remove('hidden');
-                    code.classList.add('flex');
-                }
             }
         }
 
@@ -907,7 +871,7 @@
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     const file = e.dataTransfer.files[0];
                     if(file.name.endsWith('.json')) { importFile(file); } 
-                    else { showToast("ERROR: Bitte nur .json Dateien", true); }
+                    else { showToast("Bitte nur .json Dateien", true); }
                 }
             });
         }
@@ -920,8 +884,8 @@
                     ensureEventsExist();
                     saveToLocalStorage();
                     syncUiFromJson();
-                    showToast("CONFIG ERFOLGREICH GELADEN");
-                } catch (error) { showToast("LADEN FEHLGESCHLAGEN: JSON FEHLER", true); }
+                    showToast("Config erfolgreich geladen");
+                } catch (error) { showToast("JSON Fehler", true); }
             };
             reader.readAsText(file);
         }
@@ -934,17 +898,14 @@
         }
 
         async function syncConfigToBot() {
-            if (!LootGameAPI.isLoggedIn()) {
-                showToast('Nicht eingeloggt', true);
-                return;
-            }
+            if (!LootGameAPI.isLoggedIn()) return;
             try {
                 showToast('Sende Config an Bot...');
                 const sections = Object.keys(currentConfig);
                 for (const section of sections) {
                     await LootGameAPI.config.setSection(section, currentConfig[section]);
                 }
-                showToast('✓ Config an Bot gesendet!');
+                showToast('✓ Config synchronisiert');
             } catch (err) {
                 showToast('Fehler: ' + err.message, true);
             }
@@ -961,8 +922,8 @@
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
-                showToast("DOWNLOAD GESTARTET");
-            } catch(e) { showToast("DOWNLOAD FEHLGESCHLAGEN", true); }
+                showToast("Download gestartet");
+            } catch(e) { showToast("Download fehlgeschlagen", true); }
         }
 
         function copyJson() {
@@ -971,9 +932,9 @@
                 if(output) {
                     output.select();
                     document.execCommand('copy');
-                    showToast("CODE IN ZWISCHENABLAGE KOPIERT");
+                    showToast("Code in Zwischenablage kopiert");
                 }
-            } catch(e) { showToast("KOPIEREN FEHLGESCHLAGEN", true); }
+            } catch(e) { showToast("Kopieren fehlgeschlagen", true); }
         }
 
         function loadPreset(presetName) {
@@ -981,7 +942,7 @@
                 currentConfig.General = JSON.parse(JSON.stringify(presets[presetName]));
                 saveToLocalStorage();
                 syncUiFromJson();
-                showToast(`PROFIL GELADEN: ${presetName.toUpperCase()}`);
+                showToast(`Profil geladen: ${presetName.toUpperCase()}`);
             }
         }
 
@@ -991,7 +952,7 @@
             const max = Number(slider.max) || 100;
             const val = Number(slider.value) || 0;
             const percentage = ((val - min) / (max - min)) * 100;
-            slider.style.background = `linear-gradient(to right, ${colorHex} 0%, ${colorHex} ${percentage}%, #27272a ${percentage}%, #27272a 100%)`;
+            slider.style.background = `linear-gradient(to right, ${colorHex} 0%, ${colorHex} ${percentage}%, rgba(30, 41, 59, 0.8) ${percentage}%, rgba(30, 41, 59, 0.8) 100%)`;
         }
 
         function syncUiFromJson() {
@@ -1006,7 +967,7 @@
                     maxEx: document.getElementById('gen_MaxExfilSeconds'),
                     xpBase: document.getElementById('lvl_XPBase'),
                     xpMult: document.getElementById('lvl_XPMultiplier'),
-                    xpMalus: document.getElementById('lvl_PrestigeXPMalus') // NEU
+                    xpMalus: document.getElementById('lvl_PrestigeXPMalus')
                 };
 
                 if(uiElements.cooldown) uiElements.cooldown.value = gen.CooldownSeconds ?? 10;
@@ -1014,10 +975,9 @@
                 if(uiElements.minEx) uiElements.minEx.value = gen.MinExfilSeconds ?? 5;
                 if(uiElements.maxEx) uiElements.maxEx.value = gen.MaxExfilSeconds ?? 10;
 
-                // Sync Leveling
                 if(uiElements.xpBase) uiElements.xpBase.value = lvl.XPBase ?? 500;
                 if(uiElements.xpMult) uiElements.xpMult.value = lvl.XPMultiplier ?? 1.5;
-                if(uiElements.xpMalus) uiElements.xpMalus.value = lvl.PrestigeXPMalus ?? 0.10; // NEU
+                if(uiElements.xpMalus) uiElements.xpMalus.value = lvl.PrestigeXPMalus ?? 0.10;
                 
                 const dblChance = Math.round((gen.DoubleLootChance ?? 0.03) * 100);
                 const srvChance = Math.round((gen.SurvivalChance ?? 0.85) * 100);
@@ -1029,7 +989,7 @@
                     sliderDbl.value = dblChance;
                     const lblDbl = document.getElementById('lbl_DoubleLootChance');
                     if(lblDbl) lblDbl.textContent = dblChance + "%";
-                    updateSliderFill(sliderDbl, '#fbbf24'); 
+                    updateSliderFill(sliderDbl, '#f59e0b'); 
                 }
                 
                 if (sliderSrv) {
@@ -1045,7 +1005,7 @@
                     sliderXPD.value = xpDiv;
                     const lblXPD = document.getElementById('lbl_XPDivisor');
                     if(lblXPD) lblXPD.textContent = xpDiv;
-                    updateSliderFill(sliderXPD, '#60a5fa');
+                    updateSliderFill(sliderXPD, '#3b82f6');
                 }
 
                 renderMapList();
@@ -1065,7 +1025,7 @@
             if(sliderDbl) {
                 const lblDbl = document.getElementById('lbl_DoubleLootChance');
                 if(lblDbl) lblDbl.textContent = sliderDbl.value + "%";
-                updateSliderFill(sliderDbl, '#fbbf24');
+                updateSliderFill(sliderDbl, '#f59e0b');
             }
             if(sliderSrv) {
                 const lblSrv = document.getElementById('lbl_SurvivalChance');
@@ -1076,7 +1036,7 @@
             if(sliderXPD) {
                 const lblXPD = document.getElementById('lbl_XPDivisor');
                 if(lblXPD) lblXPD.textContent = sliderXPD.value;
-                updateSliderFill(sliderXPD, '#60a5fa');
+                updateSliderFill(sliderXPD, '#3b82f6');
             }
             updateGeneralSettings();
         }
@@ -1114,15 +1074,13 @@
             
             let xpBase = parseInt(document.getElementById('lvl_XPBase')?.value) || 500;
             let xpMult = parseFloat(document.getElementById('lvl_XPMultiplier')?.value) || 1.5;
-            let xpMalus = parseFloat(document.getElementById('lvl_PrestigeXPMalus')?.value) || 0.10; // NEU
+            let xpMalus = parseFloat(document.getElementById('lvl_PrestigeXPMalus')?.value) || 0.10;
 
             currentConfig.Leveling.XPBase = xpBase;
             currentConfig.Leveling.XPMultiplier = xpMult;
-            currentConfig.Leveling.PrestigeXPMalus = xpMalus; // NEU
+            currentConfig.Leveling.PrestigeXPMalus = xpMalus; 
 
             saveToLocalStorage();
-            
-            // Sofortige Vorschau nach Änderung
             renderXpPreview();
         }
 
@@ -1130,7 +1088,6 @@
         // RÄNGE & XP LOGIK
         // ==========================================
         
-        // Berechnet die XP für ein gegebenes Level nach der Formel
         function calculateXpForLevel(level, baseXP, multiplier) {
             if (level <= 1) return 0;
             return Math.floor(baseXP * Math.pow(level - 1, multiplier) + (level - 1) * baseXP);
@@ -1145,7 +1102,7 @@
             const rankKeys = Object.keys(ranks).map(Number).sort((a,b) => a - b);
 
             if (rankKeys.length === 0) {
-                 container.innerHTML = `<div class="text-center font-mono font-bold text-zinc-500 py-6 uppercase text-xs tracking-widest">Keine Ränge definiert.</div>`;
+                 container.innerHTML = `<div class="text-center font-mono text-slate-500 py-6 uppercase text-xs tracking-widest">Keine Ränge definiert.</div>`;
                  return;
             }
 
@@ -1153,22 +1110,21 @@
                 const name = ranks[level];
                 
                 const div = document.createElement('div');
-                div.className = "bg-[#09090b] border border-zinc-800 rounded p-2 flex justify-between items-center group hover:border-cyan-500/30 transition-colors shadow-sm gap-2";
+                div.className = "bg-slate-900/50 border border-slate-700/50 rounded-lg p-2 flex justify-between items-center group hover:border-cyan-500/50 transition-colors gap-2";
                 
-                // Inline Edit Funktion
                 div.innerHTML = `
                     <div class="flex items-center gap-3 w-full">
-                        <div class="bg-cyan-900/20 border border-cyan-500/30 px-2 py-1 rounded shrink-0">
-                            <span class="font-mono text-xs font-bold text-cyan-400">Lvl ${level}</span>
+                        <div class="bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-1 rounded-md shrink-0">
+                            <span class="font-mono text-[10px] font-bold text-cyan-400">Lvl ${level}</span>
                         </div>
                         <div class="relative w-full flex items-center">
                             <input type="text" value="${name}" title="Klicken zum Bearbeiten"
                                    onchange="updateRankName('${level}', this.value)"
-                                   class="font-tactical text-[15px] font-bold tracking-wider text-zinc-200 bg-transparent border border-transparent hover:border-zinc-700 focus:border-cyan-500 focus:bg-[#050505] rounded px-2 py-1 w-full outline-none transition-all focus:pl-7 z-10 peer">
-                            <svg class="w-3.5 h-3.5 text-zinc-600 absolute left-2 opacity-0 peer-focus:opacity-100 transition-opacity z-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                   class="font-sans text-sm font-semibold tracking-wide text-white bg-transparent border border-transparent hover:border-slate-700 focus:border-cyan-500 focus:bg-slate-900 rounded px-2 py-1.5 w-full outline-none transition-all focus:pl-8 z-10 peer">
+                            <svg class="w-4 h-4 text-slate-500 absolute left-2 opacity-0 peer-focus:opacity-100 transition-opacity z-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                         </div>
                     </div>
-                    <button onclick="deleteRank('${level}')" class="text-zinc-600 hover:text-red-400 transition-colors p-2 shrink-0" title="Rang Löschen">
+                    <button onclick="deleteRank('${level}')" class="text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-2 rounded-md shrink-0" title="Rang Löschen">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 `;
@@ -1176,12 +1132,11 @@
             });
         }
 
-        // Neue Funktion zum Updaten des Namens
         function updateRankName(level, newName) {
             const trimmed = newName.trim();
             if(!trimmed) {
                 showToast("Rang-Name darf nicht leer sein!", true);
-                renderRankList(); // Verwirft die Änderung bei leerem Feld
+                renderRankList(); 
                 return;
             }
             if(!currentConfig.Leveling) currentConfig.Leveling = {};
@@ -1190,8 +1145,8 @@
             currentConfig.Leveling.Ranks[level.toString()] = trimmed;
             
             saveToLocalStorage();
-            renderXpPreview(); // Tabelle sofort anpassen
-            showToast(`RANG AKTUALISIERT: Lvl ${level} -> ${trimmed}`);
+            renderXpPreview(); 
+            showToast(`Rang Lvl ${level} geändert zu: ${trimmed}`);
         }
 
         function addRank() {
@@ -1211,15 +1166,14 @@
             
             currentConfig.Leveling.Ranks[level.toString()] = name;
             
-            lvlEl.value = level + 5; // Erhöht automatisch für schnelle Eingabe
+            lvlEl.value = level + 5;
             nameEl.value = '';
             
             saveToLocalStorage();
             renderRankList();
             renderXpPreview();
-            showToast(`RANG HINZUGEFÜGT: ${name} (Lvl ${level})`);
+            showToast(`Rang hinzugefügt: ${name}`);
             
-            // Zum neuen Rang in der Vorschau scrollen
             setTimeout(() => {
                 const targetRow = document.getElementById(`xp-row-${level}`);
                 if(targetRow) {
@@ -1236,7 +1190,6 @@
                 saveToLocalStorage();
                 renderRankList();
                 renderXpPreview();
-                showToast(`RANG LEVEL ${levelStr} GELÖSCHT`);
             }
         }
 
@@ -1256,7 +1209,6 @@
             let html = '';
             let currentRankName = "Unbekannt";
 
-            // Finde den ersten Rang
             if(rankKeys.length > 0) {
                  const firstLevel = Math.min(...rankKeys);
                  if(1 >= firstLevel) currentRankName = ranks[firstLevel.toString()];
@@ -1267,38 +1219,33 @@
             for(let i = 1; i <= maxLvlToShow; i++) {
                 if(ranks[i.toString()]) currentRankName = ranks[i.toString()];
                 
-                // Berechne die absolute XP-Zahl für das aktuelle und das nächste Level
                 const totalXpCurrent = calculateXpForLevel(i, baseXP, mult);
                 const totalXpNext = calculateXpForLevel(i + 1, baseXP, mult);
                 
-                // Errechnete Differenz ist das, was man für das Level-Up sammeln muss
                 const xpNeededForUp = totalXpNext - totalXpCurrent;
-                
                 const isRankUp = ranks[i.toString()] !== undefined;
-                
-                // Schicke Formatierung (z.B. 1.500)
                 const xpFormatted = xpNeededForUp.toLocaleString('de-DE');
 
-                let rowClass = "text-zinc-400 hover:bg-[#09090b]";
-                let levelClass = "text-zinc-500";
+                let rowClass = "text-slate-400 hover:bg-slate-800/30 border-transparent";
+                let levelClass = "text-slate-500";
                 
                 if (isRankUp) {
-                    rowClass = "bg-cyan-900/20 text-cyan-300 font-bold border-l-2 border-l-cyan-400";
+                    rowClass = "bg-cyan-500/10 text-cyan-300 font-bold border-cyan-500/50";
                     levelClass = "text-cyan-400";
                 }
 
                 html += `
-                <div id="xp-row-${i}" class="flex justify-between items-center p-2.5 border-b border-zinc-800/50 transition-colors ${rowClass}">
-                    <span class="w-14 shrink-0 font-mono text-xs ${levelClass}">Lvl ${i}</span>
-                    <span class="flex-grow text-center font-tactical tracking-widest text-sm ${isRankUp ? 'text-white drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]' : 'opacity-75'}">${currentRankName}</span>
-                    <span class="w-32 shrink-0 text-right font-mono text-xs">${xpFormatted} XP</span>
+                <div id="xp-row-${i}" class="flex justify-between items-center p-2 border-l-2 border-b border-b-slate-800/30 transition-colors ${rowClass}">
+                    <span class="w-12 shrink-0 font-mono text-[10px] pl-1 ${levelClass}">Lvl ${i}</span>
+                    <span class="flex-grow text-center font-sans tracking-wide text-xs ${isRankUp ? 'text-white' : 'opacity-75'}">${currentRankName}</span>
+                    <span class="w-24 shrink-0 text-right font-mono text-[10px] pr-1">${xpFormatted} XP</span>
                 </div>`;
             }
             container.innerHTML = html;
         }
 
         // ==========================================
-        // MAP & EVENT LOGIK (Bleibt gleich)
+        // MAP & EVENT LOGIK
         // ==========================================
 
         function populateEventMapSelect() {
@@ -1331,7 +1278,7 @@
             currentConfig.ActiveEvents.ForcedMap = { MapName: mapName, ExpiresAt: expires };
             saveToLocalStorage();
             updateEventUI();
-            showToast(`MAP EVENT GESTARTET: ${mapName} (+${bufferMins}m Puffer)`);
+            showToast(`Map Event gestartet: ${mapName}`);
         }
 
         function clearMapEvent() {
@@ -1358,7 +1305,7 @@
             currentConfig.ActiveEvents.DoubleLootOverride = { Chance: chance, ExpiresAt: expires };
             saveToLocalStorage();
             updateEventUI();
-            showToast(`LOOT EVENT GESTARTET (+${bufferMins}m Puffer)`);
+            showToast(`Loot Event gestartet`);
         }
 
         function clearLootEvent() {
@@ -1385,7 +1332,7 @@
             currentConfig.ActiveEvents.XPBoost = { Multiplier: multiplier, ExpiresAt: expires };
             saveToLocalStorage();
             updateEventUI();
-            showToast(`XP EVENT GESTARTET (+${bufferMins}m Puffer)`);
+            showToast(`XP Event gestartet`);
         }
 
         function clearXPEvent() {
@@ -1402,7 +1349,7 @@
             currentConfig.ActiveEvents.XPBoost.ExpiresAt = 0;
             saveToLocalStorage();
             updateEventUI();
-            showToast("ALLE EVENTS ABGEBROCHEN", false);
+            showToast("Alle Events abgebrochen", false);
         }
 
         function startCountdownTimer() {
@@ -1431,10 +1378,12 @@
                 const remaining = mapEvent.ExpiresAt - now;
                 if(mapText) {
                     mapText.textContent = formatTime(remaining);
-                    mapText.classList.replace('text-zinc-500', 'text-emerald-400');
+                    mapText.classList.replace('text-slate-500', 'text-emerald-400');
+                    mapText.classList.replace('bg-slate-900/50', 'bg-emerald-500/10');
+                    mapText.classList.replace('border-slate-800', 'border-emerald-500/30');
                     mapText.classList.add('animate-pulse');
                 }
-                if(mapBox) mapBox.classList.add('border-emerald-500');
+                if(mapBox) mapBox.classList.add('border-emerald-500/50', 'bg-emerald-500/5');
                 
                 if(headerMapEvent) {
                     headerMapEvent.classList.remove('hidden');
@@ -1445,10 +1394,12 @@
             } else {
                 if(mapText) {
                     mapText.textContent = "INAKTIV";
-                    mapText.classList.replace('text-emerald-400', 'text-zinc-500');
+                    mapText.classList.replace('text-emerald-400', 'text-slate-500');
+                    mapText.classList.replace('bg-emerald-500/10', 'bg-slate-900/50');
+                    mapText.classList.replace('border-emerald-500/30', 'border-slate-800');
                     mapText.classList.remove('animate-pulse');
                 }
-                if(mapBox) mapBox.classList.remove('border-emerald-500');
+                if(mapBox) mapBox.classList.remove('border-emerald-500/50', 'bg-emerald-500/5');
                 
                 if(headerMapEvent) {
                     headerMapEvent.classList.add('hidden');
@@ -1469,10 +1420,12 @@
                 const remaining = lootEvent.ExpiresAt - now;
                 if(lootText) {
                     lootText.textContent = formatTime(remaining);
-                    lootText.classList.replace('text-zinc-500', 'text-amber-400');
+                    lootText.classList.replace('text-slate-500', 'text-amber-400');
+                    lootText.classList.replace('bg-slate-900/50', 'bg-amber-500/10');
+                    lootText.classList.replace('border-slate-800', 'border-amber-500/30');
                     lootText.classList.add('animate-pulse');
                 }
-                if(lootBox) lootBox.style.borderColor = "rgba(245, 158, 11, 0.6)";
+                if(lootBox) lootBox.classList.add('border-amber-500/50', 'bg-amber-500/5');
                 
                 if(headerLootEvent) {
                     headerLootEvent.classList.remove('hidden');
@@ -1483,10 +1436,12 @@
             } else {
                 if(lootText) {
                     lootText.textContent = "INAKTIV";
-                    lootText.classList.replace('text-amber-400', 'text-zinc-500');
+                    lootText.classList.replace('text-amber-400', 'text-slate-500');
+                    lootText.classList.replace('bg-amber-500/10', 'bg-slate-900/50');
+                    lootText.classList.replace('border-amber-500/30', 'border-slate-800');
                     lootText.classList.remove('animate-pulse');
                 }
-                if(lootBox) lootBox.style.borderColor = "rgba(255,255,255,0.05)";
+                if(lootBox) lootBox.classList.remove('border-amber-500/50', 'bg-amber-500/5');
                 
                 if(headerLootEvent) {
                     headerLootEvent.classList.add('hidden');
@@ -1507,10 +1462,12 @@
                 const remaining = xpEvent.ExpiresAt - now;
                 if(xpText) {
                     xpText.textContent = formatTime(remaining);
-                    xpText.classList.replace('text-zinc-500', 'text-purple-400');
+                    xpText.classList.replace('text-slate-500', 'text-purple-400');
+                    xpText.classList.replace('bg-slate-900/50', 'bg-purple-500/10');
+                    xpText.classList.replace('border-slate-800', 'border-purple-500/30');
                     xpText.classList.add('animate-pulse');
                 }
-                if(xpBox) xpBox.style.borderColor = "rgba(168, 85, 247, 0.6)";
+                if(xpBox) xpBox.classList.add('border-purple-500/50', 'bg-purple-500/5');
                 
                 if(headerXPEvent) {
                     headerXPEvent.classList.remove('hidden');
@@ -1521,10 +1478,12 @@
             } else {
                 if(xpText) {
                     xpText.textContent = "INAKTIV";
-                    xpText.classList.replace('text-purple-400', 'text-zinc-500');
+                    xpText.classList.replace('text-purple-400', 'text-slate-500');
+                    xpText.classList.replace('bg-purple-500/10', 'bg-slate-900/50');
+                    xpText.classList.replace('border-purple-500/30', 'border-slate-800');
                     xpText.classList.remove('animate-pulse');
                 }
-                if(xpBox) xpBox.style.borderColor = "rgba(255,255,255,0.05)";
+                if(xpBox) xpBox.classList.remove('border-purple-500/50', 'bg-purple-500/5');
                 
                 if(headerXPEvent) {
                     headerXPEvent.classList.add('hidden');
@@ -1574,7 +1533,7 @@
             mapKeys.forEach(k => totalWeight += parseFloat(maps[k]) || 0);
 
             if (mapKeys.length === 0) {
-                 container.innerHTML = `<div class="col-span-full text-center font-mono font-bold text-zinc-500 py-10 uppercase text-xs tracking-widest">Keine Maps in der Config gefunden.</div>`;
+                 container.innerHTML = `<div class="col-span-full text-center font-mono text-slate-500 py-10 uppercase text-xs tracking-widest">Keine Maps gefunden.</div>`;
                  return;
             }
 
@@ -1584,46 +1543,52 @@
                 const weight = parseFloat(maps[mapName]) || 0;
                 const percentage = totalWeight > 0 ? ((weight / totalWeight) * 100).toFixed(1) : 0;
                 
-                let colorClass = "text-emerald-500 bg-emerald-500";
-                if(percentage < 5) colorClass = "text-zinc-400 bg-zinc-500";
-                else if(percentage > 15) colorClass = "text-amber-400 bg-amber-400";
+                let colorClass = "text-emerald-400 bg-emerald-500/20";
+                let fillClass = "bg-emerald-500";
+                
+                if(percentage < 5) {
+                    colorClass = "text-slate-400 bg-slate-500/20";
+                    fillClass = "bg-slate-500";
+                }
+                else if(percentage > 15) {
+                    colorClass = "text-amber-400 bg-amber-500/20";
+                    fillClass = "bg-amber-500";
+                }
 
                 const div = document.createElement('div');
-                div.className = "bg-[#09090b] border border-zinc-800 rounded p-4 relative flex flex-col transition-colors shadow-sm overflow-hidden group";
+                div.className = "bg-slate-900/30 border border-slate-700/50 rounded-xl p-4 relative flex flex-col transition-colors shadow-sm overflow-hidden group";
                 
                 div.innerHTML = `
-                    <div class="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity" style="background: ${colorClass.split(' ')[1]}"></div>
-                    
                     <div class="flex justify-between items-start mb-4 relative z-10">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded bg-[#050505] border border-zinc-800 flex items-center justify-center shrink-0">
-                                <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            <div class="w-8 h-8 rounded-lg bg-slate-800/50 border border-slate-700/50 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                             </div>
-                            <h4 class="font-tactical text-lg font-bold text-zinc-200">${mapName}</h4>
+                            <h4 class="font-sans text-base font-bold text-slate-200 tracking-wide">${mapName}</h4>
                         </div>
-                        <button onclick="deleteMap('${mapName}')" class="text-zinc-600 hover:text-red-400 transition-colors p-1" title="Map Löschen">
+                        <button onclick="deleteMap('${mapName}')" class="text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-1.5 rounded-lg" title="Map Löschen">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
 
                     <div class="flex items-center justify-between relative z-10">
                         <div>
-                            <label class="block font-mono text-[9px] font-semibold uppercase text-zinc-500 mb-1 ml-1">Gewicht (Lose)</label>
+                            <label class="block font-mono text-[9px] font-bold uppercase text-slate-500 mb-1.5 ml-1">Gewicht (Lose)</label>
                             <div class="flex items-stretch h-8 w-28">
-                                <button onclick="quickAdjustMap('${mapName}', -1)" class="tarkov-btn-small w-8 rounded-r-none border-r-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">-</button>
-                                <input type="number" step="0.1" value="${weight}" class="tarkov-input py-0 px-1 text-sm font-mono text-zinc-300 text-center rounded-none border-x-0 h-full focus:z-10" onchange="updateMapWeight('${mapName}', this.value)">
-                                <button onclick="quickAdjustMap('${mapName}', 1)" class="tarkov-btn-small w-8 rounded-l-none border-l-0 hover:bg-emerald-900/30 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors">+</button>
+                                <button onclick="quickAdjustMap('${mapName}', -1)" class="w-8 bg-slate-800 border border-slate-700 rounded-l-lg hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors flex items-center justify-center text-xs font-mono">-</button>
+                                <input type="number" step="0.1" value="${weight}" class="tarkov-input py-0 px-1 text-sm font-mono text-slate-300 text-center rounded-none border-x-0 h-full focus:z-10" onchange="updateMapWeight('${mapName}', this.value)">
+                                <button onclick="quickAdjustMap('${mapName}', 1)" class="w-8 bg-slate-800 border border-slate-700 rounded-r-lg hover:bg-emerald-500/20 hover:text-emerald-400 transition-colors flex items-center justify-center text-xs font-mono">+</button>
                             </div>
                         </div>
                         
                         <div class="text-right shrink-0">
-                            <label class="block font-mono text-[9px] font-semibold uppercase text-zinc-500 mb-1">Live Chance</label>
-                            <span class="font-mono font-black text-xl ${colorClass.split(' ')[0]} drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">${percentage}%</span>
+                            <label class="block font-mono text-[9px] font-bold uppercase text-slate-500 mb-1">Live Chance</label>
+                            <span class="font-mono font-black text-lg ${colorClass.split(' ')[0]} bg-slate-900/50 px-2 py-0.5 rounded border border-slate-800">${percentage}%</span>
                         </div>
                     </div>
 
-                    <div class="progress-bar mt-4 relative z-10">
-                        <div class="progress-fill ${colorClass.split(' ')[1]}" style="width: ${percentage}%"></div>
+                    <div class="progress-bar relative z-10 mt-4">
+                        <div class="progress-fill ${fillClass}" style="width: ${percentage}%"></div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -1657,7 +1622,7 @@
             
             saveToLocalStorage();
             syncUiFromJson();
-            showToast(`MAP HINZUGEFÜGT: ${name}`);
+            showToast(`Map hinzugefügt: ${name}`);
         }
 
         function deleteMap(mapName) {
@@ -1665,7 +1630,6 @@
                 delete currentConfig.Maps[mapName];
                 saveToLocalStorage();
                 syncUiFromJson();
-                showToast(`MAP GELÖSCHT: ${mapName}`);
             }
         }
 
@@ -1679,10 +1643,9 @@
                     ensureEventsExist();
                     localStorage.setItem('tarkov_loot_game_config', val);
                     syncUiFromJson();
-                    const toast = document.getElementById('toast');
-                    if(toast) toast.classList.remove('show');
+                    showToast('Code aktualisiert');
                 } catch(e) {
-                    console.log("JSON Incomplete while typing...");
+                    // Do nothing while typing
                 }
             }, 1500);
         }

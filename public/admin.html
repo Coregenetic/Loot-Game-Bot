@@ -2,404 +2,527 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Loot-Game Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-<script src="api-client.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        },
+        colors: {
+          slate: { 850: '#141c27', 950: '#0a0f16' }
+        }
+      }
+    }
+  }
+</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#080909;--bg1:#0d0e0f;--bg2:#111213;--bg3:#161718;
-  --border:#1e2022;--border2:#252729;
-  --green:#00e676;--green2:#00c853;--green3:rgba(0,230,118,0.08);
-  --red:#ff5252;--red2:rgba(255,82,82,0.08);
-  --amber:#ffab40;--amber2:rgba(255,171,64,0.08);
-  --blue:#448aff;--blue2:rgba(68,138,255,0.08);
-  --purple:#e040fb;--purple2:rgba(224,64,251,0.08);
-  --text:#c8cdd2;--text2:#7a8290;--text3:#4a5260;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Rajdhani',sans-serif;
-}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
-.topbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 16px;height:40px;display:flex;align-items:center;gap:12px;flex-shrink:0}
-.topbar-brand{font-family:var(--sans);font-size:15px;font-weight:700;color:#fff;letter-spacing:0.05em;margin-right:8px}
-.topbar-sep{width:1px;height:20px;background:var(--border2);margin:0 4px}
-.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}
-.dot-green{background:var(--green);box-shadow:0 0 6px var(--green)}
-.dot-red{background:var(--red);box-shadow:0 0 6px var(--red)}
-.dot-amber{background:var(--amber)}
-.topbar-stat{color:var(--text2);font-size:11px;display:flex;align-items:center;gap:4px}
-.topbar-stat span{color:var(--text)}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.tag{padding:2px 8px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
-.tag-green{background:var(--green3);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
-.tag-red{background:var(--red2);color:var(--red);border:1px solid rgba(255,82,82,0.2)}
-.tag-amber{background:var(--amber2);color:var(--amber);border:1px solid rgba(255,171,64,0.2)}
+  /* Base adjustments & Custom Scrollbars */
+  body { background-color: #05080c; color: #e2e8f0; overflow: hidden; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #334155; }
+  
+  /* Animated background grid */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  }
 
-.layout{display:flex;flex:1;overflow:hidden}
-.sidebar{width:160px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-.sidebar-section{padding:10px 0}
-.sidebar-label{font-size:9px;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;padding:0 12px;margin-bottom:4px}
-.nav-item{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;color:var(--text2);font-size:11px;letter-spacing:0.05em;border-left:2px solid transparent;transition:all 0.15s}
-.nav-item:hover{color:var(--text);background:var(--bg2)}
-.nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green3)}
-.nav-icon{width:14px;height:14px;opacity:0.7}
-.nav-item.active .nav-icon{opacity:1}
-.sidebar-bottom{margin-top:auto;padding:10px 12px;border-top:1px solid var(--border)}
+  /* Glassmorphism utility */
+  .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 
-.main{flex:1;overflow:auto;background:var(--bg)}
+  /* Log Colors injected by JS */
+  .log-INFO .log-level-color { color: #64748b; }
+  .log-WARN .log-level-color { color: #f59e0b; }
+  .log-ERROR .log-level-color { color: #f43f5e; }
+  .log-CMD .log-level-color { color: #3b82f6; }
+  .log-CMD .log-msg-color { color: #93c5fd; }
+  .log-BOT .log-level-color { color: #10b981; }
+  .log-BOT .log-msg-color { color: #6ee7b7; }
+  .log-API .log-level-color { color: #a855f7; }
 
-/* Dashboard */
-.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
-.stat-card{background:var(--bg1);padding:14px 16px}
-.stat-label{font-size:9px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px}
-.stat-val{font-size:24px;font-weight:700;color:#fff;line-height:1;font-family:var(--sans)}
-.stat-sub{font-size:10px;color:var(--text2);margin-top:4px}
-.stat-card.green .stat-val{color:var(--green)}
-.stat-card.amber .stat-val{color:var(--amber)}
-.stat-card.blue .stat-val{color:var(--blue)}
-.stat-card.red .stat-val{color:var(--red)}
-
-.section{padding:16px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-title{font-size:10px;color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
-.section-title::before{content:'';width:2px;height:12px;background:var(--green)}
-
-.card{background:var(--bg1);border:1px solid var(--border);margin-bottom:8px}
-.card-header{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text2)}
-.card-body{padding:12px}
-
-/* Log Terminal */
-.terminal{background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;height:calc(100vh - 190px);overflow-y:auto;padding:8px}
-.terminal::-webkit-scrollbar{width:4px}
-.terminal::-webkit-scrollbar-track{background:var(--bg)}
-.terminal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.log-line{padding:1px 0;line-height:1.6;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;gap:8px;white-space:pre-wrap;word-break:break-all}
-.log-ts{color:var(--text3);flex-shrink:0;min-width:60px}
-.log-level{flex-shrink:0;min-width:40px;font-weight:700;font-size:10px}
-.log-cat{color:var(--text3);flex-shrink:0;min-width:40px}
-.log-msg{color:var(--text)}
-.log-INFO .log-level{color:var(--text3)}
-.log-WARN .log-level{color:var(--amber)}
-.log-ERROR .log-level{color:var(--red)}
-.log-CMD .log-level{color:var(--blue)}
-.log-CMD .log-msg{color:#90caf9}
-.log-BOT .log-level{color:var(--green)}
-.log-BOT .log-msg{color:#a5d6a7}
-.log-API .log-level{color:var(--purple)}
-
-.toolbar{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;background:var(--bg1)}
-.filter-btn{padding:3px 10px;font-size:10px;font-family:var(--mono);letter-spacing:0.05em;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.15s}
-.filter-btn:hover{border-color:var(--border);color:var(--text)}
-.filter-btn.active{border-color:var(--green);color:var(--green);background:var(--green3)}
-.filter-btn.cmd{border-color:var(--blue);color:var(--blue);background:var(--blue2)}
-.filter-btn.bot{border-color:var(--green);color:var(--green);background:var(--green3)}
-.filter-btn.err{border-color:var(--red);color:var(--red);background:var(--red2)}
-.filter-btn.api{border-color:var(--purple);color:var(--purple);background:var(--purple2)}
-.ml-auto{margin-left:auto}
-.auto-scroll-label{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);cursor:pointer}
-.btn{padding:4px 12px;font-size:10px;font-family:var(--mono);letter-spacing:0.08em;border:1px solid;cursor:pointer;transition:all 0.15s;text-transform:uppercase}
-.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text2)}
-.btn-ghost:hover{border-color:var(--border);color:var(--text)}
-.btn-green{background:var(--green3);border-color:rgba(0,230,118,0.3);color:var(--green)}
-.btn-green:hover{background:rgba(0,230,118,0.15)}
-.btn-red{background:var(--red2);border-color:rgba(255,82,82,0.3);color:var(--red)}
-.btn-red:hover{background:rgba(255,82,82,0.15)}
-.btn-amber{background:var(--amber2);border-color:rgba(255,171,64,0.3);color:var(--amber)}
-.btn-blue{background:var(--blue2);border-color:rgba(68,138,255,0.3);color:var(--blue)}
-
-/* Events */
-.event-card{background:var(--bg1);border:1px solid var(--border);padding:12px;margin-bottom:8px}
-.event-title{font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.inp{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px;width:100%;margin-bottom:6px;outline:none}
-.inp:focus{border-color:var(--green)}
-select.inp option{background:var(--bg1)}
-.inp-row{display:flex;gap:6px;margin-bottom:6px}
-.inp-row .inp{margin-bottom:0}
-.event-status{font-size:10px;color:var(--text2);padding:6px 8px;background:var(--bg);border:1px solid var(--border);margin-bottom:8px;min-height:28px}
-.event-active{color:var(--green)}
-
-/* Users */
-.user-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border)}
-.user-row:last-child{border-bottom:none}
-.user-info .user-name{color:#fff;font-weight:500;font-size:12px}
-.user-info .user-id{font-size:10px;color:var(--text3)}
-
-/* Cooldowns */
-.cd-row{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--border);font-size:11px}
-.cd-row:hover{background:var(--bg2)}
-
-/* Server Control */
-.server-lock{display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100vh - 130px);gap:12px}
-.lock-icon{font-size:40px;margin-bottom:8px}
-.lock-title{font-size:11px;color:var(--red);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:12px}
-.server-panel{padding:16px}
-.server-info-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:16px}
-.server-info-cell{background:var(--bg1);padding:10px 14px}
-.sic-label{font-size:9px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px}
-.sic-val{font-size:13px;color:#fff;font-weight:500}
-.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.action-card{background:var(--bg1);border:1px solid var(--border);padding:14px}
-.action-card-title{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px}
-.action-card-desc{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:12px}
-.action-card.red .action-card-title{color:var(--red)}
-.action-card.amber .action-card-title{color:var(--amber)}
-.action-card.blue .action-card-title{color:var(--blue)}
-.action-result{font-size:11px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);margin-top:8px;min-height:24px}
-
-/* Scrollbars */
-.main::-webkit-scrollbar{width:4px}
-.main::-webkit-scrollbar-track{background:var(--bg)}
-.main::-webkit-scrollbar-thumb{background:var(--border2)}
-
-.hidden{display:none!important}
-.flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-6{gap:6px}.gap-8{gap:8px}
-input[type=checkbox]{accent-color:var(--green)}
-.search-inp{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:11px;padding:4px 8px;outline:none;width:160px}
-.search-inp:focus{border-color:var(--green)}
+  /* Input fields hiding arrows for number types */
+  input[type="number"]::-webkit-inner-spin-button, 
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen text-slate-300 selection:bg-emerald-500/30">
+
+<div class="bg-grid pointer-events-none"></div>
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
+  <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 blur-[100px] rounded-full"></div>
+  <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full"></div>
+</div>
 
 <!-- TOP BAR -->
-<div class="topbar">
-  <span class="topbar-brand">LOOT-GAME HUB</span>
-  <span class="topbar-sep"></span>
-  <span class="topbar-stat"><span class="status-dot dot-green" id="botDot"></span><span id="botStatusLabel">BOT ONLINE</span></span>
-  <span class="topbar-sep"></span>
-  <span class="topbar-stat">UPTIME <span id="uptimeVal">—</span></span>
-  <span class="topbar-sep"></span>
-  <span class="topbar-stat">PING <span id="pingVal">—</span></span>
-  <span class="topbar-sep"></span>
-  <span class="topbar-stat" id="logStatus"><span class="status-dot dot-amber"></span>LOG OFFLINE</span>
-  <div class="topbar-right">
-    <span class="topbar-stat">by <span style="color:var(--green)">COREGENETIC</span></span>
-    <a href="/" style="color:var(--text2);text-decoration:none;font-size:10px;border:1px solid var(--border2);padding:3px 8px" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">← GAME CENTER</a>
-  </div>
-</div>
-
-<div class="layout">
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-label">Monitor</div>
-    <div class="nav-item active" onclick="showTab('dashboard')" id="nav-dashboard">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6"/><rect x="9" y="1" width="6" height="6"/><rect x="1" y="9" width="6" height="6"/><rect x="9" y="9" width="6" height="6"/></svg>
-      Dashboard
+<header class="glass border-b border-slate-800/80 h-14 flex items-center justify-between px-4 sm:px-6 shrink-0 z-50 shadow-md relative">
+  <div class="flex items-center gap-4 sm:gap-6">
+    <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white transition-colors">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div class="font-bold text-slate-100 tracking-wider text-sm flex items-center gap-3">
+      <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+      LOOT-GAME HUB
     </div>
-    <div class="nav-item" onclick="showTab('logs')" id="nav-logs">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
-      Bot Log
-    </div>
-  </div>
-  <div class="sidebar-section" style="border-top:1px solid var(--border)">
-    <div class="sidebar-label">Manage</div>
-    <div class="nav-item" onclick="showTab('cooldowns')" id="nav-cooldowns">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
-      Cooldowns
-    </div>
-    <div class="nav-item" onclick="showTab('events')" id="nav-events">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 11l-3.7 2.5 1.4-4.3L2 6.5h4.5z"/></svg>
-      Live Events
-    </div>
-    <div class="nav-item" onclick="showTab('users')" id="nav-users">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
-      Users
-    </div>
-  </div>
-  <div class="sidebar-section" style="border-top:1px solid var(--border)">
-    <div class="sidebar-label">System</div>
-    <div class="nav-item" onclick="showTab('server')" id="nav-server">
-      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="4" rx="1"/><rect x="1" y="9" width="14" height="4" rx="1"/><circle cx="13" cy="4" r="0.8" fill="currentColor"/><circle cx="13" cy="11" r="0.8" fill="currentColor"/></svg>
-      Server Control
-    </div>
-  </div>
-  <div class="sidebar-bottom">
-    <div style="font-size:9px;color:var(--text3);margin-bottom:4px">ADMIN PANEL v2.0</div>
-    <div style="font-size:9px;color:var(--text3)" id="currentTime">—</div>
-  </div>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="main">
-
-<!-- DASHBOARD TAB -->
-<div id="tab-dashboard">
-  <div class="dash-grid">
-    <div class="stat-card green">
-      <div class="stat-label">Spieler Total</div>
-      <div class="stat-val" id="stat-players">—</div>
-      <div class="stat-sub">registrierte Accounts</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-label">Items in Pool</div>
-      <div class="stat-val" id="stat-items">—</div>
-      <div class="stat-sub">lootbare Items</div>
-    </div>
-    <div class="stat-card amber">
-      <div class="stat-label">Aktive Cooldowns</div>
-      <div class="stat-val" id="stat-cooldowns">—</div>
-      <div class="stat-sub">Spieler im CD</div>
-    </div>
-    <div class="stat-card" style="border-left:2px solid var(--purple)">
-      <div class="stat-label">Messages</div>
-      <div class="stat-val" style="color:var(--purple)" id="stat-messages">—</div>
-      <div class="stat-sub">Chat-Nachrichten</div>
-    </div>
-  </div>
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">Schnellaktionen</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-red" onclick="clearAllCooldowns()">🗑 Alle Cooldowns löschen</button>
-      <button class="btn btn-amber" onclick="clearCache()">⟳ Cache leeren</button>
-      <button class="btn btn-ghost" onclick="loadStats()">↺ Aktualisieren</button>
-    </div>
-    <div id="quickActionMsg" style="margin-top:8px;font-size:11px;color:var(--text2);min-height:16px"></div>
-  </div>
-</div>
-
-<!-- BOT LOG TAB -->
-<div id="tab-logs" class="hidden">
-  <div class="toolbar">
-    <button class="filter-btn active" id="filter-ALL" onclick="setFilter('ALL')">ALL</button>
-    <button class="filter-btn cmd" id="filter-CMD" onclick="setFilter('CMD')" style="background:transparent;border-color:var(--border2);color:var(--text2)">CMD</button>
-    <button class="filter-btn bot" id="filter-BOT" onclick="setFilter('BOT')" style="background:transparent;border-color:var(--border2);color:var(--text2)">BOT</button>
-    <button class="filter-btn err" id="filter-ERROR" onclick="setFilter('ERROR')" style="background:transparent;border-color:var(--border2);color:var(--text2)">ERROR</button>
-    <button class="filter-btn api" id="filter-API" onclick="setFilter('API')" style="background:transparent;border-color:var(--border2);color:var(--text2)">API</button>
-    <button class="filter-btn" id="filter-INFO" onclick="setFilter('INFO')" style="border-color:var(--border2);color:var(--text2)">INFO</button>
-    <span style="margin-left:auto;display:flex;align-items:center;gap:10px">
-      <label class="auto-scroll-label"><input type="checkbox" id="autoScroll" checked> AUTO-SCROLL</label>
-      <button class="btn btn-ghost" onclick="clearLogDisplay()">LEEREN</button>
-    </span>
-  </div>
-  <div class="terminal" id="logContainer"></div>
-</div>
-
-<!-- COOLDOWNS TAB -->
-<div id="tab-cooldowns" class="hidden">
-  <div class="toolbar">
-    <input class="search-inp" placeholder="Spieler suchen..." oninput="filterCooldowns(this.value)">
-    <button class="btn btn-red" style="margin-left:8px" onclick="clearAllCooldowns()">Alle löschen</button>
-    <button class="btn btn-ghost" style="margin-left:4px" onclick="loadCooldowns()">↺ Refresh</button>
-    <span id="cdCount" style="margin-left:auto;font-size:10px;color:var(--text3)">—</span>
-  </div>
-  <div id="cooldownList"></div>
-</div>
-
-<!-- LIVE EVENTS TAB -->
-<div id="tab-events" class="hidden">
-  <div class="section">
-    <div class="event-status" id="eventsStatusBar">Lade aktive Events...</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-
-      <div class="event-card">
-        <div class="event-title" style="color:var(--green)">🗺 FORCED MAP</div>
-        <select class="inp" id="forcedMapSelect">
-          <option value="">— Deaktiviert —</option>
-          <option>Customs</option><option>Factory</option><option>Ground Zero</option>
-          <option>Interchange</option><option>Icebreaker</option><option>Lighthouse</option>
-          <option>Reserve</option><option>Shoreline</option><option>Streets</option>
-          <option>Lab</option><option>Woods</option><option>The Labyrinth</option>
-        </select>
-        <input class="inp" type="number" id="forcedMapDur" placeholder="Dauer (Min, 0=∞)" value="60">
-        <div class="flex gap-6">
-          <button class="btn btn-green" style="flex:1" onclick="setForcedMap()">AKTIVIEREN</button>
-          <button class="btn btn-red" onclick="clearEvent('forcedmap')">STOP</button>
-        </div>
+    
+    <div class="hidden md:flex items-center gap-4 text-[10px] font-mono text-slate-400">
+      <div class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded border border-slate-800">
+        <span class="w-2 h-2 rounded-full" id="botDot" style="background:#10b981;box-shadow:0 0 6px #10b981;"></span>
+        <span id="botStatusLabel" class="text-slate-200">BOT ONLINE</span>
       </div>
-
-      <div class="event-card">
-        <div class="event-title" style="color:var(--amber)">🔥 DOUBLE LOOT</div>
-        <input class="inp" type="number" id="doubleLootChance" placeholder="Chance (0-1)" value="0.5" step="0.05" min="0" max="1">
-        <input class="inp" type="number" id="doubleLootDur" placeholder="Dauer (Min)" value="30">
-        <div class="flex gap-6">
-          <button class="btn btn-amber" style="flex:1" onclick="setDoubleLoot()">AKTIVIEREN</button>
-          <button class="btn btn-red" onclick="clearEvent('doubleloot')">STOP</button>
-        </div>
+      <div class="bg-slate-900/50 px-3 py-1.5 rounded border border-slate-800">
+        UPTIME <span id="uptimeVal" class="text-slate-200 ml-1">—</span>
       </div>
-
-      <div class="event-card">
-        <div class="event-title" style="color:var(--purple)">⚡ XP BOOST</div>
-        <input class="inp" type="number" id="xpBoostMult" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1">
-        <input class="inp" type="number" id="xpBoostDur" placeholder="Dauer (Min)" value="30">
-        <div class="flex gap-6">
-          <button class="btn" style="flex:1;background:var(--purple2);border-color:rgba(224,64,251,0.3);color:var(--purple)" onclick="setXPBoost()">AKTIVIEREN</button>
-          <button class="btn btn-red" onclick="clearEvent('xpboost')">STOP</button>
-        </div>
+      <div class="bg-slate-900/50 px-3 py-1.5 rounded border border-slate-800">
+        PING <span id="pingVal" class="text-slate-200 ml-1">—</span>
       </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- USERS TAB -->
-<div id="tab-users" class="hidden">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
-    <div style="background:var(--bg1)">
-      <div class="card-header">DASHBOARD USERS</div>
-      <div id="userList"></div>
-    </div>
-    <div style="background:var(--bg1)">
-      <div class="card-header">NEUEN USER ANLEGEN</div>
-      <div style="padding:12px">
-        <input class="inp" id="newUsername" placeholder="Username">
-        <input class="inp" id="newPassword" type="password" placeholder="Passwort (min. 6 Zeichen)">
-        <div id="userMsg" style="font-size:10px;color:var(--text2);margin-bottom:8px;min-height:14px"></div>
-        <button class="btn btn-green" style="width:100%" onclick="createUser()">USER ANLEGEN</button>
+      <div class="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded border border-slate-800" id="logStatus">
+        <span class="w-2 h-2 rounded-full bg-amber-500"></span>LOG OFFLINE
       </div>
     </div>
   </div>
-</div>
 
-<!-- SERVER CONTROL TAB -->
-<div id="tab-server" class="hidden">
-  <div id="serverLock" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:calc(100vh - 80px);gap:8px">
-    <div style="font-size:32px;margin-bottom:8px;opacity:0.5">🔒</div>
-    <div style="font-size:10px;color:var(--red);letter-spacing:0.15em;margin-bottom:12px">SERVER CONTROL — RESTRICTED ACCESS</div>
-    <input class="inp" id="serverPwInput" type="password" placeholder="Server Control Passwort" style="width:280px;text-align:center" onkeydown="if(event.key==='Enter')unlockServerControl()">
-    <div id="serverPwMsg" style="font-size:10px;color:var(--text2);min-height:14px"></div>
-    <button class="btn btn-red" style="width:280px;margin-top:4px" onclick="unlockServerControl()">ENTSPERREN</button>
+  <div class="flex items-center gap-4">
+    <div class="text-[10px] font-mono text-slate-500 hidden sm:block">by <span class="text-emerald-500">COREGENETIC</span></div>
+    <a href="/" class="text-[10px] font-mono px-3 py-1.5 rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-800/50 transition-colors">
+      &larr; GAME CENTER
+    </a>
   </div>
+</header>
 
-  <div id="serverPanel" class="hidden">
-    <div class="toolbar" style="justify-content:space-between">
-      <span style="font-size:10px;color:var(--red);letter-spacing:0.1em">⚠ SERVER CONTROL — AUTHORISIERT</span>
-      <button class="btn btn-ghost" onclick="lockServerControl()">🔒 SPERREN</button>
+<div class="flex flex-1 overflow-hidden relative">
+  
+  <!-- SIDEBAR & MOBILE OVERLAY -->
+  <div id="mobile-overlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
+  
+  <aside id="sidebar" class="w-64 glass border-r border-slate-800/80 flex flex-col shrink-0 z-40 shadow-lg absolute md:relative h-full -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div class="flex-1 overflow-y-auto py-4 space-y-6">
+      
+      <div>
+        <div class="px-6 mb-2 text-[9px] font-mono text-slate-500 tracking-[0.2em] uppercase">Monitor</div>
+        <button onclick="showTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button onclick="showTab('logs')" id="nav-logs" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+          Bot Log
+        </button>
+      </div>
+
+      <div>
+        <div class="px-6 mb-2 text-[9px] font-mono text-slate-500 tracking-[0.2em] uppercase">Manage</div>
+        <button onclick="showTab('cooldowns')" id="nav-cooldowns" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Cooldowns
+        </button>
+        <button onclick="showTab('events')" id="nav-events" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Live Events
+        </button>
+        <button onclick="showTab('users')" id="nav-users" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          Users
+        </button>
+      </div>
+
+      <div>
+        <div class="px-6 mb-2 text-[9px] font-mono text-slate-500 tracking-[0.2em] uppercase">System</div>
+        <button onclick="showTab('server')" id="nav-server" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+          Server Control
+        </button>
+      </div>
+
     </div>
-    <div class="server-info-bar">
-      <div class="server-info-cell"><div class="sic-label">Uptime</div><div class="sic-val" id="srvUptime">—</div></div>
-      <div class="server-info-cell"><div class="sic-label">Memory</div><div class="sic-val" id="srvMem">—</div></div>
-      <div class="server-info-cell"><div class="sic-label">Node.js</div><div class="sic-val" id="srvNode">—</div></div>
-      <div class="server-info-cell"><div class="sic-label">Channel</div><div class="sic-val" id="srvChannel">—</div></div>
+    
+    <div class="p-6 border-t border-slate-800/80 bg-slate-900/30">
+      <div class="text-[10px] font-mono text-slate-500 tracking-wider">ADMIN PANEL v2.0</div>
+      <div class="text-[10px] font-mono text-emerald-500 mt-1" id="currentTime">—</div>
     </div>
-    <div style="padding:0 16px">
-      <div class="action-grid">
-        <div class="action-card red">
-          <div class="action-card-title">Bot Reconnect</div>
-          <div class="action-card-desc">Trennt den Bot von Twitch und verbindet neu. Laufende Commands werden abgebrochen.</div>
-          <button class="btn btn-red" style="width:100%" onclick="serverAction('reconnect')">⟳ BOT RECONNECT</button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-auto relative p-4 sm:p-6 flex flex-col">
+    
+    <!-- Dynamic Page Title -->
+    <div class="mb-6 flex items-center justify-between shrink-0">
+      <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-white tracking-widest uppercase">Dashboard</h1>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div id="tab-dashboard" class="max-w-7xl w-full mx-auto space-y-6 hidden">
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="glass-card border border-emerald-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+          <div class="text-[10px] font-mono text-emerald-500 tracking-[0.1em] uppercase mb-1">Spieler Total</div>
+          <div class="text-4xl font-bold text-white tracking-tight" id="stat-players">—</div>
+          <div class="text-xs text-slate-400 mt-2">registrierte Accounts</div>
         </div>
-        <div class="action-card amber">
-          <div class="action-card-title">Cache leeren</div>
-          <div class="action-card-desc">Leert den In-Memory Cache. Config, Items und Messages werden neu geladen — kein Neustart nötig.</div>
-          <button class="btn btn-amber" style="width:100%" onclick="serverAction('cache')">🗑 CACHE LEEREN</button>
+
+        <div class="glass-card border border-blue-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+          <div class="text-[10px] font-mono text-blue-500 tracking-[0.1em] uppercase mb-1">Items in Pool</div>
+          <div class="text-4xl font-bold text-white tracking-tight" id="stat-items">—</div>
+          <div class="text-xs text-slate-400 mt-2">lootbare Items</div>
         </div>
-        <div class="action-card blue">
-          <div class="action-card-title">DB Snapshot</div>
-          <div class="action-card-desc">Speichert die aktuelle Datenbank manuell auf die Festplatte (passiert auch automatisch).</div>
-          <button class="btn btn-blue" style="width:100%" onclick="serverAction('snapshot')">💾 DB SNAPSHOT</button>
+
+        <div class="glass-card border border-amber-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-amber-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+          <div class="text-[10px] font-mono text-amber-500 tracking-[0.1em] uppercase mb-1">Aktive Cooldowns</div>
+          <div class="text-4xl font-bold text-white tracking-tight" id="stat-cooldowns">—</div>
+          <div class="text-xs text-slate-400 mt-2">Spieler im CD</div>
+        </div>
+
+        <div class="glass-card border border-purple-500/20 rounded-2xl p-5 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-4 opacity-10 text-purple-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+          <div class="text-[10px] font-mono text-purple-500 tracking-[0.1em] uppercase mb-1">Messages</div>
+          <div class="text-4xl font-bold text-white tracking-tight" id="stat-messages">—</div>
+          <div class="text-xs text-slate-400 mt-2">Chat-Nachrichten</div>
         </div>
       </div>
-      <div id="serverActionResult" class="action-result hidden"></div>
+
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
+          <h2 class="text-xs font-mono tracking-widest text-slate-300 uppercase">Schnellaktionen</h2>
+        </div>
+        
+        <div class="flex flex-wrap gap-4">
+          <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono tracking-wide transition-colors" onclick="clearAllCooldowns()">
+            🗑 Alle CDs löschen
+          </button>
+          <button class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-mono tracking-wide transition-colors" onclick="clearCache()">
+            ⟳ Cache leeren
+          </button>
+          <button class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-mono tracking-wide transition-colors" onclick="loadStats()">
+            ↺ Aktualisieren
+          </button>
+        </div>
+        <!-- Platzhalter aus altem Code (wird durch Toasts ersetzt, wir verstecken ihn) -->
+        <div id="quickActionMsg" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- BOT LOG TAB -->
+    <div id="tab-logs" class="h-full flex flex-col hidden max-w-7xl mx-auto">
+      <div class="glass-card border border-slate-700/50 rounded-t-2xl p-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div class="flex flex-wrap gap-2">
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ALL" onclick="setFilter('ALL')">ALL</button>
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-CMD" onclick="setFilter('CMD')">CMD</button>
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-BOT" onclick="setFilter('BOT')">BOT</button>
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ERROR" onclick="setFilter('ERROR')">ERROR</button>
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-API" onclick="setFilter('API')">API</button>
+          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-INFO" onclick="setFilter('INFO')">INFO</button>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 cursor-pointer text-[10px] font-mono text-slate-400 hover:text-slate-200">
+            <input type="checkbox" id="autoScroll" checked class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900">
+            AUTO-SCROLL
+          </label>
+          <button class="text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" onclick="clearLogDisplay()">LEEREN</button>
+        </div>
+      </div>
+      
+      <div class="flex-1 glass-card border-x border-b border-slate-700/50 rounded-b-2xl p-4 overflow-y-auto" id="logContainer">
+        <!-- Logs injected here -->
+      </div>
+    </div>
+
+    <!-- COOLDOWNS TAB -->
+    <div id="tab-cooldowns" class="max-w-5xl mx-auto flex flex-col h-full hidden">
+      <div class="glass-card border border-slate-700/50 rounded-t-2xl p-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input class="bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none w-64 transition-all" placeholder="Spieler suchen..." oninput="filterCooldowns(this.value)">
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors" onclick="clearAllCooldowns()">Alle löschen</button>
+          <button class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs font-mono transition-colors" onclick="loadCooldowns()">↺ Refresh</button>
+        </div>
+        <span id="cdCount" class="text-xs font-mono text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800">—</span>
+      </div>
+      <div class="flex-1 glass-card border-x border-b border-slate-700/50 rounded-b-2xl overflow-y-auto p-2" id="cooldownList">
+        <!-- CDs injected here -->
+      </div>
+    </div>
+
+    <!-- LIVE EVENTS TAB -->
+    <div id="tab-events" class="max-w-7xl mx-auto space-y-6 hidden">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+        <div class="text-xs font-mono text-slate-400 bg-slate-900/50 border border-slate-800 p-3 rounded-xl mb-6 flex items-center justify-center" id="eventsStatusBar">
+          Lade aktive Events...
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Forced Map -->
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+            <h3 class="text-xs font-mono tracking-widest text-emerald-400 uppercase mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+              FORCED MAP
+            </h3>
+            <div class="space-y-3 mb-5">
+              <select class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapSelect">
+                <option value="">— Deaktiviert —</option>
+                <option>Customs</option><option>Factory</option><option>Ground Zero</option>
+                <option>Interchange</option><option>Icebreaker</option><option>Lighthouse</option>
+                <option>Reserve</option><option>Shoreline</option><option>Streets</option>
+                <option>Lab</option><option>Woods</option><option>The Labyrinth</option>
+              </select>
+              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapDur" placeholder="Dauer (Min, 0=∞)" value="60">
+            </div>
+            <div class="flex gap-3">
+              <button class="flex-1 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setForcedMap()">AKTIVIEREN</button>
+              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('forcedmap')">STOP</button>
+            </div>
+          </div>
+
+          <!-- Double Loot -->
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+            <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+              DOUBLE LOOT
+            </h3>
+            <div class="space-y-3 mb-5">
+              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootChance" placeholder="Chance (0-1)" value="0.5" step="0.05" min="0" max="1">
+              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootDur" placeholder="Dauer (Min)" value="30">
+            </div>
+            <div class="flex gap-3">
+              <button class="flex-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setDoubleLoot()">AKTIVIEREN</button>
+              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('doubleloot')">STOP</button>
+            </div>
+          </div>
+
+          <!-- XP Boost -->
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+            <h3 class="text-xs font-mono tracking-widest text-purple-400 uppercase mb-4 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              XP BOOST
+            </h3>
+            <div class="space-y-3 mb-5">
+              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostMult" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1">
+              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostDur" placeholder="Dauer (Min)" value="30">
+            </div>
+            <div class="flex gap-3">
+              <button class="flex-1 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setXPBoost()">AKTIVIEREN</button>
+              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('xpboost')">STOP</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS TAB -->
+    <div id="tab-users" class="max-w-5xl mx-auto hidden h-full">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pb-4">
+        
+        <div class="glass-card border border-slate-700/50 rounded-2xl flex flex-col overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">DASHBOARD USERS</div>
+          <div class="flex-1 overflow-y-auto p-2" id="userList">
+            <!-- Users injected here -->
+          </div>
+        </div>
+
+        <div class="glass-card border border-slate-700/50 rounded-2xl h-fit">
+          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">NEUEN USER ANLEGEN</div>
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
+              <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername">
+            </div>
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
+              <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 6 Zeichen">
+            </div>
+            <div id="userMsg" class="text-xs hidden"></div>
+            <button class="w-full px-4 py-2.5 mt-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]" onclick="createUser()">USER ANLEGEN</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SERVER CONTROL TAB -->
+    <div id="tab-server" class="hidden max-w-5xl mx-auto">
+      
+      <!-- Password Lock Screen -->
+      <div id="serverLock" class="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div class="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.15)]">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div class="text-center space-y-2">
+          <h2 class="text-rose-500 font-bold tracking-widest uppercase">SERVER CONTROL — RESTRICTED ACCESS</h2>
+          <p class="text-xs text-slate-400">Bitte Master-Passwort eingeben, um Core-Aktionen freizuschalten.</p>
+        </div>
+        
+        <div class="w-full max-w-sm space-y-4">
+          <input id="serverPwInput" type="password" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl px-4 py-3 text-center text-white tracking-[0.2em] focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all shadow-inner" placeholder="••••••••" onkeydown="if(event.key==='Enter')unlockServerControl()">
+          <div id="serverPwMsg" class="text-xs text-center hidden"></div>
+          <button class="w-full px-4 py-3 rounded-2xl bg-rose-500 text-white font-bold tracking-widest hover:bg-rose-600 transition-colors shadow-[0_0_20px_rgba(244,63,94,0.3)]" onclick="unlockServerControl()">ENTSPERREN</button>
+        </div>
+      </div>
+
+      <!-- Control Panel -->
+      <div id="serverPanel" class="hidden space-y-6">
+        <div class="glass-card border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(244,63,94,0.05)]">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+            <span class="text-xs font-mono text-rose-400 tracking-widest">AUTHORISIERT</span>
+          </div>
+          <button class="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white text-xs font-mono transition-colors flex items-center gap-2" onclick="lockServerControl()">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            SPERREN
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Uptime</div>
+            <div class="text-lg font-medium text-white" id="srvUptime">—</div>
+          </div>
+          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Memory</div>
+            <div class="text-lg font-medium text-white" id="srvMem">—</div>
+          </div>
+          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Node.js</div>
+            <div class="text-lg font-medium text-white" id="srvNode">—</div>
+          </div>
+          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Channel</div>
+            <div class="text-lg font-medium text-white" id="srvChannel">—</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+            <h3 class="text-xs font-mono tracking-widest text-rose-400 uppercase mb-2">Bot Reconnect</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Trennt den Bot von Twitch und verbindet neu. Laufende Commands werden abgebrochen.</p>
+            <button class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('reconnect')">⟳ RECONNECT</button>
+          </div>
+          
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+            <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-2">Cache leeren</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Leert den In-Memory Cache. Config, Items und Messages werden neu geladen — kein Neustart nötig.</p>
+            <button class="w-full px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('cache')">🗑 CACHE LEEREN</button>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+            <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase mb-2">DB Snapshot</h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Speichert die aktuelle Datenbank manuell auf die Festplatte (passiert auch automatisch).</p>
+            <button class="w-full px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('snapshot')">💾 SNAPSHOT</button>
+          </div>
+        </div>
+
+        <div id="serverActionResult" class="hidden mt-4 text-xs font-mono p-4 rounded-xl border bg-slate-900/50"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ========================================== -->
+<!-- CUSTOM MODALS (Replaces alert & confirm) -->
+<!-- ========================================== -->
+<div id="toast-container" class="fixed bottom-4 right-4 z-[999] flex flex-col gap-2 pointer-events-none"></div>
+
+<div id="confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center opacity-0 invisible transition-all duration-300">
+  <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-sm scale-95 transition-transform duration-300" id="confirm-modal-content">
+    <h3 class="text-lg font-bold text-white mb-2" id="confirm-title">Bestätigen</h3>
+    <p class="text-sm text-slate-400 mb-6" id="confirm-msg">Möchtest du diese Aktion wirklich ausführen?</p>
+    
+    <div class="flex justify-end gap-3">
+      <button onclick="closeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Abbrechen</button>
+      <button onclick="executeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]">Bestätigen</button>
     </div>
   </div>
 </div>
 
-</div><!-- /main -->
-</div><!-- /layout -->
+<!-- Dummy API für UI-Vorschau -->
+<script>
+  if (typeof LootGameAPI === 'undefined') {
+    window.LootGameAPI = {
+      isLoggedIn: () => true, getUsername: () => 'Admin', getToken: () => 'dummy-token'
+    };
+  }
+</script>
+<script src="api-client.js"></script>
 
 <script>
+// ---------- CUSTOM UI HELPER (Modals & Toasts) ----------
+let confirmCallback = null;
+
+function showConfirm(title, msg, callback) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  confirmCallback = callback;
+  const modal = document.getElementById('confirm-modal');
+  const content = document.getElementById('confirm-modal-content');
+  modal.classList.remove('opacity-0', 'invisible');
+  content.classList.remove('scale-95');
+}
+
+function closeConfirm() {
+  const modal = document.getElementById('confirm-modal');
+  const content = document.getElementById('confirm-modal-content');
+  modal.classList.add('opacity-0', 'invisible');
+  content.classList.add('scale-95');
+  confirmCallback = null;
+}
+
+function executeConfirm() {
+  if(confirmCallback) confirmCallback();
+  closeConfirm();
+}
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  const colors = {
+    success: 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400',
+    error: 'bg-rose-500/10 border-rose-500/50 text-rose-400',
+    warning: 'bg-amber-500/10 border-amber-500/50 text-amber-400',
+    info: 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+  };
+  
+  toast.className = `glass-card border ${colors[type] || colors.info} px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm transform transition-all duration-300 translate-y-4 opacity-0`;
+  toast.innerHTML = `<div class="font-mono text-xs">${message}</div>`;
+  container.appendChild(toast);
+  
+  requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-x-4');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// Ersetzt showQuickMsg optisch durch Toasts, aber behält Kompatibilität
+function showQuickMsg(msg, color) {
+  let type = 'info';
+  if(color.includes('green')) type = 'success';
+  if(color.includes('red')) type = 'error';
+  if(color.includes('amber')) type = 'warning';
+  showToast(msg, type);
+}
+
+// ---------- ORIGINAL LOGIC ----------
 if (!LootGameAPI.isLoggedIn()) window.location.href = '/login.html';
 
 let activeTab = 'dashboard';
@@ -408,6 +531,21 @@ let allLogs   = [];
 let allCDs    = [];
 let logPoll   = null;
 let serverPw  = null;
+let isSidebarOpen = false;
+
+// ─── Mobile Sidebar ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('mobile-overlay');
+  isSidebarOpen = !isSidebarOpen;
+  if(isSidebarOpen) {
+    sb.classList.remove('-translate-x-full');
+    ov.classList.remove('hidden');
+  } else {
+    sb.classList.add('-translate-x-full');
+    ov.classList.add('hidden');
+  }
+}
 
 // ─── Clock ────────────────────────────────────────────────────────────────────
 function updateClock() {
@@ -434,9 +572,36 @@ pingHealth();
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 function showTab(tab) {
   document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.add('hidden'));
-  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e => {
+    e.classList.remove('text-emerald-400', 'bg-slate-800/50', 'border-emerald-500');
+    e.classList.add('border-transparent', 'text-slate-400');
+  });
+  
   document.getElementById('tab-' + tab).classList.remove('hidden');
-  document.getElementById('nav-' + tab).classList.add('active');
+  
+  const activeNav = document.getElementById('nav-' + tab);
+  if(activeNav) {
+    activeNav.classList.remove('border-transparent', 'text-slate-400');
+    activeNav.classList.add('text-emerald-400', 'bg-slate-800/50', 'border-emerald-500');
+  }
+
+  // Update dynamic page title
+  const titles = {
+    'dashboard': 'Dashboard Overview',
+    'logs': 'Bot Log Terminal',
+    'cooldowns': 'Cooldown Management',
+    'events': 'Live Event Control',
+    'users': 'User Management',
+    'server': 'Server Diagnostics'
+  };
+  const titleEl = document.getElementById('page-title');
+  if(titleEl) titleEl.textContent = titles[tab] || tab;
+
+  // Auto-close sidebar on mobile after clicking
+  if(window.innerWidth < 768 && isSidebarOpen) {
+    toggleSidebar();
+  }
+
   activeTab = tab;
   if (tab !== 'logs' && logPoll) { clearInterval(logPoll); logPoll = null; updateLogStatus(false); }
   if (tab === 'dashboard')  loadStats();
@@ -460,13 +625,14 @@ async function loadStats() {
 
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 async function clearAllCooldowns() {
-  if (!confirm('Alle Cooldowns löschen?')) return;
-  try {
-    await fetch('/api/admin/cooldowns', { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
-    showQuickMsg('✓ Alle Cooldowns gelöscht', 'var(--green)');
-    loadStats();
-    if (activeTab === 'cooldowns') loadCooldowns();
-  } catch (e) { showQuickMsg('✗ ' + e.message, 'var(--red)'); }
+  showConfirm('Alle Cooldowns löschen?', 'Möchtest du wirklich alle aktiven Spieler-Cooldowns zurücksetzen?', async () => {
+    try {
+      await fetch('/api/admin/cooldowns', { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+      showQuickMsg('✓ Alle Cooldowns gelöscht', 'var(--green)');
+      loadStats();
+      if (activeTab === 'cooldowns') loadCooldowns();
+    } catch (e) { showQuickMsg('✗ ' + e.message, 'var(--red)'); }
+  });
 }
 async function clearCache() {
   try {
@@ -474,19 +640,17 @@ async function clearCache() {
     showQuickMsg('✓ Cache geleert', 'var(--amber)');
   } catch (e) { showQuickMsg('✗ ' + e.message, 'var(--red)'); }
 }
-function showQuickMsg(msg, color) {
-  const el = document.getElementById('quickActionMsg');
-  el.textContent = msg;
-  el.style.color = color;
-  setTimeout(() => { el.textContent = ''; }, 3000);
-}
 
 // ─── Log Polling ──────────────────────────────────────────────────────────────
 function updateLogStatus(online) {
   const el = document.getElementById('logStatus');
-  el.innerHTML = online
-    ? '<span class="status-dot dot-green"></span>LOG LIVE'
-    : '<span class="status-dot dot-amber"></span>LOG OFFLINE';
+  if(online) {
+    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span><span class="text-emerald-400">LOG LIVE</span>';
+    el.className = "flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded transition-colors";
+  } else {
+    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-slate-400">LOG OFFLINE</span>';
+    el.className = "flex items-center gap-2 bg-slate-900/50 border border-slate-800 px-3 py-1.5 rounded transition-colors";
+  }
 }
 
 function startLogPoll() {
@@ -512,13 +676,16 @@ async function fetchLogs(initial) {
 function setFilter(f) {
   logFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => {
-    b.style.background = 'transparent';
-    b.style.borderColor = 'var(--border2)';
-    b.style.color = 'var(--text2)';
+    b.classList.remove('bg-slate-800', 'text-white', 'border-slate-500');
+    b.classList.add('text-slate-400', 'border-slate-700');
   });
-  const colors = { ALL:'var(--green)', CMD:'var(--blue)', BOT:'var(--green)', ERROR:'var(--red)', API:'var(--purple)', INFO:'var(--text3)' };
+  
   const btn = document.getElementById('filter-' + f);
-  if (btn) { btn.style.color = colors[f] || 'var(--text)'; btn.style.borderColor = colors[f] || 'var(--border)'; }
+  if (btn) {
+    btn.classList.remove('text-slate-400', 'border-slate-700');
+    // Using simple active style to avoid complex color mapping in Tailwind classes on the fly
+    btn.classList.add('bg-slate-800', 'text-white', 'border-slate-500');
+  }
   renderAllLogs();
 }
 
@@ -537,11 +704,11 @@ function appendLogLine(entry) {
 }
 
 function logLineHTML(e) {
-  return '<div class="log-line log-' + e.level + '">' +
-    '<span class="log-ts">' + (e.ts||'').slice(11,19) + '</span>' +
-    '<span class="log-level">' + e.level + '</span>' +
-    '<span class="log-cat">[' + (e.category||'') + ']</span>' +
-    '<span class="log-msg">' + escHtml(e.message||'') + '</span></div>';
+  return '<div class="py-1.5 border-b border-slate-800/30 hover:bg-slate-800/20 flex gap-4 font-mono text-[11px] leading-relaxed break-all log-line log-' + e.level + '">' +
+    '<span class="text-slate-500 shrink-0 w-16">' + (e.ts||'').slice(11,19) + '</span>' +
+    '<span class="font-bold shrink-0 w-12 log-level-color">' + e.level + '</span>' +
+    '<span class="text-slate-500 shrink-0 w-24">[' + (e.category||'') + ']</span>' +
+    '<span class="text-slate-300 log-msg-color">' + escHtml(e.message||'') + '</span></div>';
 }
 
 function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -562,13 +729,14 @@ function renderCooldowns(q) {
   const filtered = allCDs.filter(p => p.username.toLowerCase().includes(q));
   document.getElementById('cdCount').textContent = filtered.length + ' Spieler';
   const el = document.getElementById('cooldownList');
-  if (!filtered.length) { el.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--text3)">Keine Einträge.</div>'; return; }
+  if (!filtered.length) { el.innerHTML = '<div class="p-4 text-xs font-mono text-slate-500 text-center">Keine Einträge gefunden.</div>'; return; }
+  
   el.innerHTML = filtered.map(p =>
-    '<div class="cd-row">' +
-    '<div><span style="color:#fff">' + p.username + '</span> <span style="color:var(--text3)">Lvl ' + (p.level||1) + ' P' + (p.prestige||0) + '</span></div>' +
-    '<div style="display:flex;align-items:center;gap:6px">' +
-    '<span style="color:var(--text3);font-size:10px">' + formatVal(p.stash_value) + ' ₽</span>' +
-    '<button class="btn btn-red" style="padding:2px 8px;font-size:9px" onclick="clearUserCD(\'' + p.username + '\')">CD RESET</button>' +
+    '<div class="flex items-center justify-between p-3 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">' +
+    '<div class="flex items-center gap-3"><span class="text-slate-200 font-medium text-sm">' + p.username + '</span> <span class="text-[10px] text-slate-400 font-mono tracking-wider bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">Lvl ' + (p.level||1) + ' P' + (p.prestige||0) + '</span></div>' +
+    '<div class="flex items-center gap-5">' +
+    '<span class="text-emerald-400 font-mono text-xs font-medium">' + formatVal(p.stash_value) + ' ₽</span>' +
+    '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearUserCD(\'' + p.username + '\')">CD RESET</button>' +
     '</div></div>'
   ).join('');
 }
@@ -576,6 +744,7 @@ function renderCooldowns(q) {
 async function clearUserCD(username) {
   try {
     await fetch('/api/admin/cooldowns/' + username, { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+    showToast('✓ CD für ' + username + ' gelöscht', 'success');
     loadCooldowns();
   } catch {}
 }
@@ -595,15 +764,20 @@ async function loadEvents() {
     const now = Math.floor(Date.now()/1000);
     const lines = [];
     if (ev.ForcedMap?.MapName && ev.ForcedMap?.ExpiresAt > now)
-      lines.push('🗺 FORCED MAP: ' + ev.ForcedMap.MapName + ' (' + Math.round((ev.ForcedMap.ExpiresAt-now)/60) + ' min)');
+      lines.push('<span class="text-emerald-400">🗺 FORCED MAP: ' + ev.ForcedMap.MapName + ' (' + Math.round((ev.ForcedMap.ExpiresAt-now)/60) + ' min)</span>');
     if (ev.DoubleLootOverride?.Chance > 0 && ev.DoubleLootOverride?.ExpiresAt > now)
-      lines.push('🔥 DOUBLE LOOT: ' + (ev.DoubleLootOverride.Chance*100).toFixed(0) + '% (' + Math.round((ev.DoubleLootOverride.ExpiresAt-now)/60) + ' min)');
+      lines.push('<span class="text-amber-400">🔥 DOUBLE LOOT: ' + (ev.DoubleLootOverride.Chance*100).toFixed(0) + '% (' + Math.round((ev.DoubleLootOverride.ExpiresAt-now)/60) + ' min)</span>');
     if (ev.XPBoost?.Multiplier > 1 && ev.XPBoost?.ExpiresAt > now)
-      lines.push('⚡ XP BOOST: x' + ev.XPBoost.Multiplier + ' (' + Math.round((ev.XPBoost.ExpiresAt-now)/60) + ' min)');
+      lines.push('<span class="text-purple-400">⚡ XP BOOST: x' + ev.XPBoost.Multiplier + ' (' + Math.round((ev.XPBoost.ExpiresAt-now)/60) + ' min)</span>');
+    
     const el = document.getElementById('eventsStatusBar');
-    el.innerHTML = lines.length
-      ? lines.map(l => '<span class="event-active">' + l + '</span>').join(' &nbsp;|&nbsp; ')
-      : '<span style="color:var(--text3)">Keine aktiven Events</span>';
+    if(lines.length) {
+      el.innerHTML = lines.join('<span class="mx-3 text-slate-600">|</span>');
+      el.classList.add('border-emerald-500/30', 'bg-emerald-500/5');
+    } else {
+      el.innerHTML = '<span class="text-slate-500">Keine aktiven Events</span>';
+      el.classList.remove('border-emerald-500/30', 'bg-emerald-500/5');
+    }
   } catch {}
 }
 
@@ -617,22 +791,26 @@ async function setForcedMap() {
   const mins = parseInt(document.getElementById('forcedMapDur').value)||60;
   if (!map) { clearEvent('forcedmap'); return; }
   await apiCall('/api/events/forcedmap','PUT',{mapName:map,durationMinutes:mins});
+  showToast('✓ Forced Map aktiv', 'success');
   loadEvents();
 }
 async function setDoubleLoot() {
   const c = parseFloat(document.getElementById('doubleLootChance').value)||0.5;
   const m = parseInt(document.getElementById('doubleLootDur').value)||30;
   await apiCall('/api/events/doubleloot','PUT',{chance:c,durationMinutes:m});
+  showToast('✓ Double Loot aktiv', 'success');
   loadEvents();
 }
 async function setXPBoost() {
   const mul = parseFloat(document.getElementById('xpBoostMult').value)||2;
   const m   = parseInt(document.getElementById('xpBoostDur').value)||30;
   await apiCall('/api/events/xpboost','PUT',{multiplier:mul,durationMinutes:m});
+  showToast('✓ XP Boost aktiv', 'success');
   loadEvents();
 }
 async function clearEvent(type) {
   await fetch('/api/events/'+type,{method:'DELETE',headers:{'x-session-token':LootGameAPI.getToken()}});
+  showToast('Event gestoppt', 'info');
   loadEvents();
 }
 
@@ -641,9 +819,9 @@ async function loadUsers() {
   try {
     const users = await fetch('/api/admin/users',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
     document.getElementById('userList').innerHTML = users.map(u =>
-      '<div class="user-row">' +
-      '<div class="user-info"><div class="user-name">' + u.username + '</div><div class="user-id">ID: ' + u.id + '</div></div>' +
-      '<button class="btn btn-red" style="padding:2px 8px;font-size:9px" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button></div>'
+      '<div class="flex items-center justify-between p-4 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">' +
+      '<div><div class="text-slate-200 font-medium text-sm">' + u.username + '</div><div class="text-[10px] text-slate-500 mt-1 font-mono tracking-wider">ID: ' + u.id + '</div></div>' +
+      '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button></div>'
     ).join('');
   } catch {}
 }
@@ -652,19 +830,38 @@ async function createUser() {
   const username = document.getElementById('newUsername').value.trim();
   const password = document.getElementById('newPassword').value;
   const msg = document.getElementById('userMsg');
-  if (!username||!password) { msg.textContent='⚠ Alle Felder ausfüllen'; msg.style.color='var(--amber)'; return; }
+  
+  if (!username||!password) { 
+    msg.textContent='⚠ Alle Felder ausfüllen'; 
+    msg.className='text-xs text-amber-400 mt-2 block'; 
+    return; 
+  }
   try {
     const res = await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json','x-session-token':LootGameAPI.getToken()},body:JSON.stringify({username,password})});
     const d = await res.json();
-    if (d.success) { msg.textContent='✓ '+username+' angelegt'; msg.style.color='var(--green)'; document.getElementById('newUsername').value=''; document.getElementById('newPassword').value=''; loadUsers(); }
-    else { msg.textContent='✗ '+(d.error||'Fehler'); msg.style.color='var(--red)'; }
-  } catch(e) { msg.textContent='✗ '+e.message; msg.style.color='var(--red)'; }
+    if (d.success) { 
+      showToast('✓ User ' + username + ' angelegt', 'success');
+      msg.className='hidden'; 
+      document.getElementById('newUsername').value=''; 
+      document.getElementById('newPassword').value=''; 
+      loadUsers(); 
+    }
+    else { 
+      msg.textContent='✗ '+(d.error||'Fehler'); 
+      msg.className='text-xs text-rose-400 mt-2 block'; 
+    }
+  } catch(e) { 
+    msg.textContent='✗ '+e.message; 
+    msg.className='text-xs text-rose-400 mt-2 block'; 
+  }
 }
 
 async function deleteUser(username) {
-  if (!confirm('User '+username+' löschen?')) return;
-  await fetch('/api/admin/users/'+username,{method:'DELETE',headers:{'x-session-token':LootGameAPI.getToken()}});
-  loadUsers();
+  showConfirm('User löschen', 'Möchtest du den User "' + username + '" wirklich unwiderruflich löschen?', async () => {
+    await fetch('/api/admin/users/'+username,{method:'DELETE',headers:{'x-session-token':LootGameAPI.getToken()}});
+    showToast('✓ User gelöscht', 'success');
+    loadUsers();
+  });
 }
 
 // ─── Server Control ───────────────────────────────────────────────────────────
@@ -679,13 +876,21 @@ async function unlockServerControl() {
       document.getElementById('serverLock').classList.add('hidden');
       document.getElementById('serverPanel').classList.remove('hidden');
       loadServerInfo();
-    } else { msg.textContent='✗ '+d.error; msg.style.color='var(--red)'; }
-  } catch(e) { msg.textContent='✗ '+e.message; msg.style.color='var(--red)'; }
+      showToast('✓ Server Control entsperrt', 'success');
+    } else { 
+      msg.textContent='✗ '+d.error; 
+      msg.className='text-xs text-center text-rose-400 block'; 
+    }
+  } catch(e) { 
+    msg.textContent='✗ '+e.message; 
+    msg.className='text-xs text-center text-rose-400 block'; 
+  }
 }
 
 function lockServerControl() {
   serverPw = null;
   document.getElementById('serverPwInput').value='';
+  document.getElementById('serverPwMsg').className='hidden';
   document.getElementById('serverLock').classList.remove('hidden');
   document.getElementById('serverPanel').classList.add('hidden');
 }
@@ -705,21 +910,39 @@ async function loadServerInfo() {
 async function serverAction(action) {
   if (!serverPw) return;
   const labels = {reconnect:'Bot Reconnect',cache:'Cache leeren',snapshot:'DB Snapshot'};
-  if (!confirm(labels[action]+'? Fortfahren?')) return;
-  const result = document.getElementById('serverActionResult');
-  result.classList.remove('hidden');
-  result.style.color = 'var(--amber)';
-  result.textContent = '⟳ Führe aus: '+labels[action]+'...';
-  try {
-    const res = await fetch('/api/admin/server/'+action,{method:'POST',headers:{'Content-Type':'application/json','x-session-token':LootGameAPI.getToken()},body:JSON.stringify({password:serverPw})});
-    const d = await res.json();
-    result.textContent = d.success ? '✓ '+d.message : '✗ '+(d.error||'Fehler');
-    result.style.color = d.success ? 'var(--green)' : 'var(--red)';
-  } catch(e) { result.textContent='✗ '+e.message; result.style.color='var(--red)'; }
+  
+  showConfirm('Server Action', labels[action] + ' wirklich ausführen?', async () => {
+    const result = document.getElementById('serverActionResult');
+    result.classList.remove('hidden');
+    result.classList.replace('text-rose-400', 'text-amber-400');
+    result.classList.replace('text-emerald-400', 'text-amber-400');
+    result.classList.replace('border-rose-500/30', 'border-slate-700');
+    result.classList.replace('border-emerald-500/30', 'border-slate-700');
+    result.textContent = '⟳ Führe aus: '+labels[action]+'...';
+    
+    try {
+      const res = await fetch('/api/admin/server/'+action,{method:'POST',headers:{'Content-Type':'application/json','x-session-token':LootGameAPI.getToken()},body:JSON.stringify({password:serverPw})});
+      const d = await res.json();
+      
+      result.textContent = d.success ? '✓ '+d.message : '✗ '+(d.error||'Fehler');
+      
+      if(d.success) {
+        result.classList.replace('text-amber-400', 'text-emerald-400');
+        result.classList.replace('border-slate-700', 'border-emerald-500/30');
+      } else {
+        result.classList.replace('text-amber-400', 'text-rose-400');
+        result.classList.replace('border-slate-700', 'border-rose-500/30');
+      }
+    } catch(e) { 
+      result.textContent='✗ '+e.message; 
+      result.classList.replace('text-amber-400', 'text-rose-400');
+      result.classList.replace('border-slate-700', 'border-rose-500/30');
+    }
+  });
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-loadStats();
+showTab('dashboard'); // Initialisiert den aktiven Tab optisch korrekt beim Laden
 </script>
 </body>
 </html>
