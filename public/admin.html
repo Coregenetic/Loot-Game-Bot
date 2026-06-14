@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel — Loot-Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="api-client.js"></script>
+    <style>
+        body { background:#0a0a0a; color:#d4d4d4; font-family:'Rajdhani',sans-serif; }
+        .mono { font-family:'JetBrains Mono',monospace; }
+        .tab-btn { padding:8px 16px; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.15em; text-transform:uppercase; border-bottom:2px solid transparent; color:#52525b; cursor:pointer; transition:all 0.2s; }
+        .tab-btn.active { color:#10b981; border-color:#10b981; }
+        .tab-btn:hover { color:#d4d4d4; }
+        .card { background:#111111; border:1px solid #1f1f1f; padding:16px; margin-bottom:12px; }
+        .btn { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; padding:6px 14px; border-radius:3px; cursor:pointer; transition:all 0.2s; }
+        .btn-green { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.4); color:#10b981; }
+        .btn-green:hover { background:rgba(16,185,129,0.2); }
+        .btn-red { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); color:#ef4444; }
+        .btn-red:hover { background:rgba(239,68,68,0.2); }
+        .btn-amber { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.4); color:#f59e0b; }
+        .btn-amber:hover { background:rgba(245,158,11,0.2); }
+        .inp { background:#050505; border:1px solid #27272a; color:#e4e4e7; font-family:'JetBrains Mono',monospace; font-size:12px; padding:6px 10px; border-radius:3px; outline:none; width:100%; }
+        .inp:focus { border-color:rgba(16,185,129,0.5); }
+        .log-line { font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 0; border-bottom:1px solid #111; white-space:pre-wrap; word-break:break-all; }
+        .log-INFO  { color:#6b7b5c; }
+        .log-WARN  { color:#f59e0b; }
+        .log-ERROR { color:#ef4444; }
+        .log-CMD   { color:#60a5fa; }
+        .log-BOT   { color:#10b981; }
+        .log-API   { color:#a78bfa; }
+        .stat-card { background:#111; border:1px solid #1f1f1f; border-left:3px solid #10b981; padding:16px 20px; }
+        .stat-val { font-size:32px; font-weight:700; color:#10b981; font-family:'JetBrains Mono',monospace; }
+        .stat-label { font-size:11px; color:#52525b; font-family:'JetBrains Mono',monospace; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; }
+        #logContainer { height:500px; overflow-y:auto; background:#050505; border:1px solid #1f1f1f; padding:8px; }
+        .ws-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+        .ws-connected { background:#10b981; box-shadow:0 0 6px #10b981; }
+        .ws-disconnected { background:#ef4444; }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+
+<!-- Header -->
+<div class="flex items-center justify-between mb-6 border-b border-zinc-800 pb-4">
+    <div>
+        <div class="mono text-xs text-emerald-500 tracking-widest mb-1">// ADMIN PANEL</div>
+        <h1 class="text-2xl font-bold text-zinc-100 uppercase tracking-wider">Loot-Game Hub</h1>
+    </div>
+    <div class="flex items-center gap-4">
+        <span id="wsStatus" class="mono text-xs text-zinc-500 flex items-center">
+            <span class="ws-dot ws-disconnected" id="wsDot"></span>
+            <span id="wsLabel">OFFLINE</span>
+        </span>
+        <a href="/" class="btn btn-green">← Game Center</a>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="flex gap-0 border-b border-zinc-800 mb-6">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('cooldowns')">Cooldowns</button>
+    <button class="tab-btn" onclick="switchTab('users')">Users</button>
+    <button class="tab-btn" onclick="switchTab('events')">Live Events</button>
+    <button class="tab-btn" onclick="switchTab('logs')">Bot Log</button>
+</div>
+
+<!-- DASHBOARD TAB -->
+<div id="tab-dashboard">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card"><div class="stat-val" id="stat-players">—</div><div class="stat-label">Spieler</div></div>
+        <div class="stat-card" style="border-color:#60a5fa"><div class="stat-val" style="color:#60a5fa" id="stat-items">—</div><div class="stat-label">Items</div></div>
+        <div class="stat-card" style="border-color:#f59e0b"><div class="stat-val" style="color:#f59e0b" id="stat-cooldowns">—</div><div class="stat-label">Aktive CDs</div></div>
+        <div class="stat-card" style="border-color:#a78bfa"><div class="stat-val" style="color:#a78bfa" id="stat-messages">—</div><div class="stat-label">Messages</div></div>
+    </div>
+    <div class="card">
+        <div class="mono text-xs text-zinc-500 tracking-widest mb-3">SCHNELLAKTIONEN</div>
+        <div class="flex gap-3 flex-wrap">
+            <button class="btn btn-red" onclick="clearAllCooldowns()">🗑 Alle Cooldowns löschen</button>
+            <button class="btn btn-amber" onclick="clearCache()">⟳ Cache leeren</button>
+        </div>
+    </div>
+</div>
+
+<!-- COOLDOWNS TAB -->
+<div id="tab-cooldowns" class="hidden">
+    <div class="flex justify-between items-center mb-4">
+        <div class="mono text-xs text-zinc-500 tracking-widest">AKTIVE COOLDOWNS</div>
+        <div class="flex gap-2">
+            <input id="cdSearchInput" class="inp" style="width:200px" placeholder="Spieler suchen..." oninput="filterCooldowns()">
+            <button class="btn btn-red" onclick="clearAllCooldowns()">Alle löschen</button>
+            <button class="btn btn-green" onclick="loadCooldowns()">Aktualisieren</button>
+        </div>
+    </div>
+    <div id="cooldownList" class="card mono text-xs text-zinc-500">Lade...</div>
+</div>
+
+<!-- USERS TAB -->
+<div id="tab-users" class="hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+            <div class="mono text-xs text-zinc-500 tracking-widest mb-3">DASHBOARD USER</div>
+            <div id="userList" class="card mono text-xs text-zinc-500">Lade...</div>
+        </div>
+        <div>
+            <div class="mono text-xs text-zinc-500 tracking-widest mb-3">NEUEN USER ANLEGEN</div>
+            <div class="card">
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <label class="mono text-xs text-zinc-600 uppercase tracking-widest block mb-1">Username</label>
+                        <input id="newUsername" class="inp" placeholder="z.B. gunny">
+                    </div>
+                    <div>
+                        <label class="mono text-xs text-zinc-600 uppercase tracking-widest block mb-1">Passwort</label>
+                        <input id="newPassword" type="password" class="inp" placeholder="min. 6 Zeichen">
+                    </div>
+                    <div id="userMsg" class="mono text-xs text-zinc-600 min-h-4"></div>
+                    <button class="btn btn-green" onclick="createUser()">User anlegen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EVENTS TAB -->
+<div id="tab-events" class="hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div class="card">
+            <div class="mono text-xs text-emerald-500 tracking-widest mb-3">FORCED MAP</div>
+            <select id="forcedMapSelect" class="inp mb-2">
+                <option value="">— Deaktiviert —</option>
+                <option>Customs</option><option>Factory</option><option>Ground Zero</option>
+                <option>Interchange</option><option>Icebreaker</option><option>Lighthouse</option>
+                <option>Reserve</option><option>Shoreline</option><option>Streets</option>
+                <option>Lab</option><option>Woods</option><option>The Labyrinth</option>
+            </select>
+            <input id="forcedMapDur" type="number" class="inp mb-2" placeholder="Dauer in Minuten (0 = unbegrenzt)" value="60">
+            <div class="flex gap-2">
+                <button class="btn btn-green" style="flex:1" onclick="setForcedMap()">Aktivieren</button>
+                <button class="btn btn-red" onclick="clearEvent('forcedmap')">Stop</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="mono text-xs text-amber-500 tracking-widest mb-3">DOUBLE LOOT</div>
+            <input id="doubleLootChance" type="number" class="inp mb-2" placeholder="Chance (0-1, z.B. 0.5)" value="0.5" step="0.05" min="0" max="1">
+            <input id="doubleLootDur" type="number" class="inp mb-2" placeholder="Dauer in Minuten" value="30">
+            <div class="flex gap-2">
+                <button class="btn btn-amber" style="flex:1" onclick="setDoubleLoot()">Aktivieren</button>
+                <button class="btn btn-red" onclick="clearEvent('doubleloot')">Stop</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="mono text-xs text-purple-400 tracking-widest mb-3">XP BOOST</div>
+            <input id="xpBoostMult" type="number" class="inp mb-2" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1" max="10">
+            <input id="xpBoostDur" type="number" class="inp mb-2" placeholder="Dauer in Minuten" value="30">
+            <div class="flex gap-2">
+                <button class="btn" style="flex:1;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.4);color:#a78bfa" onclick="setXPBoost()">Aktivieren</button>
+                <button class="btn btn-red" onclick="clearEvent('xpboost')">Stop</button>
+            </div>
+        </div>
+
+    </div>
+    <div id="eventsStatus" class="card mt-4 mono text-xs text-zinc-500">Lade aktive Events...</div>
+</div>
+
+<!-- LOGS TAB -->
+<div id="tab-logs" class="hidden">
+    <div class="flex justify-between items-center mb-3">
+        <div class="flex gap-2 flex-wrap">
+            <button class="btn btn-green" id="filter-ALL" onclick="setFilter('ALL')">ALL</button>
+            <button class="btn" id="filter-CMD" onclick="setFilter('CMD')" style="border:1px solid #3f3f46;color:#60a5fa">CMD</button>
+            <button class="btn" id="filter-BOT" onclick="setFilter('BOT')" style="border:1px solid #3f3f46;color:#10b981">BOT</button>
+            <button class="btn" id="filter-ERROR" onclick="setFilter('ERROR')" style="border:1px solid #3f3f46;color:#ef4444">ERROR</button>
+            <button class="btn" id="filter-API" onclick="setFilter('API')" style="border:1px solid #3f3f46;color:#a78bfa">API</button>
+            <button class="btn" id="filter-INFO" onclick="setFilter('INFO')" style="border:1px solid #3f3f46;color:#6b7b5c">INFO</button>
+        </div>
+        <div class="flex gap-2">
+            <label class="mono text-xs text-zinc-500 flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="autoScroll" checked> Auto-Scroll
+            </label>
+            <button class="btn" style="border:1px solid #3f3f46;color:#71717a" onclick="clearLogDisplay()">Leeren</button>
+        </div>
+    </div>
+    <div id="logContainer"></div>
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+let activeTab    = 'dashboard';
+let ws           = null;
+let logFilter    = 'ALL';
+let allLogs      = [];
+let allCooldowns = [];
+
+// ─── Auth check ───────────────────────────────────────────────────────────────
+if (!LootGameAPI.isLoggedIn()) window.location.href = '/login.html';
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+    document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    document.querySelectorAll('.tab-btn').forEach(el => {
+        if (el.textContent.toLowerCase().includes(tab) ||
+            (tab === 'dashboard' && el.textContent.toLowerCase() === 'dashboard') ||
+            (tab === 'cooldowns' && el.textContent.toLowerCase() === 'cooldowns') ||
+            (tab === 'users' && el.textContent.toLowerCase() === 'users') ||
+            (tab === 'events' && el.textContent.toLowerCase() === 'live events') ||
+            (tab === 'logs' && el.textContent.toLowerCase() === 'bot log')) {
+            el.classList.add('active');
+        }
+    });
+    activeTab = tab;
+    if (tab === 'dashboard') loadStats();
+    if (tab === 'cooldowns') loadCooldowns();
+    if (tab === 'users')     loadUsers();
+    if (tab === 'events')    loadEvents();
+    if (tab === 'logs')      connectWS();
+}
+
+// ─── Stats ────────────────────────────────────────────────────────────────────
+async function loadStats() {
+    try {
+        const stats = await fetch('/api/admin/stats', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+        document.getElementById('stat-players').textContent   = stats.players   || 0;
+        document.getElementById('stat-items').textContent     = stats.items     || 0;
+        document.getElementById('stat-cooldowns').textContent = stats.cooldowns || 0;
+        document.getElementById('stat-messages').textContent  = stats.messages  || 0;
+    } catch {}
+}
+
+// ─── Cooldowns ────────────────────────────────────────────────────────────────
+async function loadCooldowns() {
+    try {
+        const data = await fetch('/api/players', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+
+        // Cooldown-Daten via admin stats
+        const cdData = await fetch('/api/admin/stats', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+
+        // Alle Spieler mit Cooldown holen — wir nutzen players endpoint
+        const el = document.getElementById('cooldownList');
+        if (!data.length) { el.textContent = 'Keine aktiven Cooldowns.'; return; }
+
+        allCooldowns = data;
+        renderCooldowns(data);
+    } catch (err) {
+        document.getElementById('cooldownList').textContent = 'Fehler: ' + err.message;
+    }
+}
+
+function renderCooldowns(players) {
+    const search = (document.getElementById('cdSearchInput')?.value || '').toLowerCase();
+    const filtered = players.filter(p => p.username.toLowerCase().includes(search));
+    const el = document.getElementById('cooldownList');
+    if (!filtered.length) { el.innerHTML = '<span class="text-zinc-600">Keine Einträge.</span>'; return; }
+
+    el.innerHTML = filtered.map(p =>
+        '<div class="flex items-center justify-between py-1.5 border-b border-zinc-900">' +
+        '<span class="text-zinc-300">' + p.username + '</span>' +
+        '<div class="flex items-center gap-3">' +
+        '<span class="text-zinc-600">Lvl ' + (p.level||1) + ' | P' + (p.prestige||0) + '</span>' +
+        '<button class="btn btn-red" style="padding:3px 10px;font-size:10px" onclick="clearUserCooldown(\'' + p.username + '\')">CD löschen</button>' +
+        '</div></div>'
+    ).join('');
+}
+
+function filterCooldowns() { renderCooldowns(allCooldowns); }
+
+async function clearAllCooldowns() {
+    if (!confirm('Alle Cooldowns löschen?')) return;
+    try {
+        await fetch('/api/admin/cooldowns', { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+        alert('✓ Alle Cooldowns gelöscht');
+        loadStats();
+        loadCooldowns();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+async function clearUserCooldown(username) {
+    try {
+        await fetch('/api/admin/cooldowns/' + username, { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+        loadCooldowns();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+async function clearCache() {
+    try {
+        await fetch('/api/admin/cache/clear', { method:'POST', headers:{'x-session-token':LootGameAPI.getToken()} });
+        alert('✓ Cache geleert');
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+async function loadUsers() {
+    try {
+        const users = await fetch('/api/admin/users', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+
+        const el = document.getElementById('userList');
+        if (!users.length) { el.innerHTML = '<span class="text-zinc-600">Keine User.</span>'; return; }
+
+        el.innerHTML = users.map(u =>
+            '<div class="flex items-center justify-between py-2 border-b border-zinc-900">' +
+            '<div><div class="text-zinc-200 font-bold">' + u.username + '</div>' +
+            '<div class="text-zinc-600 text-xs">ID: ' + u.id + '</div></div>' +
+            '<button class="btn btn-red" style="padding:3px 10px;font-size:10px" onclick="deleteUser(\'' + u.username + '\')">' +
+            'Löschen</button></div>'
+        ).join('');
+    } catch (err) {
+        document.getElementById('userList').innerHTML = 'Fehler: ' + err.message;
+    }
+}
+
+async function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const msg      = document.getElementById('userMsg');
+
+    if (!username || !password) { msg.textContent = '⚠ Alle Felder ausfüllen'; msg.style.color='#f59e0b'; return; }
+
+    try {
+        const res  = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+            msg.textContent = '✓ User ' + username + ' angelegt!';
+            msg.style.color = '#10b981';
+            document.getElementById('newUsername').value = '';
+            document.getElementById('newPassword').value = '';
+            loadUsers();
+        } else {
+            msg.textContent = '✗ ' + (data.error || 'Fehler');
+            msg.style.color = '#ef4444';
+        }
+    } catch (err) { msg.textContent = err.message; msg.style.color='#ef4444'; }
+}
+
+async function deleteUser(username) {
+    if (!confirm('User ' + username + ' wirklich löschen?')) return;
+    try {
+        await fetch('/api/admin/users/' + username, { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+        loadUsers();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+async function loadEvents() {
+    try {
+        const events = await fetch('/api/events', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+
+        const now = Math.floor(Date.now() / 1000);
+        const el  = document.getElementById('eventsStatus');
+        const lines = [];
+
+        if (events.ForcedMap?.MapName && events.ForcedMap?.ExpiresAt > now) {
+            const rem = Math.round((events.ForcedMap.ExpiresAt - now) / 60);
+            lines.push('🗺 FORCED MAP: ' + events.ForcedMap.MapName + ' (noch ' + rem + ' min)');
+        }
+        if (events.DoubleLootOverride?.Chance > 0 && events.DoubleLootOverride?.ExpiresAt > now) {
+            const rem = Math.round((events.DoubleLootOverride.ExpiresAt - now) / 60);
+            lines.push('🔥 DOUBLE LOOT: ' + (events.DoubleLootOverride.Chance * 100).toFixed(0) + '% Chance (noch ' + rem + ' min)');
+        }
+        if (events.XPBoost?.Multiplier > 1 && events.XPBoost?.ExpiresAt > now) {
+            const rem = Math.round((events.XPBoost.ExpiresAt - now) / 60);
+            lines.push('⚡ XP BOOST: ' + events.XPBoost.Multiplier + 'x (noch ' + rem + ' min)');
+        }
+
+        el.textContent = lines.length ? lines.join('\n') : 'Keine aktiven Events.';
+    } catch {}
+}
+
+async function setForcedMap() {
+    const map  = document.getElementById('forcedMapSelect').value;
+    const mins = parseInt(document.getElementById('forcedMapDur').value) || 60;
+    if (!map) { clearEvent('forcedmap'); return; }
+    try {
+        await fetch('/api/events/forcedmap', {
+            method: 'PUT',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ mapName: map, durationMinutes: mins })
+        });
+        loadEvents();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+async function setDoubleLoot() {
+    const chance = parseFloat(document.getElementById('doubleLootChance').value) || 0.5;
+    const mins   = parseInt(document.getElementById('doubleLootDur').value) || 30;
+    try {
+        await fetch('/api/events/doubleloot', {
+            method: 'PUT',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ chance, durationMinutes: mins })
+        });
+        loadEvents();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+async function setXPBoost() {
+    const mult = parseFloat(document.getElementById('xpBoostMult').value) || 2;
+    const mins = parseInt(document.getElementById('xpBoostDur').value) || 30;
+    try {
+        await fetch('/api/events/xpboost', {
+            method: 'PUT',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ multiplier: mult, durationMinutes: mins })
+        });
+        loadEvents();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+async function clearEvent(type) {
+    try {
+        await fetch('/api/events/' + type, { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
+        loadEvents();
+    } catch (err) { alert('Fehler: ' + err.message); }
+}
+
+// ─── WebSocket Log ────────────────────────────────────────────────────────────
+function connectWS() {
+    if (ws && ws.readyState === WebSocket.OPEN) return;
+
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    const token = LootGameAPI.getToken();
+    ws = new WebSocket(`${proto}://${location.host}/ws?token=${token}`);
+
+    ws.onopen = () => {
+        document.getElementById('wsDot').className   = 'ws-dot ws-connected';
+        document.getElementById('wsLabel').textContent = 'LIVE';
+    };
+
+    ws.onclose = () => {
+        document.getElementById('wsDot').className   = 'ws-dot ws-disconnected';
+        document.getElementById('wsLabel').textContent = 'OFFLINE';
+        setTimeout(() => { if (activeTab === 'logs') connectWS(); }, 3000);
+    };
+
+    ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'buffer') {
+            allLogs = msg.data;
+            renderLogs();
+        } else if (msg.type === 'log') {
+            allLogs.push(msg.data);
+            if (allLogs.length > 500) allLogs.shift();
+            appendLog(msg.data);
+        }
+    };
+}
+
+function setFilter(f) {
+    logFilter = f;
+    document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+        btn.classList.remove('btn-green');
+        btn.style.borderColor = '#3f3f46';
+    });
+    const btn = document.getElementById('filter-' + f);
+    if (btn) { btn.classList.add('btn-green'); btn.style.borderColor = ''; }
+    renderLogs();
+}
+
+function renderLogs() {
+    const container = document.getElementById('logContainer');
+    const filtered  = logFilter === 'ALL' ? allLogs : allLogs.filter(l => l.level === logFilter);
+    container.innerHTML = filtered.map(formatLogLine).join('');
+    if (document.getElementById('autoScroll')?.checked) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function appendLog(entry) {
+    if (logFilter !== 'ALL' && entry.level !== logFilter) return;
+    const container = document.getElementById('logContainer');
+    container.insertAdjacentHTML('beforeend', formatLogLine(entry));
+    if (document.getElementById('autoScroll')?.checked) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function formatLogLine(entry) {
+    const time = entry.ts ? entry.ts.slice(11, 19) : '';
+    return '<div class="log-line log-' + entry.level + '">' +
+        '<span style="color:#3f3f46">' + time + '</span> ' +
+        '<span style="opacity:0.6">[' + entry.level + ']</span> ' +
+        '<span style="opacity:0.5">[' + entry.category + ']</span> ' +
+        entry.message + '</div>';
+}
+
+function clearLogDisplay() {
+    document.getElementById('logContainer').innerHTML = '';
+    allLogs = [];
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+loadStats();
+</script>
+</body>
+</html>

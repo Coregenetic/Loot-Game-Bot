@@ -1,42 +1,40 @@
 require('dotenv').config();
 
+const logger = require('./utils/logger');
 const { initSchema, initDashboardUsers, initMessages } = require('./db/schema');
 const { getUserCount } = require('./db/users');
-const { createBot }   = require('./bot');
-const { startServer } = require('./api/server');
+const { createBot }    = require('./bot');
+const { startServer }  = require('./api/server');
 
 async function main() {
-    console.log('');
-    console.log('  ╔══════════════════════════════════════╗');
-    console.log('  ║   Loot-Game Bot v2.0 by Coregenetic  ║');
-    console.log('  ╚══════════════════════════════════════╝');
-    console.log('');
+    logger.info('BOOT', '╔══════════════════════════════════════╗');
+    logger.info('BOOT', '║   Loot-Game Bot v2.0 by Coregenetic  ║');
+    logger.info('BOOT', '╚══════════════════════════════════════╝');
 
-    console.log('[BOOT] Initialisiere Datenbank...');
+    logger.info('BOOT', 'Initialisiere Datenbank...');
     await initSchema();
     await initDashboardUsers();
     await initMessages();
-    console.log('[BOOT] Datenbank bereit.');
+    logger.info('BOOT', 'Datenbank bereit.');
 
-    // Warnung wenn noch keine User angelegt sind
     const userCount = getUserCount();
     if (userCount === 0) {
-        console.log('[WARN] Keine Dashboard-User angelegt!');
-        console.log('[WARN] Führe aus: npm run setup-users');
+        logger.warn('BOOT', 'Keine Dashboard-User angelegt! Führe aus: npm run setup-users');
     }
 
-    console.log('[BOOT] Starte API Server...');
-    startServer();
+    logger.info('BOOT', 'Starte API Server...');
+    const { httpServer } = startServer();
 
-    console.log('[BOOT] Verbinde Bot mit Twitch...');
+    logger.info('BOOT', 'Verbinde Bot mit Twitch...');
     const bot = createBot();
     await bot.connect();
 
-    console.log(`[BOOT] Bot verbunden — läuft in #${process.env.TWITCH_CHANNEL}`);
-    console.log('[BOOT] Bereit für Commands.');
+    const channels = process.env.TWITCH_CHANNEL || '';
+    logger.bot('BOOT', `Bot verbunden — läuft in #${channels}`);
+    logger.info('BOOT', 'Bereit für Commands.');
 }
 
 main().catch(err => {
-    console.error('[FATAL] Startfehler:', err);
+    console.error('[FATAL] Startfehler:', err.message);
     process.exit(1);
 });

@@ -157,10 +157,9 @@
         <nav class="flex flex-grow items-center gap-1 min-w-max" id="nav-container" style="-webkit-app-region: no-drag">
             <button onclick="switchApp('items')" id="btn-items" class="nav-btn active" draggable="true">Item Manager</button>
             <button onclick="switchApp('messages')" id="btn-messages" class="nav-btn" draggable="true">Message Manager</button>
-            <button onclick="switchApp('leaderboard')" id="btn-leaderboard" class="nav-btn" draggable="true">Leaderboard</button>
             <button onclick="switchApp('config')" id="btn-config" class="nav-btn" draggable="true">Config Manager</button>
             <button onclick="switchApp('simulator')" id="btn-simulator" class="nav-btn" draggable="true">Loot Simulator</button>
-            <button onclick="switchApp('logs')" id="btn-logs" class="nav-btn" draggable="true">System Logs</button>
+            <button onclick="switchApp('admin')" id="btn-admin" class="nav-btn" draggable="true">Admin Panel</button>
         </nav>
 
         <div class="flex items-center gap-4 shrink-0 ml-6">
@@ -242,9 +241,9 @@
                     frame.src = 'massage_manager.html';
                     document.getElementById('btn-messages').classList.add('active');
                     break;
-                case 'leaderboard':
-                    frame.src = 'leaderboard.html';
-                    document.getElementById('btn-leaderboard').classList.add('active');
+                case 'admin':
+                    frame.src = 'admin.html';
+                    document.getElementById('btn-admin').classList.add('active');
                     break;
                 case 'config':
                     frame.src = 'config_manager.html';
@@ -253,10 +252,6 @@
                 case 'simulator':
                     frame.src = 'loot_simulator.html';
                     document.getElementById('btn-simulator').classList.add('active');
-                    break;
-                case 'logs':
-                    frame.src = 'log.html';
-                    document.getElementById('btn-logs').classList.add('active');
                     break;
             }
         }

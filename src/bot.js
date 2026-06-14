@@ -1,4 +1,5 @@
-const tmi = require('tmi.js');
+const tmi    = require('tmi.js');
+const logger = require('./utils/logger');
 
 const commands = new Map();
 
@@ -19,7 +20,7 @@ function loadCommands() {
     for (const file of commandFiles) {
         const cmd = require(file);
         registerCommand(cmd.command, cmd.handler);
-        console.log(`[CMD] Geladen: ${cmd.command}`);
+        logger.cmd('BOT', `Geladen: ${cmd.command}`);
     }
 }
 
@@ -45,22 +46,23 @@ function createBot() {
         const handler = commands.get(cmdName);
         if (!handler) return;
 
+        logger.cmd('CMD', `${user} → ${cmdName} in ${channel}`);
+
         try {
             await handler({ client, channel, user, userstate, args });
         } catch (err) {
-            console.error(`[CMD] Fehler bei ${cmdName} von ${user}:`, err.message);
+            logger.error('CMD', `Fehler bei ${cmdName} von ${user}: ${err.message}`);
         }
     });
 
     client.on('connected', (addr, port) => {
-        console.log(`[BOT] Verbunden mit ${addr}:${port}`);
+        logger.bot('BOT', `Verbunden mit ${addr}:${port}`);
     });
 
     client.on('disconnected', reason => {
-        console.warn(`[BOT] Verbindung getrennt: ${reason}`);
+        logger.warn('BOT', `Verbindung getrennt: ${reason}`);
     });
 
-    // Commands laden
     loadCommands();
 
     return { connect: () => client.connect(), client };
