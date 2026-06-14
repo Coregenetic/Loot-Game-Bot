@@ -233,6 +233,10 @@
                         <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         Lade JSON
                     </button>
+                    <button onclick="loadFromBot()" class="tarkov-btn text-xs px-3 py-1.5" style="border-color:rgba(96,165,250,0.5);color:#60a5fa;background:rgba(96,165,250,0.08);">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4-4m-4 4V4"/></svg>
+                        Vom Bot laden
+                    </button>
                 </div>
                 
                 <div class="flex gap-2 lg:gap-3 items-center">
@@ -491,9 +495,21 @@
         function loadItemsFromLocalStorage() {
             const savedData = localStorage.getItem('tarkov_loot_game_items');
             if (savedData) {
-                document.getElementById('jsonOutput').value = savedData;
+                try {
+                    JSON.parse(savedData); // Validieren
+                    document.getElementById('jsonOutput').value = savedData;
+                } catch {
+                    // Kaputtes JSON — vom Bot laden
+                    loadFromBot();
+                    return;
+                }
             } else {
-                document.getElementById('jsonOutput').value = "{\n  \n}";
+                // Kein localStorage — vom Bot laden wenn eingeloggt
+                if (typeof LootGameAPI !== 'undefined' && LootGameAPI.isLoggedIn()) {
+                    loadFromBot();
+                } else {
+                    document.getElementById('jsonOutput').value = "{\n  \n}";
+                }
             }
         }
 
@@ -1001,6 +1017,31 @@
             if (!file) return;
             importFile(file);
             event.target.value = '';
+        }
+
+        async function loadFromBot() {
+            if (typeof LootGameAPI === 'undefined' || !LootGameAPI.isLoggedIn()) {
+                showToast('Nicht eingeloggt', true);
+                return;
+            }
+            try {
+                showToast('Lade Items vom Bot...');
+                const token = LootGameAPI.getToken();
+                const result = await fetch('/api/items', {
+                    headers: { 'x-session-token': token }
+                }).then(r => r.json());
+
+                if (result.error) throw new Error(result.error);
+
+                const count = Object.keys(result).length;
+                const jsonStr = JSON.stringify(result, null, 2);
+                document.getElementById('jsonOutput').value = jsonStr;
+                saveToLocalStorage(jsonStr);
+                renderVisualList();
+                showToast(`✓ ${count} Items vom Bot geladen`);
+            } catch (err) {
+                showToast('Fehler: ' + err.message, true);
+            }
         }
 
         async function syncToBot() {
