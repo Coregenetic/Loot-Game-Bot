@@ -130,6 +130,10 @@
           <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           Cooldowns
         </button>
+        <button onclick="showTab('players')" id="nav-players" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Spieler
+        </button>
         <button onclick="showTab('events')" id="nav-events" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
           <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           Live Events
@@ -260,6 +264,93 @@
     </div>
 
     <!-- LIVE EVENTS TAB -->
+    <!-- SPIELER TAB -->
+    <div id="tab-players" class="max-w-7xl w-full mx-auto hidden h-full flex gap-4">
+
+      <!-- LEFT: Player List -->
+      <div class="w-80 shrink-0 flex flex-col h-full">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-white tracking-wide uppercase">Spieler</h2>
+          <span id="playerCount" class="text-xs font-mono text-slate-500">— Gesamt</span>
+        </div>
+        <div class="relative mb-3">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" placeholder="Spieler suchen..." oninput="filterPlayers(this.value)">
+        </div>
+        <div id="playerList" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
+      </div>
+
+      <!-- RIGHT: Player Detail -->
+      <div class="flex-1 h-full overflow-y-auto">
+        <!-- Empty state -->
+        <div id="playerEmpty" class="h-full flex flex-col items-center justify-center text-center">
+          <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <p class="text-slate-500 text-sm font-mono">Spieler auswählen</p>
+          <p class="text-slate-600 text-xs mt-1">Klicke auf einen Spieler um Details zu sehen</p>
+        </div>
+
+        <!-- Detail Panel -->
+        <div id="playerDetail" class="hidden space-y-4">
+
+          <!-- Header -->
+          <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <span class="text-2xl font-bold text-emerald-400 font-mono" id="pd-avatar">—</span>
+                </div>
+                <div>
+                  <div class="text-xl font-bold text-white" id="pd-name">—</div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg" id="pd-rank">—</span>
+                    <span id="pd-kappa" class="text-xs font-mono text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-lg hidden">🎒 KAPPA</span>
+                    <span id="pd-prestige" class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg hidden">✦ PRESTIGE</span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="clearUserCD_player()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors">CD Reset</button>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
+              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Level</div>
+              <div class="text-2xl font-bold text-white" id="pd-level">—</div>
+              <div class="text-xs text-slate-500 mt-1" id="pd-xp">— XP</div>
+            </div>
+            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
+              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Raids Total</div>
+              <div class="text-2xl font-bold text-white" id="pd-raids">—</div>
+              <div class="text-xs text-emerald-400 mt-1" id="pd-survived">— überlebt</div>
+            </div>
+            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
+              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Gestorben</div>
+              <div class="text-2xl font-bold text-rose-400" id="pd-died">—</div>
+              <div class="text-xs text-slate-500 mt-1" id="pd-survrate">— % Survival</div>
+            </div>
+            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
+              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Stash Wert</div>
+              <div class="text-2xl font-bold text-amber-400" id="pd-stash">—</div>
+              <div class="text-xs text-slate-500 mt-1" id="pd-items-count">— Items</div>
+            </div>
+          </div>
+
+          <!-- Inventory -->
+          <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Inventar</h3>
+              <span class="text-xs font-mono text-slate-500" id="pd-inv-count">— Items</span>
+            </div>
+            <div id="pd-inventory" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+              <p class="text-slate-600 text-xs font-mono">Kein Inventar</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <div id="tab-events" class="max-w-7xl w-full mx-auto space-y-6 hidden">
       <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
         <div class="text-xs font-mono text-slate-400 bg-slate-900/50 border border-slate-800 p-3 rounded-xl mb-6 flex items-center justify-center" id="eventsStatusBar">
@@ -604,6 +695,7 @@ function showTab(tab) {
   if (tab === 'dashboard')  loadStats();
   if (tab === 'logs')       startLogPoll();
   if (tab === 'cooldowns')  loadCooldowns();
+  if (tab === 'players')    loadPlayers();
   if (tab === 'events')     loadEvents();
   if (tab === 'users')      loadUsers();
   if (tab === 'server')     loadServerInfo();
@@ -778,8 +870,10 @@ async function loadEvents() {
   } catch {}
 }
 
-async function apiCall(url, method, body) {
-  const res = await fetch(url, { method, headers:{'Content-Type':'application/json','x-session-token':LootGameAPI.getToken()}, body: JSON.stringify(body) });
+async function apiCall(url, method = 'GET', body = undefined) {
+  const opts = { method, headers:{'Content-Type':'application/json','x-session-token':LootGameAPI.getToken()} };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
   return res.json();
 }
 
@@ -936,6 +1030,137 @@ async function serverAction(action) {
       result.classList.replace('border-slate-700', 'border-rose-500/30');
     }
   });
+}
+
+// ─── Spieler ──────────────────────────────────────────────────────────────────
+let allPlayers      = [];
+let selectedPlayer  = null;
+
+async function loadPlayers() {
+  try {
+    const players = await apiCall('/api/players');
+    allPlayers = players;
+    document.getElementById('playerCount').textContent = players.length + ' Gesamt';
+    renderPlayerList('');
+  } catch (err) { console.error(err); }
+}
+
+function filterPlayers(q) { renderPlayerList(q.toLowerCase()); }
+
+function formatVal(v) {
+  if (!v) return '0 ₽';
+  if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
+  if (v >= 1e6) return (v/1e6).toFixed(2) + 'M ₽';
+  if (v >= 1e3) return (v/1e3).toFixed(0) + 'K ₽';
+  return v + ' ₽';
+}
+
+function renderPlayerList(q) {
+  const filtered = allPlayers.filter(p => p.username.toLowerCase().includes(q));
+  const el = document.getElementById('playerList');
+  if (!filtered.length) {
+    el.innerHTML = '<p class="text-slate-600 text-xs font-mono px-2">Keine Spieler gefunden.</p>';
+    return;
+  }
+  el.innerHTML = filtered.map(p => `
+    <button onclick="selectPlayer('${p.username}')" id="prow-${p.username}"
+      class="player-row w-full text-left px-3 py-2.5 rounded-xl border border-transparent hover:border-slate-700 hover:bg-slate-800/50 transition-all group">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold font-mono text-emerald-400">
+            ${p.username.slice(0,2).toUpperCase()}
+          </div>
+          <div>
+            <div class="text-sm font-medium text-slate-200 group-hover:text-white">${p.username}</div>
+            <div class="text-xs font-mono text-slate-500">Lvl ${p.level||1} · P${p.prestige||0}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs font-mono text-amber-400">${formatVal(p.stash_value)}</div>
+          <div class="text-xs font-mono text-slate-600">${p.raids_total||0} Raids</div>
+        </div>
+      </div>
+    </button>
+  `).join('');
+}
+
+async function selectPlayer(username) {
+  // Highlight selected
+  document.querySelectorAll('.player-row').forEach(r => {
+    r.classList.remove('border-emerald-500/40','bg-emerald-500/5');
+  });
+  const row = document.getElementById('prow-' + username);
+  if (row) row.classList.add('border-emerald-500/40','bg-emerald-500/5');
+
+  try {
+    const p = await apiCall('/api/players/' + username);
+    selectedPlayer = p;
+
+    // Show detail panel
+    document.getElementById('playerEmpty').classList.add('hidden');
+    document.getElementById('playerDetail').classList.remove('hidden');
+
+    // Fill header
+    document.getElementById('pd-avatar').textContent = username.slice(0,2).toUpperCase();
+    document.getElementById('pd-name').textContent   = username;
+
+    // Rank
+    const ranks = {'1':'Timmy','5':'Wanna-be Camper','10':'BUSCHBEWOHNER','15':'KISTENKRABBLER','20':'Lootstaubsauger','25':'TÜRRAHMEN-TAKTIKER','30':'EXTRACT-LURKER','35':'CHAD IN AUSBILDUNG','40':'ROGUE-KILLER','45':'BOSSJÄGER','50':'TARKOV-TYRANN','60':'TARKOV ELITE','70':'EFT Legende'};
+    const lvl = p.level||1;
+    let rank = 'Timmy';
+    for (const [threshold, name] of Object.entries(ranks).sort((a,b)=>parseInt(a)-parseInt(b))) {
+      if (lvl >= parseInt(threshold)) rank = name;
+    }
+    document.getElementById('pd-rank').textContent = 'Lvl ' + lvl + ' · ' + rank;
+
+    // Badges
+    document.getElementById('pd-kappa').classList.toggle('hidden', !p.has_kappa);
+    const prestigeEl = document.getElementById('pd-prestige');
+    if (p.prestige > 0) { prestigeEl.textContent = '✦ PRESTIGE ' + p.prestige; prestigeEl.classList.remove('hidden'); }
+    else prestigeEl.classList.add('hidden');
+
+    // Stats
+    document.getElementById('pd-level').textContent   = lvl;
+    document.getElementById('pd-xp').textContent      = (p.xp||0).toLocaleString() + ' XP';
+    document.getElementById('pd-raids').textContent   = p.raids_total||0;
+    document.getElementById('pd-survived').textContent = (p.raids_survived||0) + ' überlebt';
+    document.getElementById('pd-died').textContent    = p.raids_died||0;
+    const rate = p.raids_total > 0 ? Math.round((p.raids_survived/p.raids_total)*100) : 0;
+    document.getElementById('pd-survrate').textContent = rate + '% Survival';
+    document.getElementById('pd-stash').textContent   = formatVal(p.stashValue);
+    document.getElementById('pd-items-count').textContent = (p.inventory||[]).length + ' Item-Typen';
+
+    // Inventory
+    const invEl = document.getElementById('pd-inventory');
+    document.getElementById('pd-inv-count').textContent = (p.inventory||[]).length + ' Items';
+    if (!p.inventory || !p.inventory.length) {
+      invEl.innerHTML = '<p class="text-slate-600 text-xs font-mono">Inventar leer</p>';
+    } else {
+      invEl.innerHTML = p.inventory.map(item => `
+        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-colors">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">x${item.count}</span>
+            <span class="text-sm text-slate-200">${item.item_name}</span>
+          </div>
+          <span class="text-xs font-mono text-amber-400">${formatVal(item.value * item.count)}</span>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Player load error:', err);
+  }
+}
+
+async function clearUserCD_player() {
+  if (!selectedPlayer) return;
+  if (!confirm('Cooldown von ' + selectedPlayer.username + ' löschen?')) return;
+  try {
+    await fetch('/api/admin/cooldowns/' + selectedPlayer.username, {
+      method: 'DELETE',
+      headers: { 'x-session-token': LootGameAPI.getToken() }
+    });
+    showToast('CD von ' + selectedPlayer.username + ' gelöscht', 'success');
+  } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
