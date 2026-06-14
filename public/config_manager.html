@@ -107,13 +107,7 @@
         .rank-flash { animation: highlightRank 1s ease-out; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-slate-300 selection:bg-emerald-500/30">
-
-    <div class="bg-grid pointer-events-none"></div>
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden z-[-1] pointer-events-none">
-        <div class="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-900/10 blur-[100px] rounded-full"></div>
-        <div class="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full"></div>
-    </div>
+<body class="p-3 md:p-5 min-h-screen lg:h-screen flex flex-col lg:overflow-hidden overflow-y-auto">
 
     <!-- Drag & Drop Dropzone -->
     <div id="dropOverlay" class="hidden">
@@ -181,10 +175,10 @@
     </header>
 
     <!-- HAUPT-LAYOUT -->
-    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 sm:p-6 gap-6 relative">
+    <div class="max-w-[1600px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 pb-10 lg:pb-0">
         
         <!-- LINKE SEITE: Einstellungen -->
-        <div class="w-full lg:w-5/12 flex flex-col gap-6 overflow-y-auto pr-2 pb-6 relative z-10">
+        <div class="lg:col-span-5 flex flex-col gap-5 lg:overflow-y-auto pr-1 lg:pr-2 lg:pb-6 custom-scroll">
             
             <!-- LIVE EVENTS -->
             <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
@@ -517,10 +511,10 @@
         </div>
 
         <!-- RECHTE SEITE: Ansicht & Code -->
-        <div class="w-full lg:w-7/12 glass-card border border-slate-700/50 rounded-2xl flex flex-col h-auto lg:h-full overflow-hidden relative z-10 min-h-[500px]">
+        <div class="lg:col-span-7 glass-panel flex flex-col min-h-[600px] lg:min-h-0 lg:h-full overflow-hidden">
             
             <!-- Tabs -->
-            <div class="flex px-2 pt-2 border-b border-slate-700/50 bg-slate-900/30 overflow-x-auto no-scrollbar">
+            <div class="flex justify-between items-end px-5 pt-4 border-b border-zinc-800 bg-[#09090b]/50">
                 <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-emerald-400 border-b-2 border-emerald-500 transition-colors whitespace-nowrap" onclick="switchTab('visual')" id="btn-tab-visual">Maps</button>
                 <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors whitespace-nowrap" onclick="switchTab('ranks')" id="btn-tab-ranks">Ränge & XP</button>
                 <button class="tab-btn px-4 py-3 text-xs font-mono tracking-widest uppercase text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors whitespace-nowrap" onclick="switchTab('code')" id="btn-tab-code">Raw JSON</button>
