@@ -28,7 +28,7 @@ function createServer() {
 
     // Static Files
     app.use(express.static(PUBLIC_DIR));
-    app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'Control_Center.html')));
+    app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'login.html')));
 
     // Public Routes
     app.get('/health', (req, res) => {
