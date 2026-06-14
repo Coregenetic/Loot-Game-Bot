@@ -499,6 +499,18 @@
           </div>
         </div>
 
+        <!-- Fly.io Machine Info -->
+        <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase">Fly.io Machine</h3>
+            <button onclick="loadMachineInfo()" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors">↺ Refresh</button>
+          </div>
+          <div id="machineInfoGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <p class="text-xs font-mono text-slate-500 col-span-4">Lade...</p>
+          </div>
+          <div id="machineImage" class="font-mono text-[10px] text-slate-600 truncate"></div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
             <h3 class="text-xs font-mono tracking-widest text-rose-400 uppercase mb-2">Bot Reconnect</h3>
@@ -526,6 +538,15 @@
           <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Channel Control</h3>
           <div id="channelList" class="space-y-3">
             <p class="text-xs font-mono text-slate-500">Lade Channels...</p>
+          </div>
+        </div>
+
+        <!-- Command Control -->
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Command Control</h3>
+          <p class="text-xs font-mono text-slate-500 mb-4">Commands einzeln aktivieren oder deaktivieren</p>
+          <div id="commandList" class="grid grid-cols-2 gap-2">
+            <p class="text-xs font-mono text-slate-500 col-span-2">Lade Commands...</p>
           </div>
         </div>
 
@@ -964,6 +985,54 @@ async function deleteUser(username) {
   });
 }
 
+async function loadMachineInfo() {
+  try {
+    const info = await apiCall('/api/admin/machine');
+    const stateColor = {
+      started:   'text-emerald-400',
+      stopped:   'text-slate-400',
+      suspended: 'text-amber-400',
+      error:     'text-rose-400'
+    }[info.state] || 'text-slate-400';
+
+    document.getElementById('machineInfoGrid').innerHTML = `
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Status</div>
+        <div class="text-sm font-bold ${stateColor} uppercase">${info.state || '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Region</div>
+        <div class="text-sm font-bold text-white uppercase">${info.region || '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Memory</div>
+        <div class="text-sm font-bold text-blue-400">${info.memory ? info.memory + ' MB' : '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Restarts</div>
+        <div class="text-sm font-bold ${info.restart_count > 5 ? 'text-rose-400' : 'text-white'}">${info.restart_count ?? '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">CPU</div>
+        <div class="text-sm font-bold text-white">${info.cpus || '—'}x ${info.cpu_kind || ''}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Machine ID</div>
+        <div class="text-xs font-mono text-slate-400">${(info.id || '—').slice(0, 14)}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800 col-span-2">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Zuletzt aktualisiert</div>
+        <div class="text-xs font-mono text-slate-400">${info.updated_at ? new Date(info.updated_at).toLocaleString('de-DE') : '—'}</div>
+      </div>
+    `;
+    if (info.image) {
+      document.getElementById('machineImage').textContent = '🐳 ' + info.image;
+    }
+  } catch (err) {
+    document.getElementById('machineInfoGrid').innerHTML = '<p class="text-xs font-mono text-rose-400 col-span-4">Fehler: ' + err.message + '</p>';
+  }
+}
+
 // ─── Server Control ───────────────────────────────────────────────────────────
 async function unlockServerControl() {
   const pw = document.getElementById('serverPwInput').value;
@@ -977,6 +1046,8 @@ async function unlockServerControl() {
       document.getElementById('serverPanel').classList.remove('hidden');
       loadServerInfo();
       loadChannels();
+      loadCommands_panel();
+      loadMachineInfo();
       showToast('✓ Server Control entsperrt', 'success');
     } else { 
       msg.textContent='✗ '+d.error; 
@@ -1171,6 +1242,45 @@ async function clearUserCD_player() {
     });
     showToast('CD von ' + selectedPlayer.username + ' gelöscht', 'success');
   } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+// ─── Command Control ──────────────────────────────────────────────────────────
+async function loadCommands_panel() {
+  try {
+    const status = await apiCall('/api/admin/commands');
+    const el = document.getElementById('commandList');
+    el.innerHTML = Object.entries(status).map(([cmd, active]) => `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border ${active ? 'border-slate-800' : 'border-rose-900/30'}">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full ${active ? 'bg-emerald-400' : 'bg-rose-500'}"></div>
+          <span class="text-sm font-mono ${active ? 'text-white' : 'text-slate-500'}">${cmd}</span>
+        </div>
+        <button onclick="toggleCommand('${cmd}', ${!active})"
+          class="px-3 py-1 rounded-lg text-xs font-mono transition-colors ${active
+            ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+            : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}">
+          ${active ? 'Aus' : 'An'}
+        </button>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('commandList').innerHTML = '<p class="text-xs font-mono text-rose-400 col-span-2">Fehler: ' + err.message + '</p>';
+  }
+}
+
+async function toggleCommand(cmd, active) {
+  if (!serverPw) return;
+  try {
+    await fetch('/api/admin/commands/' + encodeURIComponent(cmd), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw, active })
+    });
+    loadCommands_panel();
+    showToast(`${cmd} ${active ? 'aktiviert' : 'deaktiviert'}`, active ? 'success' : 'info');
+  } catch (err) {
+    showToast('Fehler: ' + err.message, 'error');
+  }
 }
 
 // ─── Channel Control ──────────────────────────────────────────────────────────

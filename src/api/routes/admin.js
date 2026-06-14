@@ -4,6 +4,49 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Fly.io Machine Info ──────────────────────────────────────────────────────
+
+router.get('/machine', async (req, res) => {
+    try {
+        const appName   = process.env.FLY_APP_NAME || 'lootgamebot';
+        const machineId = process.env.FLY_MACHINE_ID || 'e2862de0b33238';
+        const token     = process.env.FLY_API_TOKEN;
+
+        if (!token) return res.status(503).json({ error: 'FLY_API_TOKEN nicht gesetzt' });
+
+        // Machine Details
+        const machineRes = await fetch(
+            `https://api.machines.dev/v1/apps/${appName}/machines/${machineId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const machine = await machineRes.json();
+
+        // Lease Status
+        const leaseRes = await fetch(
+            `https://api.machines.dev/v1/apps/${appName}/machines/${machineId}/lease`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        ).catch(() => null);
+        const lease = leaseRes ? await leaseRes.json().catch(() => null) : null;
+
+        res.json({
+            id:        machine.id,
+            state:     machine.state,
+            region:    machine.region,
+            image:     machine.config?.image,
+            memory:    machine.config?.guest?.memory_mb,
+            cpus:      machine.config?.guest?.cpus,
+            cpu_kind:  machine.config?.guest?.cpu_kind,
+            checks:    machine.checks,
+            restart_count: machine.restart_count || 0,
+            created_at:    machine.created_at,
+            updated_at:    machine.updated_at,
+            lease: lease?.status || null
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Command Control ──────────────────────────────────────────────────────────
 
 // GET /api/admin/commands — Status aller Commands
