@@ -4,6 +4,38 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Channel Control ──────────────────────────────────────────────────────────
+
+// GET /api/admin/channels — Status aller Channels
+router.get('/channels', (req, res) => {
+    try {
+        const bot = global.botInstance;
+        if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+        res.json(bot.getChannelStatus());
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/admin/channels/:channel — Channel ein/aus
+router.post('/channels/:channel', (req, res) => {
+    try {
+        const { password } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        const bot = global.botInstance;
+        if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+
+        const channel = req.params.channel.toLowerCase();
+        const active  = req.body.active !== false; // default true
+        bot.setChannelActive(channel, active);
+
+        res.json({ success: true, channel, active });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Server Control Passwort ──────────────────────────────────────────────────
 const SERVER_CONTROL_PASSWORD = process.env.SERVER_CONTROL_PASSWORD || 'admin2025';
 

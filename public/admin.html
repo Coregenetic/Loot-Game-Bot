@@ -520,6 +520,15 @@
         </div>
 
         <div id="serverActionResult" class="hidden mt-4 text-xs font-mono p-4 rounded-xl border bg-slate-900/50"></div>
+
+        <!-- Channel Control -->
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Channel Control</h3>
+          <div id="channelList" class="space-y-3">
+            <p class="text-xs font-mono text-slate-500">Lade Channels...</p>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -967,6 +976,7 @@ async function unlockServerControl() {
       document.getElementById('serverLock').classList.add('hidden');
       document.getElementById('serverPanel').classList.remove('hidden');
       loadServerInfo();
+      loadChannels();
       showToast('✓ Server Control entsperrt', 'success');
     } else { 
       msg.textContent='✗ '+d.error; 
@@ -1161,6 +1171,46 @@ async function clearUserCD_player() {
     });
     showToast('CD von ' + selectedPlayer.username + ' gelöscht', 'success');
   } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+// ─── Channel Control ──────────────────────────────────────────────────────────
+async function loadChannels() {
+  try {
+    const status = await apiCall('/api/admin/channels');
+    const el = document.getElementById('channelList');
+    el.innerHTML = Object.entries(status).map(([ch, active]) => `
+      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-2 h-2 rounded-full ${active ? 'bg-emerald-400' : 'bg-slate-600'}"></div>
+          <span class="text-sm font-mono text-white">#${ch}</span>
+          <span class="text-xs font-mono ${active ? 'text-emerald-400' : 'text-slate-500'}">${active ? 'AKTIV' : 'INAKTIV'}</span>
+        </div>
+        <button onclick="toggleChannel('${ch}', ${!active})"
+          class="px-4 py-1.5 rounded-lg text-xs font-mono transition-colors ${active
+            ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+            : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}">
+          ${active ? 'Deaktivieren' : 'Aktivieren'}
+        </button>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('channelList').innerHTML = '<p class="text-xs font-mono text-rose-400">Fehler: ' + err.message + '</p>';
+  }
+}
+
+async function toggleChannel(channel, active) {
+  if (!serverPw) return;
+  try {
+    await fetch('/api/admin/channels/' + channel, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw, active })
+    });
+    loadChannels();
+    showToast(`#${channel} ${active ? 'aktiviert' : 'deaktiviert'}`, active ? 'success' : 'info');
+  } catch (err) {
+    showToast('Fehler: ' + err.message, 'error');
+  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────

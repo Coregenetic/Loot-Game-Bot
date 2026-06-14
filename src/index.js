@@ -28,6 +28,7 @@ async function main() {
     logger.info('BOOT', 'Verbinde Bot mit Twitch...');
     const bot = createBot();
     await bot.connect();
+    global.botInstance = bot; // Für API-Zugriff
 
     const channels = process.env.TWITCH_CHANNEL || '';
     logger.bot('BOOT', `Bot verbunden — läuft in #${channels}`);
