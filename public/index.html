@@ -6,360 +6,364 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--green:#10b981;--green2:rgba(16,185,129,0.08);--green3:rgba(16,185,129,0.2);--text:#c8cdd2;--text2:#4a5260;--text3:#2a3240;--bg:#070809;--bg1:#0d0e0f;--border:#1a1c1e;--border2:#252729}
+:root{
+  --green:#10b981;--green2:rgba(16,185,129,0.08);--green3:rgba(16,185,129,0.22);
+  --text:#c8cdd2;--text2:#52606e;--text3:#2a3240;
+  --bg:#070809;--bg1:#0c0d0e;--bg2:#101213;
+  --border:#1a1c1e;--border2:#232629;
+}
 html,body{height:100%;background:var(--bg);font-family:'Rajdhani',sans-serif;overflow:hidden}
 body{display:flex;flex-direction:column}
 
-.bg-grid{position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.35;pointer-events:none}
-.scanline{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:0}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
 
-.inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;padding:20px}
+.wrap{position:relative;z-index:1;display:flex;flex-direction:column;height:100vh;padding:16px 20px 14px}
 
-/* Header */
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.logo{display:flex;align-items:center;gap:12px}
-.logo-mark{width:36px;height:36px;background:#0a120e;border:1px solid var(--green3);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
-.logo-mark::after{content:'';position:absolute;inset:4px;border:1px solid rgba(16,185,129,0.1)}
-.logo-mark svg{width:17px;height:17px;stroke:var(--green);fill:none;stroke-width:1.5;position:relative;z-index:1}
-.logo-text{font-size:20px;font-weight:700;color:#f0ede8;letter-spacing:0.1em;text-transform:uppercase;line-height:1}
-.logo-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);letter-spacing:0.2em;margin-top:2px}
+/* ── Header ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--border);flex-shrink:0;margin-bottom:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:#091210;border:1px solid var(--green3);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.logo-icon::after{content:'';position:absolute;inset:4px;border:1px solid rgba(16,185,129,0.12)}
+.logo-icon svg{width:15px;height:15px;stroke:var(--green);fill:none;stroke-width:1.5;position:relative;z-index:1}
+.logo-text{font-size:18px;font-weight:700;color:#eee;letter-spacing:0.1em;text-transform:uppercase;line-height:1}
+.logo-sub{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green);letter-spacing:0.2em;margin-top:2px}
 
-.hud{display:flex;align-items:center;gap:0}
-.hud-sep{width:1px;height:18px;background:var(--border);margin:0 2px}
-.hud-item{display:flex;align-items:center;gap:5px;padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2)}
-.hud-val{color:var(--text)}
-.hud-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
-.user-btn{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);background:var(--bg1);padding:5px 12px;cursor:pointer;margin-left:8px;transition:all 0.15s}
-.user-btn:hover{border-color:var(--green3)}
-.user-avatar{width:20px;height:20px;background:var(--green2);border:1px solid var(--green3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace}
-.user-name{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:0.08em}
-.user-caret{font-size:8px;color:var(--text3)}
+.hud{display:flex;align-items:center;gap:0;font-family:'JetBrains Mono',monospace;font-size:10px}
+.hi{display:flex;align-items:center;gap:5px;padding:4px 12px;color:var(--text2);border-left:1px solid var(--border)}
+.hi:first-child{border-left:none}
+.hi b{color:var(--text)}
+.hdot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.ubtn{display:flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg1);padding:4px 10px;cursor:pointer;margin-left:10px;transition:border-color 0.15s}
+.ubtn:hover{border-color:var(--green3)}
+.uav{width:18px;height:18px;background:var(--green2);border:1px solid var(--green3);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--green);font-weight:700}
+.uname{color:var(--green);font-size:10px;letter-spacing:0.08em}
 
-/* Section label */
-.sec-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.2em;text-transform:uppercase;margin:14px 0 10px;display:flex;align-items:center;gap:8px}
-.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+/* ── Section label ── */
+.slabel{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);letter-spacing:0.2em;text-transform:uppercase;display:flex;align-items:center;gap:8px;flex-shrink:0;margin-bottom:10px}
+.slabel::after{content:'';flex:1;height:1px;background:var(--border)}
 
-/* Tiles Grid */
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1}
-.tile{background:var(--bg1);border:1px solid var(--border);padding:18px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;display:flex;flex-direction:column}
-.tile-accent{position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
-.tile-corner-br{position:absolute;bottom:0;right:0;width:16px;height:16px;border-top:1px solid var(--accent);border-left:1px solid var(--accent);opacity:0.25;transition:opacity 0.2s}
-.tile-corner-tl{position:absolute;top:0;left:0;width:8px;height:8px;border-bottom:1px solid var(--accent);border-right:1px solid var(--accent);opacity:0.15;transition:opacity 0.2s}
-.tile:hover{background:#111213;border-color:var(--border2)}
-.tile:hover .tile-corner-br{opacity:0.6}
-.tile:hover .tile-corner-tl{opacity:0.35}
-.tile:hover .tile-arrow{opacity:1;transform:translateX(3px)}
+/* ── Tiles ── */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:8px;flex:1;min-height:0}
 
-.tile-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.tile-icon{width:38px;height:38px;background:var(--accent-bg);border:1px solid var(--accent-border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.tile-icon svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:1.5}
-.tile-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent);letter-spacing:0.08em;align-self:flex-start}
+.tile{background:var(--bg1);border:1px solid var(--border);padding:16px 18px;cursor:pointer;position:relative;overflow:hidden;transition:background 0.15s,border-color 0.15s;display:flex;flex-direction:column}
+.tile:hover{background:var(--bg2);border-color:var(--border2)}
+.tile:hover .tarrow{opacity:1;transform:translateX(2px)}
+.tile:hover .tcorner-br{opacity:0.5}
 
-.tile-title{font-size:17px;font-weight:700;color:#e8e4d9;text-transform:uppercase;letter-spacing:0.06em;line-height:1;margin-bottom:5px}
-.tile-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);line-height:1.7;flex:1}
+/* top accent line */
+.tile::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
+/* corner decorations */
+.tcorner-br{position:absolute;bottom:0;right:0;width:14px;height:14px;border-top:1px solid var(--accent);border-left:1px solid var(--accent);opacity:0.15;transition:opacity 0.15s}
+.tcorner-tl{position:absolute;top:0;left:0;width:7px;height:7px;border-bottom:1px solid var(--accent);border-right:1px solid var(--accent);opacity:0.1}
 
-.tile-footer{margin-top:14px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.tile-stats{display:flex;gap:10px}
-.tile-stat{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
-.tile-stat span{color:var(--accent)}
-.tile-arrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);opacity:0;transition:all 0.2s;letter-spacing:0.05em}
+/* tile top row */
+.t-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.t-icon{width:34px;height:34px;background:var(--accent-bg);border:1px solid var(--accent-bd);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.t-icon svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.5}
+.t-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;background:var(--accent-bg);border:1px solid var(--accent-bd);color:var(--accent);letter-spacing:0.06em;white-space:nowrap}
 
-/* Tile colors */
-.tile.green{--accent:#10b981;--accent-bg:rgba(16,185,129,0.07);--accent-border:rgba(16,185,129,0.18)}
-.tile.amber{--accent:#f59e0b;--accent-bg:rgba(245,158,11,0.07);--accent-border:rgba(245,158,11,0.18)}
-.tile.blue{--accent:#60a5fa;--accent-bg:rgba(96,165,250,0.07);--accent-border:rgba(96,165,250,0.18)}
-.tile.purple{--accent:#a78bfa;--accent-bg:rgba(167,139,250,0.07);--accent-border:rgba(167,139,250,0.18)}
-.tile.teal{--accent:#2dd4bf;--accent-bg:rgba(45,212,191,0.07);--accent-border:rgba(45,212,191,0.18)}
-.tile.red{--accent:#f87171;--accent-bg:rgba(248,113,113,0.07);--accent-border:rgba(248,113,113,0.18)}
+/* tile middle */
+.t-title{font-size:20px;font-weight:700;color:#e4e0d8;text-transform:uppercase;letter-spacing:0.06em;line-height:1;margin-bottom:6px}
+.t-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);line-height:1.8}
 
-/* Status bar */
-.statusbar{margin-top:14px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
-.status-items{display:flex;gap:16px}
-.status-item{display:flex;align-items:center;gap:5px}
-.status-item.online{color:var(--green)}
-.status-item.online .sdot{background:var(--green)}
-.sdot{width:5px;height:5px;border-radius:50%;background:var(--text3)}
+/* divider */
+.t-div{flex:1}
 
-/* User menu */
-.user-menu{position:fixed;top:58px;right:20px;background:var(--bg1);border:1px solid var(--border2);z-index:100;min-width:200px;display:none}
-.user-menu.open{display:block}
-.user-menu-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)}
-.user-menu-item{padding:8px 14px;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px}
-.user-menu-item:hover{background:var(--border);color:var(--text)}
-.user-menu-item.danger{color:#f87171}
-.user-menu-item svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+/* tile bottom */
+.t-foot{border-top:1px solid var(--border);padding-top:10px;margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+.t-stats{display:flex;gap:12px}
+.t-stat{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.t-stat span{color:var(--accent)}
+.tarrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);opacity:0;transition:all 0.15s;letter-spacing:0.05em;font-weight:700}
+
+/* colors */
+.green{--accent:#10b981;--accent-bg:rgba(16,185,129,0.07);--accent-bd:rgba(16,185,129,0.18)}
+.amber{--accent:#f59e0b;--accent-bg:rgba(245,158,11,0.07);--accent-bd:rgba(245,158,11,0.18)}
+.blue{--accent:#60a5fa;--accent-bg:rgba(96,165,250,0.07);--accent-bd:rgba(96,165,250,0.18)}
+.purple{--accent:#a78bfa;--accent-bg:rgba(167,139,250,0.07);--accent-bd:rgba(167,139,250,0.18)}
+.teal{--accent:#2dd4bf;--accent-bg:rgba(45,212,191,0.07);--accent-bd:rgba(45,212,191,0.18)}
+.red{--accent:#f87171;--accent-bg:rgba(248,113,113,0.07);--accent-bd:rgba(248,113,113,0.18)}
+
+/* ── Status bar ── */
+.sbar{flex-shrink:0;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.sbar-items{display:flex;gap:16px}
+.sbar-item{display:flex;align-items:center;gap:5px}
+.sbar-item.on{color:var(--green)}
+.sbar-item.on .sdot{background:var(--green)}
+.sdot{width:4px;height:4px;border-radius:50%;background:var(--text3)}
+
+/* user menu */
+.umenu{position:fixed;top:54px;right:20px;background:var(--bg1);border:1px solid var(--border2);z-index:100;min-width:190px;display:none}
+.umenu.open{display:block}
+.umenu-hdr{padding:9px 12px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)}
+.umenu-item{padding:8px 12px;font-size:11px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'JetBrains Mono',monospace;font-size:10px;transition:background 0.1s}
+.umenu-item:hover{background:var(--border);color:var(--text)}
+.umenu-item.danger{color:#f87171}
+.umenu-item svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.5}
 </style>
 </head>
 <body>
 <div class="bg-grid"></div>
-<div class="scanline"></div>
+<div class="wrap">
 
-<div class="inner">
-  <div class="header">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      </div>
-      <div>
-        <div class="logo-text">Loot-Game Hub</div>
-        <div class="logo-sub">// Control Center by Coregenetic</div>
-      </div>
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </div>
-
-    <div class="hud">
-      <div class="hud-item"><div class="hud-dot"></div>BOT&nbsp;<span class="hud-val" id="botStatus">ONLINE</span></div>
-      <div class="hud-sep"></div>
-      <div class="hud-item">UPTIME&nbsp;<span class="hud-val" id="uptime">—</span></div>
-      <div class="hud-sep"></div>
-      <div class="hud-item">PING&nbsp;<span class="hud-val" id="ping">—</span></div>
-      <div class="hud-sep"></div>
-      <div class="hud-item" id="clock">—</div>
-      <div class="user-btn" onclick="toggleMenu()" id="userBtn">
-        <div class="user-avatar" id="userAvatar">CG</div>
-        <span class="user-name" id="userName">—</span>
-        <span class="user-caret">▾</span>
-      </div>
+    <div>
+      <div class="logo-text">Loot-Game Hub</div>
+      <div class="logo-sub">// Control Center by Coregenetic</div>
     </div>
   </div>
-
-  <div class="sec-label">// Verwaltung</div>
-
-  <div class="tiles">
-
-    <div class="tile green" onclick="go('item_tool.html')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-        </div>
-        <div class="tile-badge" id="badge-items">— ITEMS</div>
-      </div>
-      <div class="tile-title">Item Manager</div>
-      <div class="tile-sub">Items bearbeiten · Kappa-Flags<br>Maps zuweisen · Bot Sync</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat"><span id="stat-kappa">—</span> Kappa</div>
-          <div class="tile-stat"><span>12</span> Maps</div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
+  <div class="hud">
+    <div class="hi"><div class="hdot"></div>BOT&nbsp;<b id="botSt">ONLINE</b></div>
+    <div class="hi">UPTIME&nbsp;<b id="uptime">—</b></div>
+    <div class="hi">PING&nbsp;<b id="ping">—</b></div>
+    <div class="hi" id="clock">—</div>
+    <div class="ubtn" onclick="toggleMenu()" id="uBtn">
+      <div class="uav" id="uAv">—</div>
+      <span class="uname" id="uName">—</span>
+      <span style="color:var(--text3);font-size:8px;font-family:'JetBrains Mono',monospace">▾</span>
     </div>
-
-    <div class="tile amber" onclick="go('massage_manager.html')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        </div>
-        <div class="tile-badge" id="badge-msgs">— MSGS</div>
-      </div>
-      <div class="tile-title">Message Manager</div>
-      <div class="tile-sub">Loot- & Tod-Nachrichten<br>bearbeiten · Bot Sync</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat"><span id="stat-msgs">—</span> Nachrichten</div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
-    </div>
-
-    <div class="tile blue" onclick="go('config_manager.html')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div class="tile-badge">CONFIG</div>
-      </div>
-      <div class="tile-title">Config Manager</div>
-      <div class="tile-sub">Cooldown · XP-Divisor<br>Survival · Maps · Events</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat">CD <span id="stat-cd">—</span></div>
-          <div class="tile-stat">SRV <span id="stat-srv">—</span></div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
-    </div>
-
-    <div class="tile purple" onclick="go('loot_simulator.html')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        </div>
-        <div class="tile-badge">SIMULATOR</div>
-      </div>
-      <div class="tile-title">Loot Simulator</div>
-      <div class="tile-sub">Drops testen · Maps simulieren<br>Wahrscheinlichkeiten prüfen</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat">Lokal · kein Sync</div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
-    </div>
-
-    <div class="tile teal" onclick="go('admin.html')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        </div>
-        <div class="tile-badge" id="badge-cds">— CDs</div>
-      </div>
-      <div class="tile-title">Admin Panel</div>
-      <div class="tile-sub">Cooldowns · Users · Events<br>Bot-Log · Überwachung</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat"><span id="stat-players">—</span> Spieler</div>
-          <div class="tile-stat"><span id="stat-users">—</span> User</div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
-    </div>
-
-    <div class="tile red" onclick="go('admin.html#server')">
-      <div class="tile-accent"></div>
-      <div class="tile-corner-tl"></div>
-      <div class="tile-corner-br"></div>
-      <div class="tile-header">
-        <div class="tile-icon">
-          <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-        </div>
-        <div class="tile-badge">🔒 RESTRICTED</div>
-      </div>
-      <div class="tile-title">Server Control</div>
-      <div class="tile-sub">Bot Reconnect · Cache · DB<br>Passwortgeschützt</div>
-      <div class="tile-footer">
-        <div class="tile-stats">
-          <div class="tile-stat">UP <span id="stat-uptime">—</span></div>
-          <div class="tile-stat">MEM <span id="stat-mem">—</span></div>
-        </div>
-        <div class="tile-arrow">ÖFFNEN →</div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="statusbar">
-    <div class="status-items">
-      <div class="status-item online"><div class="sdot"></div>SYSTEM ONLINE</div>
-      <div class="status-item online" id="botStatusBar"><div class="sdot"></div>BOT VERBUNDEN</div>
-      <div class="status-item">LOOT-GAME HUB v2.0</div>
-    </div>
-    <div>by Coregenetic</div>
   </div>
 </div>
 
+<div class="slabel">// Verwaltung</div>
+
+<!-- Tiles -->
+<div class="tiles">
+
+  <div class="tile green" onclick="go('item_tool.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+      <div class="t-badge" id="b-items">— ITEMS</div>
+    </div>
+    <div class="t-title">Item Manager</div>
+    <div class="t-sub">
+      Items bearbeiten · Kappa-Flags setzen<br>
+      Map-Zuweisung · Sync zum Bot
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat"><span id="s-kappa">—</span> Kappa</div>
+        <div class="t-stat"><span>12</span> Maps</div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+  <div class="tile amber" onclick="go('massage_manager.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <div class="t-badge" id="b-msgs">— MSGS</div>
+    </div>
+    <div class="t-title">Message Manager</div>
+    <div class="t-sub">
+      Loot- & Tod-Nachrichten verwalten<br>
+      Map-spezifische Texte · Bot Sync
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat"><span id="s-msgs">—</span> Nachrichten</div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+  <div class="tile blue" onclick="go('config_manager.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="t-badge">CONFIG</div>
+    </div>
+    <div class="t-title">Config Manager</div>
+    <div class="t-sub">
+      Cooldown · XP-Divisor · Survival-Chance<br>
+      Map-Gewichtung · Double Loot
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat">CD <span id="s-cd">—</span></div>
+        <div class="t-stat">SRV <span id="s-srv">—</span></div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+  <div class="tile purple" onclick="go('loot_simulator.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="t-badge">SIMULATOR</div>
+    </div>
+    <div class="t-title">Loot Simulator</div>
+    <div class="t-sub">
+      Drops testen · Maps simulieren<br>
+      Item-Wahrscheinlichkeiten prüfen
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat">Lokal · kein Bot-Sync</div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+  <div class="tile teal" onclick="go('admin.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="t-badge" id="b-cds">— CDs</div>
+    </div>
+    <div class="t-title">Admin Panel</div>
+    <div class="t-sub">
+      Cooldowns · Dashboard-User · Live Events<br>
+      Bot-Log · Echtzeit-Überwachung
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat"><span id="s-players">—</span> Spieler</div>
+        <div class="t-stat"><span id="s-users">—</span> User</div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+  <div class="tile red" onclick="go('admin.html')">
+    <div class="tcorner-tl"></div><div class="tcorner-br"></div>
+    <div class="t-top">
+      <div class="t-icon"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div>
+      <div class="t-badge">🔒 RESTRICTED</div>
+    </div>
+    <div class="t-title">Server Control</div>
+    <div class="t-sub">
+      Bot Reconnect · Cache leeren · DB Snapshot<br>
+      Passwortgeschützt · nur für Admins
+    </div>
+    <div class="t-div"></div>
+    <div class="t-foot">
+      <div class="t-stats">
+        <div class="t-stat">UP <span id="s-up">—</span></div>
+        <div class="t-stat">MEM <span id="s-mem">—</span></div>
+      </div>
+      <div class="tarrow">ÖFFNEN →</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Status bar -->
+<div class="sbar">
+  <div class="sbar-items">
+    <div class="sbar-item on"><div class="sdot"></div>SYSTEM ONLINE</div>
+    <div class="sbar-item on"><div class="sdot"></div>BOT VERBUNDEN · #coregenetic</div>
+    <div class="sbar-item">LOOT-GAME HUB v2.0</div>
+  </div>
+  <div>by Coregenetic</div>
+</div>
+
+</div>
+
 <!-- User Menu -->
-<div class="user-menu" id="userMenu">
-  <div class="user-menu-header" id="menuUsername">—</div>
-  <div class="user-menu-item" onclick="openChangePassword()">
+<div class="umenu" id="uMenu">
+  <div class="umenu-hdr" id="mName">—</div>
+  <div class="umenu-item" onclick="changePw()">
     <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
     Passwort ändern
   </div>
-  <div class="user-menu-item danger" onclick="doLogout()">
-    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  <div class="umenu-item danger" onclick="doLogout()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="10 17 15 12 10 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     Abmelden
   </div>
 </div>
 
 <script src="api-client.js"></script>
 <script>
-if (!LootGameAPI.isLoggedIn()) window.location.href = '/login.html';
+if (!LootGameAPI.isLoggedIn()) { window.location.href='/login.html'; }
 
-const username = LootGameAPI.getUsername() || '';
-document.getElementById('userName').textContent    = username.toUpperCase();
-document.getElementById('userAvatar').textContent  = username.slice(0,2).toUpperCase();
-document.getElementById('menuUsername').textContent = username.toUpperCase();
+const un = LootGameAPI.getUsername()||'';
+document.getElementById('uName').textContent  = un.toUpperCase();
+document.getElementById('uAv').textContent    = un.slice(0,2).toUpperCase();
+document.getElementById('mName').textContent  = un.toUpperCase();
 
-function go(page) { window.location.href = '/' + page; }
+function go(p){ window.location.href='/'+p; }
 
-function toggleMenu() {
-  document.getElementById('userMenu').classList.toggle('open');
+function toggleMenu(){
+  document.getElementById('uMenu').classList.toggle('open');
 }
-document.addEventListener('click', e => {
-  if (!document.getElementById('userBtn').contains(e.target))
-    document.getElementById('userMenu').classList.remove('open');
+document.addEventListener('click',e=>{
+  if(!document.getElementById('uBtn').contains(e.target))
+    document.getElementById('uMenu').classList.remove('open');
 });
 
-function doLogout() { LootGameAPI.logout(); }
+function doLogout(){ LootGameAPI.logout(); }
 
-function openChangePassword() {
-  document.getElementById('userMenu').classList.remove('open');
-  const pw1 = prompt('Altes Passwort:');
-  if (!pw1) return;
-  const pw2 = prompt('Neues Passwort (min. 6 Zeichen):');
-  if (!pw2 || pw2.length < 6) { alert('Passwort zu kurz'); return; }
-  LootGameAPI.changePassword(pw1, pw2).then(r => {
-    if (r?.success) { alert('✓ Passwort geändert — bitte neu einloggen'); LootGameAPI.logout(); }
-    else alert('✗ ' + (r?.error || 'Fehler'));
-  });
+async function changePw(){
+  document.getElementById('uMenu').classList.remove('open');
+  const p1=prompt('Altes Passwort:'); if(!p1) return;
+  const p2=prompt('Neues Passwort (min. 6 Zeichen):'); if(!p2||p2.length<6){alert('Zu kurz');return;}
+  const r=await LootGameAPI.changePassword(p1,p2);
+  if(r?.success){alert('✓ Geändert — bitte neu einloggen');LootGameAPI.logout();}
+  else alert('✗ '+(r?.error||'Fehler'));
 }
 
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent =
-    now.toLocaleDateString('de-DE') + ' // ' + now.toLocaleTimeString('de-DE');
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleDateString('de-DE')+' // '+n.toLocaleTimeString('de-DE');
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(tick,1000); tick();
 
-async function loadStats() {
-  try {
-    const t0 = Date.now();
-    const health = await fetch('/health').then(r => r.json());
-    document.getElementById('ping').textContent = (Date.now()-t0) + 'ms';
-    const u = Math.floor(health.uptime);
-    document.getElementById('uptime').textContent = Math.floor(u/3600) + 'h ' + Math.floor((u%3600)/60) + 'm';
-    document.getElementById('stat-uptime').textContent = Math.floor(u/3600) + 'h ' + Math.floor((u%3600)/60) + 'm';
-  } catch {}
-
-  try {
-    const token = LootGameAPI.getToken();
-    const stats = await fetch('/api/admin/stats',{headers:{'x-session-token':token}}).then(r=>r.json());
-    document.getElementById('badge-items').textContent = (stats.items||0) + ' ITEMS';
-    document.getElementById('stat-kappa').textContent  = '14';
-    document.getElementById('badge-msgs').textContent  = (stats.messages||0) + ' MSGS';
-    document.getElementById('stat-msgs').textContent   = stats.messages||0;
-    document.getElementById('badge-cds').textContent   = (stats.cooldowns||0) + ' CDs';
-    document.getElementById('stat-players').textContent = stats.players||0;
-  } catch {}
-
-  try {
-    const token = LootGameAPI.getToken();
-    const config = await fetch('/api/config/General',{headers:{'x-session-token':token}}).then(r=>r.json());
-    if (config) {
-      document.getElementById('stat-cd').textContent  = (config.CooldownSeconds||600) + 's';
-      document.getElementById('stat-srv').textContent = Math.round((config.SurvivalChance||0.75)*100) + '%';
+async function loadStats(){
+  try{
+    const t0=Date.now();
+    const h=await fetch('/health').then(r=>r.json());
+    document.getElementById('ping').textContent=(Date.now()-t0)+'ms';
+    const u=Math.floor(h.uptime);
+    const ut=Math.floor(u/3600)+'h '+Math.floor((u%3600)/60)+'m';
+    document.getElementById('uptime').textContent=ut;
+    document.getElementById('s-up').textContent=ut;
+  }catch{}
+  try{
+    const tk=LootGameAPI.getToken();
+    const s=await fetch('/api/admin/stats',{headers:{'x-session-token':tk}}).then(r=>r.json());
+    document.getElementById('b-items').textContent=(s.items||0)+' ITEMS';
+    document.getElementById('b-msgs').textContent=(s.messages||0)+' MSGS';
+    document.getElementById('b-cds').textContent=(s.cooldowns||0)+' CDs';
+    document.getElementById('s-kappa').textContent='14';
+    document.getElementById('s-msgs').textContent=s.messages||0;
+    document.getElementById('s-players').textContent=s.players||0;
+  }catch{}
+  try{
+    const tk=LootGameAPI.getToken();
+    const c=await fetch('/api/config/General',{headers:{'x-session-token':tk}}).then(r=>r.json());
+    if(c){
+      document.getElementById('s-cd').textContent=(c.CooldownSeconds||600)+'s';
+      document.getElementById('s-srv').textContent=Math.round((c.SurvivalChance||0.75)*100)+'%';
     }
-  } catch {}
-
-  try {
-    const token = LootGameAPI.getToken();
-    const users = await fetch('/api/admin/users',{headers:{'x-session-token':token}}).then(r=>r.json());
-    document.getElementById('stat-users').textContent = users.length||0;
-  } catch {}
-
-  try {
-    const info = await fetch('/api/admin/server/info',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
-    document.getElementById('stat-mem').textContent = Math.round(info.memory.heapUsed/1024/1024) + 'MB';
-  } catch {}
+  }catch{}
+  try{
+    const tk=LootGameAPI.getToken();
+    const u=await fetch('/api/admin/users',{headers:{'x-session-token':tk}}).then(r=>r.json());
+    document.getElementById('s-users').textContent=Array.isArray(u)?u.length:0;
+  }catch{}
+  try{
+    const tk=LootGameAPI.getToken();
+    const i=await fetch('/api/admin/server/info',{headers:{'x-session-token':tk}}).then(r=>r.json());
+    document.getElementById('s-mem').textContent=Math.round(i.memory.heapUsed/1024/1024)+'MB';
+  }catch{}
 }
-
 loadStats();
-setInterval(loadStats, 30000);
+setInterval(loadStats,30000);
 </script>
 </body>
 </html>
