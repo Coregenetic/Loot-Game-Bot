@@ -6,46 +6,35 @@ const { invalidateAll } = require('../../db/cache');
 
 // ─── Fly.io Machine Info ──────────────────────────────────────────────────────
 
-router.get('/machine', async (req, res) => {
+router.get('/machine', (req, res) => {
     try {
-        const appName   = process.env.FLY_APP_NAME || 'lootgamebot';
-        const machineId = process.env.FLY_MACHINE_ID || 'e2862de0b33238';
-        const token     = process.env.FLY_API_TOKEN;
-
-        if (!token) return res.status(503).json({ error: 'FLY_API_TOKEN nicht gesetzt' });
-
-        // Machine Details
-        const machineRes = await fetch(
-            `https://api.machines.dev/v1/apps/${appName}/machines/${machineId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const machine = await machineRes.json();
-
-        // Lease Status
-        const leaseRes = await fetch(
-            `https://api.machines.dev/v1/apps/${appName}/machines/${machineId}/lease`,
-            { headers: { Authorization: `Bearer ${token}` } }
-        ).catch(() => null);
-        const lease = leaseRes ? await leaseRes.json().catch(() => null) : null;
-
+        // Fly.io setzt diese Env-Vars automatisch in der laufenden Machine
         res.json({
-            id:        machine.id,
-            state:     machine.state,
-            region:    machine.region,
-            image:     machine.config?.image,
-            memory:    machine.config?.guest?.memory_mb,
-            cpus:      machine.config?.guest?.cpus,
-            cpu_kind:  machine.config?.guest?.cpu_kind,
-            checks:    machine.checks,
-            restart_count: machine.restart_count || 0,
-            created_at:    machine.created_at,
-            updated_at:    machine.updated_at,
-            lease: lease?.status || null
+            id:          process.env.FLY_MACHINE_ID     || 'e2862de0b33238',
+            app:         process.env.FLY_APP_NAME       || 'lootgamebot',
+            region:      process.env.FLY_REGION         || 'fra',
+            image:       process.env.FLY_IMAGE_REF      || null,
+            alloc_id:    process.env.FLY_ALLOC_ID       || null,
+            version:     process.env.FLY_APP_VERSION    || null,
+            memory_mb:   process.env.FLY_VM_MEMORY_MB   || null,
+            public_ip:   process.env.FLY_PUBLIC_IP      || null,
+            private_ip:  process.env.FLY_PRIVATE_IP     || null,
+            // Node.js Prozess-Infos
+            uptime:      Math.floor(process.uptime()),
+            memory:      process.memoryUsage(),
+            node:        process.version,
+            pid:         process.pid,
+            platform:    process.platform,
+            // Bot Status
+            channel:     process.env.TWITCH_CHANNEL || '—',
+            env:         process.env.NODE_ENV || 'production'
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ─── Command Control ──────────────────────────────────────────────────────────
 
 // ─── Command Control ──────────────────────────────────────────────────────────
 

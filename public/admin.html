@@ -988,41 +988,43 @@ async function deleteUser(username) {
 async function loadMachineInfo() {
   try {
     const info = await apiCall('/api/admin/machine');
-    const stateColor = {
-      started:   'text-emerald-400',
-      stopped:   'text-slate-400',
-      suspended: 'text-amber-400',
-      error:     'text-rose-400'
-    }[info.state] || 'text-slate-400';
+    const u = info.uptime || 0;
+    const h = Math.floor(u/3600), m = Math.floor((u%3600)/60), s = u%60;
+    const mem = Math.round((info.memory?.heapUsed||0)/1024/1024);
+    const memTotal = Math.round((info.memory?.rss||0)/1024/1024);
 
     document.getElementById('machineInfoGrid').innerHTML = `
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Status</div>
-        <div class="text-sm font-bold ${stateColor} uppercase">${info.state || '—'}</div>
-      </div>
       <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
         <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Region</div>
         <div class="text-sm font-bold text-white uppercase">${info.region || '—'}</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Memory</div>
-        <div class="text-sm font-bold text-blue-400">${info.memory ? info.memory + ' MB' : '—'}</div>
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Uptime</div>
+        <div class="text-sm font-bold text-emerald-400">${h}h ${m}m ${s}s</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Restarts</div>
-        <div class="text-sm font-bold ${info.restart_count > 5 ? 'text-rose-400' : 'text-white'}">${info.restart_count ?? '—'}</div>
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Heap / RSS</div>
+        <div class="text-sm font-bold text-blue-400">${mem} / ${memTotal} MB</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">CPU</div>
-        <div class="text-sm font-bold text-white">${info.cpus || '—'}x ${info.cpu_kind || ''}</div>
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Node.js</div>
+        <div class="text-sm font-bold text-white">${info.node || '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">App</div>
+        <div class="text-sm font-bold text-white">${info.app || '—'}</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
         <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Machine ID</div>
-        <div class="text-xs font-mono text-slate-400">${(info.id || '—').slice(0, 14)}</div>
+        <div class="text-xs font-mono text-slate-400">${(info.id || '—').slice(0,14)}</div>
       </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800 col-span-2">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Zuletzt aktualisiert</div>
-        <div class="text-xs font-mono text-slate-400">${info.updated_at ? new Date(info.updated_at).toLocaleString('de-DE') : '—'}</div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Channel</div>
+        <div class="text-xs font-mono text-slate-300">#${info.channel || '—'}</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
+        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">PID</div>
+        <div class="text-sm font-bold text-slate-300">${info.pid || '—'}</div>
       </div>
     `;
     if (info.image) {
