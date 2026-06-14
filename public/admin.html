@@ -270,6 +270,7 @@ function switchTab(tab) {
         }
     });
     activeTab = tab;
+    if (tab !== 'logs') disconnectPolling();
     if (tab === 'dashboard') loadStats();
     if (tab === 'cooldowns') loadCooldowns();
     if (tab === 'users')     loadUsers();
@@ -489,52 +490,53 @@ async function clearEvent(type) {
 }
 
 // ─── WebSocket Log ────────────────────────────────────────────────────────────
+// ─── Log Polling (statt WebSocket) ───────────────────────────────────────────
+let logPollInterval = null;
+let lastLogCount    = 0;
+
 function connectWS() {
-    if (ws && ws.readyState === WebSocket.OPEN) return;
+    if (logPollInterval) return; // Bereits aktiv
 
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    const token = LootGameAPI.getToken();
-    const url   = `${proto}://${location.host}/ws?token=${token}`;
+    document.getElementById('wsDot').className    = 'ws-dot ws-connected';
+    document.getElementById('wsLabel').textContent = 'LIVE';
 
-    console.log('[WS] Verbinde mit:', url);
+    // Erstmalig alle Logs laden
+    fetchLogs(true);
 
-    try {
-        ws = new WebSocket(url);
-    } catch (err) {
-        console.error('[WS] Fehler beim Erstellen:', err);
-        document.getElementById('wsLabel').textContent = 'FEHLER: ' + err.message;
-        return;
+    // Dann alle 2 Sekunden neue Logs holen
+    logPollInterval = setInterval(() => fetchLogs(false), 2000);
+}
+
+function disconnectPolling() {
+    if (logPollInterval) {
+        clearInterval(logPollInterval);
+        logPollInterval = null;
     }
+    document.getElementById('wsDot').className    = 'ws-dot ws-disconnected';
+    document.getElementById('wsLabel').textContent = 'OFFLINE';
+}
 
-    ws.onopen = () => {
-        console.log('[WS] Verbunden!');
-        document.getElementById('wsDot').className   = 'ws-dot ws-connected';
-        document.getElementById('wsLabel').textContent = 'LIVE';
-    };
+async function fetchLogs(initial) {
+    try {
+        const logs = await fetch('/api/logs', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
 
-    ws.onerror = (err) => {
-        console.error('[WS] Error:', err);
-        document.getElementById('wsLabel').textContent = 'ERROR';
-    };
-
-    ws.onclose = (e) => {
-        console.log('[WS] Getrennt:', e.code, e.reason);
-        document.getElementById('wsDot').className   = 'ws-dot ws-disconnected';
-        document.getElementById('wsLabel').textContent = 'OFFLINE (' + e.code + ')';
-        setTimeout(() => { if (activeTab === 'logs') connectWS(); }, 3000);
-    };
-
-    ws.onmessage = (e) => {
-        const msg = JSON.parse(e.data);
-        if (msg.type === 'buffer') {
-            allLogs = msg.data;
+        if (initial) {
+            allLogs = logs;
             renderLogs();
-        } else if (msg.type === 'log') {
-            allLogs.push(msg.data);
-            if (allLogs.length > 500) allLogs.shift();
-            appendLog(msg.data);
+        } else {
+            // Nur neue Logs anhängen
+            const newLogs = logs.slice(lastLogCount);
+            for (const log of newLogs) {
+                allLogs.push(log);
+                appendLog(log);
+            }
         }
-    };
+        lastLogCount = logs.length;
+    } catch {
+        disconnectPolling();
+    }
 }
 
 function setFilter(f) {
