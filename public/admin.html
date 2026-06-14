@@ -62,6 +62,7 @@
     <button class="tab-btn" onclick="switchTab('users')">Users</button>
     <button class="tab-btn" onclick="switchTab('events')">Live Events</button>
     <button class="tab-btn" onclick="switchTab('logs')">Bot Log</button>
+    <button class="tab-btn" onclick="switchTab('server')" style="color:#ef4444">🔒 Server Control</button>
 </div>
 
 <!-- DASHBOARD TAB -->
@@ -165,6 +166,62 @@
     <div id="eventsStatus" class="card mt-4 mono text-xs text-zinc-500">Lade aktive Events...</div>
 </div>
 
+<!-- SERVER CONTROL TAB -->
+<div id="tab-server" class="hidden">
+    <!-- Passwort Lock -->
+    <div id="serverLock">
+        <div class="card" style="max-width:400px;margin:40px auto;text-align:center;">
+            <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+            <div class="mono text-xs text-red-400 tracking-widest mb-4">SERVER CONTROL — RESTRICTED</div>
+            <input id="serverPwInput" type="password" class="inp mb-3" placeholder="Server Control Passwort" style="text-align:center;">
+            <div id="serverPwMsg" class="mono text-xs text-zinc-600 mb-3 min-h-4"></div>
+            <button class="btn btn-red" style="width:100%" onclick="unlockServerControl()">Entsperren</button>
+        </div>
+    </div>
+
+    <!-- Server Control Panel (nach Auth) -->
+    <div id="serverPanel" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="mono text-xs text-red-400 tracking-widest">⚠ SERVER CONTROL — AUTHORISIERT</div>
+            <button class="btn" style="border:1px solid #3f3f46;color:#71717a;font-size:10px" onclick="lockServerControl()">🔒 Sperren</button>
+        </div>
+
+        <!-- Server Info -->
+        <div id="serverInfo" class="card mono text-xs text-zinc-500 mb-4">Lade Server-Info...</div>
+
+        <!-- Actions Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <div class="card" style="border-color:rgba(239,68,68,0.3)">
+                <div class="mono text-xs text-red-400 tracking-widest mb-3">BOT RECONNECT</div>
+                <p class="text-zinc-500 text-sm mb-4">Trennt den Bot von Twitch und verbindet ihn neu. Alle laufenden Commands werden abgebrochen.</p>
+                <button class="btn btn-red" style="width:100%" onclick="serverAction('reconnect', '⚡ Bot neu verbinden')">
+                    ⟳ Bot Reconnect
+                </button>
+            </div>
+
+            <div class="card" style="border-color:rgba(245,158,11,0.3)">
+                <div class="mono text-xs text-amber-400 tracking-widest mb-3">CACHE LEEREN</div>
+                <p class="text-zinc-500 text-sm mb-4">Leert den In-Memory Cache. Alle Config, Items und Messages werden beim nächsten Zugriff neu aus der DB geladen.</p>
+                <button class="btn btn-amber" style="width:100%" onclick="serverAction('cache', '🗑 Cache leeren')">
+                    🗑 Cache leeren
+                </button>
+            </div>
+
+            <div class="card" style="border-color:rgba(96,165,250,0.3)">
+                <div class="mono text-xs text-blue-400 tracking-widest mb-3">DB SNAPSHOT</div>
+                <p class="text-zinc-500 text-sm mb-4">Speichert die aktuelle Datenbank auf die Festplatte. Passiert zwar automatisch, aber hier manuell erzwingbar.</p>
+                <button class="btn" style="width:100%;border:1px solid rgba(96,165,250,0.4);color:#60a5fa;background:rgba(96,165,250,0.1)" onclick="serverAction('snapshot', '💾 DB Snapshot')">
+                    💾 DB Snapshot
+                </button>
+            </div>
+
+        </div>
+
+        <div id="serverActionMsg" class="card mt-4 mono text-xs text-zinc-500 hidden"></div>
+    </div>
+</div>
+
 <!-- LOGS TAB -->
 <div id="tab-logs" class="hidden">
     <div class="flex justify-between items-center mb-3">
@@ -218,6 +275,7 @@ function switchTab(tab) {
     if (tab === 'users')     loadUsers();
     if (tab === 'events')    loadEvents();
     if (tab === 'logs')      connectWS();
+    if (tab === 'server')    loadServerInfo();
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -520,6 +578,99 @@ function formatLogLine(entry) {
 function clearLogDisplay() {
     document.getElementById('logContainer').innerHTML = '';
     allLogs = [];
+}
+
+// ─── Server Control ───────────────────────────────────────────────────────────
+let serverPassword = null;
+
+async function unlockServerControl() {
+    const pw  = document.getElementById('serverPwInput').value;
+    const msg = document.getElementById('serverPwMsg');
+
+    try {
+        const res  = await fetch('/api/admin/server/auth', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (data.success) {
+            serverPassword = pw;
+            document.getElementById('serverLock').classList.add('hidden');
+            document.getElementById('serverPanel').classList.remove('hidden');
+            loadServerInfo();
+        } else {
+            msg.textContent = '✗ ' + (data.error || 'Falsches Passwort');
+            msg.style.color = '#ef4444';
+        }
+    } catch (err) {
+        msg.textContent = '✗ ' + err.message;
+        msg.style.color = '#ef4444';
+    }
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && activeTab === 'server' && !serverPassword) unlockServerControl();
+});
+
+function lockServerControl() {
+    serverPassword = null;
+    document.getElementById('serverPwInput').value = '';
+    document.getElementById('serverPwMsg').textContent = '';
+    document.getElementById('serverLock').classList.remove('hidden');
+    document.getElementById('serverPanel').classList.add('hidden');
+}
+
+async function loadServerInfo() {
+    if (!serverPassword) return;
+    try {
+        const info = await fetch('/api/admin/server/info', {
+            headers: { 'x-session-token': LootGameAPI.getToken() }
+        }).then(r => r.json());
+
+        const uptime = Math.floor(info.uptime);
+        const h = Math.floor(uptime / 3600);
+        const m = Math.floor((uptime % 3600) / 60);
+        const s = uptime % 60;
+        const mem = Math.round(info.memory.heapUsed / 1024 / 1024);
+
+        document.getElementById('serverInfo').innerHTML =
+            '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">' +
+            '<div><div style="color:#52525b;margin-bottom:2px">UPTIME</div><div style="color:#10b981">' + h + 'h ' + m + 'm ' + s + 's</div></div>' +
+            '<div><div style="color:#52525b;margin-bottom:2px">MEMORY</div><div style="color:#60a5fa">' + mem + ' MB</div></div>' +
+            '<div><div style="color:#52525b;margin-bottom:2px">NODE</div><div style="color:#a78bfa">' + info.node + '</div></div>' +
+            '<div><div style="color:#52525b;margin-bottom:2px">CHANNEL</div><div style="color:#f59e0b">#' + (info.channel || '—') + '</div></div>' +
+            '</div>';
+    } catch {}
+}
+
+async function serverAction(action, label) {
+    if (!serverPassword) return;
+    if (!confirm(label + '?\nDies kann den Bot kurz unterbrechen.')) return;
+
+    const msgEl = document.getElementById('serverActionMsg');
+    msgEl.classList.remove('hidden');
+    msgEl.textContent = '⟳ Führe aus: ' + label + '...';
+    msgEl.style.color = '#f59e0b';
+
+    try {
+        const res  = await fetch('/api/admin/server/' + action, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'x-session-token': LootGameAPI.getToken() },
+            body: JSON.stringify({ password: serverPassword })
+        });
+        const data = await res.json();
+        if (data.success) {
+            msgEl.textContent = '✓ ' + (data.message || 'Erfolgreich');
+            msgEl.style.color = '#10b981';
+        } else {
+            msgEl.textContent = '✗ ' + (data.error || 'Fehler');
+            msgEl.style.color = '#ef4444';
+        }
+    } catch (err) {
+        msgEl.textContent = '✗ ' + err.message;
+        msgEl.style.color = '#ef4444';
+    }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
