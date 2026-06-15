@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loot Game - Tarkov Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #1a1b18;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .font-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #overlay-container {
+            transform: translateX(-120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        #overlay-container.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.25));
+            background-size: 100% 4px;
+        }
+        
+        .tarkov-gradient {
+            background: linear-gradient(180deg, rgba(30,32,28,0.95) 0%, rgba(18,19,16,0.95) 100%);
+        }
+        
+        @keyframes subtle-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-target {
+            animation: subtle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Prestige Badge — goldener Schimmer */
+        @keyframes prestige-shine {
+            0%   { opacity: 0.8; }
+            50%  { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        .prestige-badge {
+            animation: prestige-shine 2.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="p-8">
+
+    <div id="overlay-container" class="w-[480px] tarkov-gradient border-l-4 border-[#9a8c66] shadow-[5px_5px_15px_rgba(0,0,0,0.9)] relative overflow-hidden">
+        
+        <div class="absolute inset-0 scanline pointer-events-none opacity-40"></div>
+
+        <div class="absolute top-0 right-0 p-2 flex gap-1 opacity-50">
+            <div class="w-2 h-2 bg-[#9a8c66]"></div>
+            <div class="w-2 h-2 bg-[#9a8c66]"></div>
+        </div>
+
+        <div class="bg-[#121310]/80 p-4 border-b border-[#3a3b35] relative">
+            <div class="text-[#6b7b5c] font-tech text-xs tracking-widest mb-1">// SECURE CONTAINER UPLINK</div>
+            <h1 class="text-3xl text-[#d0c8b0] font-bold tracking-widest uppercase m-0 flex items-center gap-2">
+                [ TOP LOOTERS ]
+            </h1>
+        </div>
+
+        <div class="p-3" id="player-list">
+            <div class="text-[#8c8d88] text-xl text-center py-4 uppercase tracking-widest">Verbinde zum Server...</div>
+        </div>
+        
+        <div class="w-full bg-[#121310] h-1.5">
+            <div id="progress-bar" class="h-full bg-[#9a8c66] w-full transform origin-left transition-transform duration-[10000ms] ease-linear scale-x-0 opacity-80"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // TIER KONFIGURATION 
+        // ==========================================
+        const TIER_RED   = 50000000;  // Ab 50M  → Tiefrot
+        const TIER_GOLD  = 10000000;  // Ab 10M  → Tarkov Gold
+        const TIER_WHITE =  5000000;  // Ab  5M  → Klares Weiß
+        
+        // ==========================================
+        // ALLGEMEINE KONFIGURATION
+        // ==========================================
+        const BOT_URL       = 'https://lootgamebot.fly.dev'; 
+        const displayTimeMs = 10000; 
+        
+        let lastTimestamp = 0;
+        let hideTimeout   = null;
+
+        const container   = document.getElementById('overlay-container');
+        const playerList  = document.getElementById('player-list');
+        const progressBar = document.getElementById('progress-bar');
+        const rankLabels  = ["01", "02", "03", "04", "05"];
+
+        function formatShortNumber(number) {
+            if (number >= 1000000) return (number / 1000000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + "M";
+            if (number >= 1000)    return (number / 1000).toLocaleString('en-US', { maximumFractionDigits: 2 }) + "K";
+            return number.toLocaleString('en-US');
+        }
+
+        function getValueColorClass(value) {
+            if (value >= TIER_RED)   return "text-[#c22d2d]";
+            if (value >= TIER_GOLD)  return "text-[#c5b358]";
+            if (value >= TIER_WHITE) return "text-[#e8e4d9]";
+            return "text-[#a29e93]";
+        }
+
+        // ==========================================
+        // Level & Prestige Badge HTML erzeugen
+        // ==========================================
+        function buildRankBadge(level, prestige, hasKappa) {
+            const lvl = level   || 1;
+            const prs = prestige || 0;
+
+            const levelBadge = `
+                <span class="font-tech text-[10px] text-[#5a6b4a] tracking-widest leading-none">
+                    LVL ${String(lvl).padStart(2, '0')}
+                </span>`;
+
+            const prestigeBadge = prs > 0 ? `
+                <span class="prestige-badge font-tech text-[10px] text-[#c5b358] tracking-widest leading-none">
+                    ★ P${prs}
+                </span>` : '';
+
+            const kappaBadge = hasKappa ? `
+                <div style="display:flex; align-items:center; gap:2px;" title="Kappa Container">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+                        <rect x="2" y="7" width="20" height="14" rx="2" stroke="#d4a843" stroke-width="2"/>
+                        <path d="M8 7V5a4 4 0 018 0v2" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="12" x2="12" y2="16" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="1.5" fill="#d4a843"/>
+                        <line x1="9" y1="14" x2="15" y2="14" stroke="#d4a843" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <span class="font-tech text-[10px] tracking-widest leading-none" style="color:#d4a843;">K</span>
+                </div>` : '';
+
+            return `
+                <div class="flex flex-col items-center justify-center gap-0 min-w-[38px]">
+                    ${levelBadge}
+                    ${prestigeBadge}
+                    ${kappaBadge}
+                </div>`;
+        }
+
+        async function checkForUpdates() {
+            try {
+                const response = await fetch(`${BOT_URL}/overlay/leaderboard?cb=${Date.now()}`);
+                if (!response.ok) throw new Error("File not found");
+                
+                const data = await response.json();
+
+                if (data.timestamp > lastTimestamp) {
+                    if (lastTimestamp === 0) {
+                        lastTimestamp = data.timestamp;
+                        return;
+                    }
+                    lastTimestamp = data.timestamp;
+                    updateAndShowOverlay(data);
+                }
+            } catch (error) {
+                // DEMO-MODUS — level & prestige
+                if (lastTimestamp === 0) {
+                    lastTimestamp = 1;
+                    const mockData = {
+                        triggerUser: "snuckelsnecki",
+                        players: [
+                            { name: "Go_Gurl",       value: 6200000, formattedValue: "6.20M", level: 42, prestige: 2, hasKappa: true },
+                            { name: "snuckelsnecki",  value: 1450000, formattedValue: "1.45M", level: 28, prestige: 1, hasKappa: false },
+                            { name: "GunnyOne",    value:  650000, formattedValue:  "650K", level: 15, prestige: 1, hasKappa: false },
+                            { name: "Krümmel",     value:  120000, formattedValue:  "120K", level:  7, prestige: 0, hasKappa: false },
+                            { name: "Timmy",          value:   45000, formattedValue:   "45K", level:  1, prestige: 0, hasKappa: false }
+                        ]
+                    };
+                    setTimeout(() => updateAndShowOverlay(mockData), 600);
+                }
+            }
+        }
+
+        function updateAndShowOverlay(data) {
+            playerList.innerHTML = '';
+            
+            const topPlayerValue = data.players.length > 0 ? data.players[0].value : 0;
+
+            data.players.forEach((player, index) => {
+                const rankDisplay = rankLabels[index] || `0${index + 1}`;
+                
+                const isTrigger = data.triggerUser
+                    && player.name.toLowerCase() === data.triggerUser.toLowerCase();
+                
+                // Hintergrund & Rahmen
+                let bgClass     = index % 2 === 0 ? 'bg-[#ffffff]/[0.02]' : '';
+                let borderClass = index !== data.players.length - 1 ? 'border-b border-[#2a2b25]' : '';
+                
+                if (isTrigger) {
+                    bgClass     = 'bg-[#c5b358]/10 border-l-2 border-l-[#c5b358]';
+                    borderClass = index !== data.players.length - 1 ? 'border-b border-[#2a2b25]' : '';
+                }
+
+                const valueColorClass = getValueColorClass(player.value);
+                const nameColorClass  = index === 0
+                    ? 'text-[#e8e4d9] font-bold'
+                    : 'text-[#a29e93] font-semibold';
+
+                // Abstand zum ersten Platz
+                let diffHtml = '';
+                if (index > 0) {
+                    const diff = topPlayerValue - player.value;
+                    diffHtml = `<div class="text-xs text-[#6b7b5c] font-tech text-right mt-[-4px]">[-${formatShortNumber(diff)}]</div>`;
+                } else {
+                    diffHtml = `<div class="text-[10px] text-[#c5b358] uppercase text-right mt-[-4px] tracking-widest">👑 LEADER</div>`;
+                }
+
+                const triggerIcon = isTrigger
+                    ? `<span class="text-[#c5b358] animate-target text-sm">>></span>`
+                    : '';
+
+                // Level/Prestige Badge
+                const rankBadge = buildRankBadge(player.level, player.prestige, player.hasKappa);
+
+                playerList.innerHTML += `
+                    <div class="flex justify-between items-center py-2 px-3 ${borderClass} ${bgClass} hover:bg-[#ffffff]/10 transition-colors">
+
+                        <!-- Linke Seite: Platznummer · Level/Prestige · Name -->
+                        <div class="flex items-center gap-2 min-w-0">
+
+                            <!-- Platznummer -->
+                            <span class="font-tech text-[#6b7b5c] text-base tracking-wider shrink-0">[ ${rankDisplay} ]</span>
+
+                            <!-- [NEU] Level & Prestige Badge -->
+                            ${rankBadge}
+
+                            <!-- Trennstrich -->
+                            <span class="text-[#3a3b35] shrink-0">|</span>
+
+                            ${triggerIcon}
+
+                            <!-- Username — truncate verhindert Umbruch bei langen Namen -->
+                            <span class="${nameColorClass} tracking-widest uppercase text-lg truncate max-w-[150px]">
+                                ${player.name}
+                            </span>
+                        </div>
+
+                        <!-- Rechte Seite: Stash-Wert · Abstand -->
+                        <div class="flex flex-col justify-center shrink-0 ml-2">
+                            <div class="font-tech ${valueColorClass} tracking-wider text-xl text-right">
+                                ${player.formattedValue} ₽
+                            </div>
+                            ${diffHtml}
+                        </div>
+
+                    </div>
+                `;
+            });
+
+            // Slide-In Animation + Progress Bar
+            clearTimeout(hideTimeout);
+            progressBar.style.transition  = 'none';
+            progressBar.style.transform   = 'scaleX(1)';
+            container.classList.add('show');
+
+            setTimeout(() => {
+                progressBar.style.transition = `transform ${displayTimeMs}ms linear`;
+                progressBar.style.transform  = 'scaleX(0)';
+            }, 50);
+
+            hideTimeout = setTimeout(() => {
+                container.classList.remove('show');
+            }, displayTimeMs);
+        }
+
+        setInterval(checkForUpdates, 1000);
+    </script>
+</body>
+</html>

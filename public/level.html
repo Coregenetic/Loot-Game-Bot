@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+
+        /* =====================================================================
+         * POSITIONIERUNG — hier anpassen, nichts anderes anfassen!!
+         *
+         * --offset-x : Abstand vom linken Rand der OBS Browser-Source
+         * --offset-y : Abstand vom unteren Rand der OBS Browser-Source
+         * ===================================================================== */
+        :root {
+            --offset-x : 40px;
+            --offset-y : 40px;
+            --panel-w  : 500px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            color: #d1d5db;
+            background: #1a1b18;
+        }
+
+        .font-tech {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #overlay-wrapper {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        #overlay-container {
+            position: absolute;
+            bottom: var(--offset-y);
+            left:   var(--offset-x);
+            width:  var(--panel-w);
+
+            transform: translateX(calc(-1 * (var(--panel-w) + var(--offset-x) + 20px)));
+            opacity: 0;
+
+            background: linear-gradient(180deg, rgba(30,32,28,0.95) 0%, rgba(18,19,16,0.95) 100%);
+            border: 1px solid #333;
+            border-left: 6px solid #9a8c66;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
+            transition: transform 0.5s cubic-bezier(0.1, 0.9, 0.2, 1),
+                        opacity   0.5s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        #overlay-container.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        #overlay-container.is-prestige {
+            border-left: 6px solid #d97706;
+        }
+
+        .scanline {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.25));
+            background-size: 100% 4px;
+        }
+
+        /* =====================================================================
+         * Dogtag
+         * ===================================================================== */
+        .dogtag {
+            position: relative;
+            background: linear-gradient(135deg, #a9b0b3 0%, #7d8287 45%, #6a6f74 55%, #b5babc 100%);
+            border-radius: 8px;
+            box-shadow:
+                inset 1px 1px 2px rgba(255,255,255,0.4),
+                inset -1px -1px 3px rgba(0,0,0,0.5),
+                3px 3px 5px rgba(0,0,0,0.5);
+            border: 1px solid #505559;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dogtag::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            width: 6px;
+            height: 6px;
+            background-color: #121212;
+            border-radius: 50%;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.9), 1px 1px 0px rgba(255,255,255,0.3);
+        }
+
+        .engraved {
+            color: #2b2e30;
+            text-shadow:
+                -1px -1px 0px rgba(0,0,0,0.3),
+                1px  1px 0px rgba(255,255,255,0.5);
+        }
+
+        .prestige-tag {
+            background: #d97706;
+            color: #000;
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            margin-top: -6px;
+            position: relative;
+            z-index: 10;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+        }
+
+        /* =====================================================================
+         * XP Progress Bar
+         * ===================================================================== */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #111;
+            border: 1px solid #333;
+            height: 14px;
+            margin-top: 6px;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #647355;
+            transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border-right: 2px solid #a3b18f;
+        }
+
+        .progress-bar-container::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 4px,
+                rgba(0,0,0,0.2) 4px,
+                rgba(0,0,0,0.2) 8px
+            );
+            pointer-events: none;
+        }
+
+        /* =====================================================================
+         * Raid Counter
+         * ===================================================================== */
+        .raid-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #2a2a2a;
+            margin-top: 6px;
+            padding-top: 5px;
+        }
+
+        .raid-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .raid-stat-label {
+            font-size: 0.6rem;
+            color: #52525b;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+        }
+
+        .raid-stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            line-height: 1.1;
+        }
+
+        .raid-divider {
+            width: 1px;
+            height: 24px;
+            background: #2a2a2a;
+        }
+
+        .survived-color { color: #8fa176; }
+        .died-color     { color: #b91c1c; }
+        .total-color    { color: #a1a1aa; }
+        .text-accent    { color: #8fa176; }
+
+    </style>
+</head>
+<body>
+
+<div id="overlay-wrapper">
+    <div id="overlay-container" class="flex flex-col gap-0">
+
+        <!-- Scanline -->
+        <div class="absolute inset-0 scanline pointer-events-none opacity-40"></div>
+
+        <!-- Header -->
+        <div style="background:rgba(18,19,16,0.8); padding:8px 12px; border-bottom:1px solid #3a3b35; position:relative;">
+            <div class="font-tech" style="color:#6b7b5c; font-size:10px; letter-spacing:0.2em; margin-bottom:2px;">// OPERATOR PROFILE</div>
+            <div style="font-size:1.1rem; color:#d0c8b0; font-weight:700; letter-spacing:0.2em;">[ RAID STATS ]</div>
+        </div>
+
+        <!-- Haupt-Inhalt -->
+        <div class="p-3 flex flex-col gap-0">
+
+            <!-- Oberer Bereich: Dogtag + Info -->
+            <div class="flex items-start gap-4">
+
+                <!-- Linke Spalte: Level Dogtag -->
+                <div class="flex flex-col items-center shrink-0 w-20 pt-1">
+                    <div class="dogtag w-14 h-20 flex flex-col items-center justify-center">
+                        <span class="font-tech engraved" style="font-size:9px; letter-spacing:0.2em; margin-bottom:2px; margin-top:10px;">LVL</span>
+                        <span id="ui-level" class="text-3xl font-bold leading-none engraved">1</span>
+                    </div>
+                    <div id="ui-prestige-container" class="prestige-tag hidden">
+                        PRSTG <span id="ui-prestige-val">1</span>
+                    </div>
+                    <div id="ui-kappa-container" class="prestige-tag hidden" style="color:#d4a843; border-color:#d4a84360; background:rgba(212,168,67,0.08); margin-top:2px; display:none; align-items:center; gap:3px;">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
+                            <rect x="2" y="7" width="20" height="14" rx="2" stroke="#d4a843" stroke-width="2"/>
+                            <path d="M8 7V5a4 4 0 018 0v2" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="12" x2="12" y2="16" stroke="#d4a843" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="12" r="1.5" fill="#d4a843"/>
+                            <line x1="9" y1="14" x2="15" y2="14" stroke="#d4a843" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        KAPPA
+                    </div>
+                </div>
+
+                <!-- Rechte Spalte: Username, Rang, Stash, XP -->
+                <div class="flex-grow pt-1">
+                    <div class="flex justify-between items-end border-b border-gray-700 pb-1 mb-2">
+                        <h2 id="ui-user" class="text-2xl font-bold text-gray-100 m-0 leading-none tracking-wide">USER</h2>
+                        <div class="text-right">
+                            <span id="ui-rank" class="text-sm font-bold text-accent tracking-widest block leading-none">SCAV</span>
+                            <span class="font-tech text-xs text-gray-400">
+                                STASH: <span id="ui-stash" class="text-yellow-500 font-bold">0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar-container">
+                        <div id="ui-progress" class="progress-bar-fill"></div>
+                    </div>
+
+                    <div class="flex justify-between mt-1 font-tech text-gray-500" style="font-size:11px;">
+                        <span>XP: <span id="ui-xp-current" class="text-gray-300">0</span>
+                            <span class="text-gray-600">/</span>
+                            <span id="ui-xp-needed" class="text-gray-500">500</span>
+                        </span>
+                        <span class="text-gray-400">MISSING: <span id="ui-xp-missing" class="text-gray-200">500</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Raid Counter -->
+            <div class="raid-bar">
+                <div class="raid-stat">
+                    <span class="raid-stat-label">RAIDS</span>
+                    <span id="ui-raids-total" class="raid-stat-value total-color">0</span>
+                </div>
+                <div class="raid-divider"></div>
+                <div class="raid-stat">
+                    <span class="raid-stat-label">SURVIVED</span>
+                    <span id="ui-raids-survived" class="raid-stat-value survived-color">0</span>
+                </div>
+                <div class="raid-divider"></div>
+                <div class="raid-stat">
+                    <span class="raid-stat-label">DIED</span>
+                    <span id="ui-raids-died" class="raid-stat-value died-color">0</span>
+                </div>
+                <div class="raid-divider"></div>
+                <div class="raid-stat">
+                    <span class="raid-stat-label">SURVIVE %</span>
+                    <span id="ui-raids-rate" class="raid-stat-value text-gray-300">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown Bar -->
+        <div style="width:100%; background:#121310; height:6px;">
+            <div id="countdown-bar" style="height:100%; background:#9a8c66; transform-origin:left; opacity:0.8;"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // KONFIGURATION
+    // =========================================================================
+    const BOT_URL       = 'https://lootgamebot.fly.dev';
+    const displayTimeMs = 12000;              // wie lange das Overlay sichtbar bleibt (ms)
+
+    let lastTimestamp = 0;
+    let hideTimeout   = null;
+
+    const container    = document.getElementById('overlay-container');
+    const progressBar  = document.getElementById('ui-progress');
+    const countdownBar = document.getElementById('countdown-bar');
+
+    // =========================================================================
+    // Zahlen formatieren
+    // =========================================================================
+    function formatNumber(n) {
+        if (n >= 1000000000) return (n / 1000000000).toLocaleString('de-DE', { maximumFractionDigits: 2 }) + 'B ₽';
+        if (n >= 1000000)    return (n / 1000000).toLocaleString('de-DE',    { maximumFractionDigits: 2 }) + 'M ₽';
+        if (n >= 1000)       return (n / 1000).toLocaleString('de-DE',       { maximumFractionDigits: 2 }) + 'K ₽';
+        return n.toLocaleString('de-DE') + ' ₽';
+    }
+
+    // =========================================================================
+    // Overlay befüllen & einblenden
+    // =========================================================================
+    function showOverlay(data) {
+        const prestigeEl = document.getElementById('ui-prestige-container');
+
+        document.getElementById('ui-user').innerText        = data.user;
+        document.getElementById('ui-level').innerText       = data.level;
+        document.getElementById('ui-rank').innerText        = data.rank;
+        document.getElementById('ui-xp-current').innerText  = data.xp.toLocaleString('de-DE');
+        document.getElementById('ui-xp-needed').innerText   = data.xpNeeded.toLocaleString('de-DE');
+        document.getElementById('ui-xp-missing').innerText  = Math.max(0, data.xpNeeded - data.xp).toLocaleString('de-DE');
+        document.getElementById('ui-stash').innerText       = formatNumber(data.stashValue || 0);
+
+        // Prestige
+        if (data.prestige > 0) {
+            document.getElementById('ui-prestige-val').innerText = data.prestige;
+            prestigeEl.classList.remove('hidden');
+            container.classList.add('is-prestige');
+        } else {
+            prestigeEl.classList.add('hidden');
+            container.classList.remove('is-prestige');
+        }
+
+        // Kappa
+        const kappaEl = document.getElementById('ui-kappa-container');
+        if (kappaEl) {
+            kappaEl.style.display = data.hasKappa ? 'flex' : 'none';
+        }
+
+        // Raid Counter
+        const total    = data.raidsTotal    || 0;
+        const survived = data.raidsSurvived || 0;
+        const died     = data.raidsDied     || 0;
+        const rate     = total > 0 ? Math.round((survived / total) * 100) + '%' : '-';
+
+        document.getElementById('ui-raids-total').innerText    = total;
+        document.getElementById('ui-raids-survived').innerText = survived;
+        document.getElementById('ui-raids-died').innerText     = died;
+        document.getElementById('ui-raids-rate').innerText     = rate;
+
+        // XP Progress Bar: reset → animieren
+        progressBar.style.transition = 'none';
+        progressBar.style.width      = '0%';
+
+        // Countdown Bar: voll setzen → läuft leer
+        countdownBar.style.transition = 'none';
+        countdownBar.style.transform  = 'scaleX(1)';
+
+        container.classList.add('show');
+
+        setTimeout(() => {
+            progressBar.style.transition  = 'width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            progressBar.style.width       = `${data.progress}%`;
+
+            countdownBar.style.transition = `transform ${displayTimeMs}ms linear`;
+            countdownBar.style.transform  = 'scaleX(0)';
+        }, 50);
+
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+            container.classList.remove('show');
+        }, displayTimeMs);
+    }
+
+    // =========================================================================
+    // JSON-Datei pollen
+    // =========================================================================
+    async function checkForUpdates() {
+        try {
+            const response = await fetch(`${BOT_URL}/overlay/level/latest?cb=${Date.now()}`);
+            if (!response.ok) throw new Error('not found');
+
+            const data = await response.json();
+
+            if (data.timestamp > lastTimestamp) {
+                if (lastTimestamp === 0) {
+                    // Erster Load beim OBS-Start: Timestamp merken, aber nicht anzeigen.
+                    // Verhindert dass beim Stream-Start ein altes Overlay aufpoppt.
+                    lastTimestamp = data.timestamp;
+                    return;
+                }
+                lastTimestamp = data.timestamp;
+                showOverlay(data);
+            }
+        } catch (e) {
+            // Datei noch nicht vorhanden → warten, kein Demo-Modus
+        }
+    }
+
+    setInterval(checkForUpdates, 1000);
+</script>
+</body>
+</html>
