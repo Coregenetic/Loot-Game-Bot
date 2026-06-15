@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Events Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+ * POSITIONIERUNG
+ * --offset-x : Abstand vom rechten Rand
+ * --offset-y : Abstand vom oberen Rand
+ * ===================================================================== */
+:root {
+    --offset-x: 20px;
+    --offset-y: 20px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: transparent;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+#overlay-wrapper {
+    position: fixed;
+    top: var(--offset-y);
+    right: var(--offset-x);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 240px;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-left: 3px solid;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.pill.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.pill.hiding {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.pill-green  { background: rgba(16,185,129,0.12); border-color: #10b981; color: #10b981; }
+.pill-amber  { background: rgba(245,158,11,0.12);  border-color: #f59e0b; color: #f59e0b; }
+.pill-purple { background: rgba(167,139,250,0.12); border-color: #a78bfa; color: #a78bfa; }
+
+.pill-icon   { font-size: 14px; flex-shrink: 0; }
+.pill-info   { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.pill-title  { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill-detail { font-size: 9px; opacity: 0.7; line-height: 1; }
+.pill-time   { font-size: 10px; font-weight: 700; background: rgba(0,0,0,0.35); padding: 2px 5px; border-radius: 2px; flex-shrink: 0; min-width: 38px; text-align: center; }
+
+.pill-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: currentColor;
+    opacity: 0.15;
+}
+.pill-bar-fill {
+    height: 100%;
+    background: currentColor;
+    transition: width 1s linear;
+}
+</style>
+</head>
+<body>
+<div id="overlay-wrapper">
+    <div id="pill-map"    class="pill pill-green"  style="display:none">
+        <div class="pill-icon">🗺</div>
+        <div class="pill-info">
+            <div class="pill-title">Forced Map · <span id="map-name">—</span></div>
+            <div class="pill-detail">Nur diese Map aktiv</div>
+        </div>
+        <div class="pill-time" id="map-time">—</div>
+        <div class="pill-bar"><div class="pill-bar-fill" id="map-bar" style="width:100%"></div></div>
+    </div>
+
+    <div id="pill-loot"   class="pill pill-amber"  style="display:none">
+        <div class="pill-icon">🔥</div>
+        <div class="pill-info">
+            <div class="pill-title">Double Loot</div>
+            <div class="pill-detail"><span id="loot-chance">—</span>% Chance</div>
+        </div>
+        <div class="pill-time" id="loot-time">—</div>
+        <div class="pill-bar"><div class="pill-bar-fill" id="loot-bar" style="width:100%"></div></div>
+    </div>
+
+    <div id="pill-xp"     class="pill pill-purple" style="display:none">
+        <div class="pill-icon">⚡</div>
+        <div class="pill-info">
+            <div class="pill-title">XP Boost</div>
+            <div class="pill-detail">x<span id="xp-mult">—</span> Multiplikator</div>
+        </div>
+        <div class="pill-time" id="xp-time">—</div>
+        <div class="pill-bar"><div class="pill-bar-fill" id="xp-bar" style="width:100%"></div></div>
+    </div>
+</div>
+
+<script>
+const BOT_URL = 'https://lootgamebot.fly.dev';
+
+// Event-Durations für Progress Bar
+const eventStart = { map: null, loot: null, xp: null };
+const eventEnd   = { map: null, loot: null, xp: null };
+
+function formatTime(seconds) {
+    if (!seconds || seconds <= 0) return '∞';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function showPill(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === 'none') {
+        el.style.display = 'flex';
+        requestAnimationFrame(() => el.classList.add('visible'));
+    }
+}
+
+function hidePill(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('visible');
+    el.classList.add('hiding');
+    setTimeout(() => {
+        el.style.display = 'none';
+        el.classList.remove('hiding');
+    }, 400);
+}
+
+function updateBar(barId, start, end) {
+    if (!start || !end) return;
+    const total    = end - start;
+    const elapsed  = Date.now() / 1000 - start;
+    const progress = Math.max(0, Math.min(100, ((total - elapsed) / total) * 100));
+    const bar = document.getElementById(barId);
+    if (bar) bar.style.width = progress + '%';
+}
+
+async function checkEvents() {
+    try {
+        const res  = await fetch(`${BOT_URL}/api/events?cb=${Date.now()}`);
+        if (!res.ok) return;
+        const ev   = await res.json();
+        const now  = Math.floor(Date.now() / 1000);
+
+        // Forced Map
+        if (ev.ForcedMap?.MapName && ev.ForcedMap?.ExpiresAt > now) {
+            const rem = ev.ForcedMap.ExpiresAt - now;
+            document.getElementById('map-name').textContent = ev.ForcedMap.MapName;
+            document.getElementById('map-time').textContent = formatTime(rem);
+            if (!eventEnd.map) eventStart.map = now;
+            eventEnd.map = ev.ForcedMap.ExpiresAt;
+            updateBar('map-bar', eventStart.map, eventEnd.map);
+            showPill('pill-map');
+        } else {
+            eventEnd.map   = null;
+            eventStart.map = null;
+            hidePill('pill-map');
+        }
+
+        // Double Loot
+        if (ev.DoubleLootOverride?.Chance > 0 && ev.DoubleLootOverride?.ExpiresAt > now) {
+            const rem = ev.DoubleLootOverride.ExpiresAt - now;
+            document.getElementById('loot-chance').textContent = Math.round(ev.DoubleLootOverride.Chance * 100);
+            document.getElementById('loot-time').textContent   = formatTime(rem);
+            if (!eventEnd.loot) eventStart.loot = now;
+            eventEnd.loot = ev.DoubleLootOverride.ExpiresAt;
+            updateBar('loot-bar', eventStart.loot, eventEnd.loot);
+            showPill('pill-loot');
+        } else {
+            eventEnd.loot   = null;
+            eventStart.loot = null;
+            hidePill('pill-loot');
+        }
+
+        // XP Boost
+        if (ev.XPBoost?.Multiplier > 1 && ev.XPBoost?.ExpiresAt > now) {
+            const rem = ev.XPBoost.ExpiresAt - now;
+            document.getElementById('xp-mult').textContent = ev.XPBoost.Multiplier;
+            document.getElementById('xp-time').textContent = formatTime(rem);
+            if (!eventEnd.xp) eventStart.xp = now;
+            eventEnd.xp = ev.XPBoost.ExpiresAt;
+            updateBar('xp-bar', eventStart.xp, eventEnd.xp);
+            showPill('pill-xp');
+        } else {
+            eventEnd.xp   = null;
+            eventStart.xp = null;
+            hidePill('pill-xp');
+        }
+
+    } catch {}
+}
+
+// Alle 5 Sekunden Events prüfen
+setInterval(checkEvents, 5000);
+checkEvents();
+
+// Countdown jede Sekunde aktualisieren
+setInterval(() => {
+    const now = Math.floor(Date.now() / 1000);
+    if (eventEnd.map)  document.getElementById('map-time').textContent  = formatTime(eventEnd.map  - now);
+    if (eventEnd.loot) document.getElementById('loot-time').textContent = formatTime(eventEnd.loot - now);
+    if (eventEnd.xp)   document.getElementById('xp-time').textContent   = formatTime(eventEnd.xp  - now);
+    updateBar('map-bar',  eventStart.map,  eventEnd.map);
+    updateBar('loot-bar', eventStart.loot, eventEnd.loot);
+    updateBar('xp-bar',   eventStart.xp,   eventEnd.xp);
+}, 1000);
+</script>
+</body>
+</html>

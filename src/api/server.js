@@ -79,6 +79,14 @@ function createServer() {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
+    // Öffentlicher Events-Endpunkt für Overlays
+    app.get('/api/events', (req, res) => {
+        try {
+            const { getActiveEvents } = require('../db/config');
+            res.json(getActiveEvents());
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
     // Log-Buffer
     app.get('/api/logs', sessionAuth, (req, res) => {
         res.json(logger.getBuffer());
