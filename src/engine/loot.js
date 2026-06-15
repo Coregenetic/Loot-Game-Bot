@@ -115,14 +115,16 @@ function calculateXPGain(itemValue, prestige = 0) {
     const general   = getGeneral();
     const malus     = leveling.PrestigeXPMalus || 0.1;
     const divisor   = general.XPDivisor || 1000;
-    const baseXP    = Math.max(10, Math.floor(itemValue / divisor));
+    // Sicherstellen dass value eine Zahl ist
+    const val       = typeof itemValue === 'number' ? itemValue : parseInt(String(itemValue).replace(/[^0-9]/g, '')) || 0;
+    const baseXP    = Math.max(10, Math.floor(val / divisor));
     const modifier  = Math.max(0.1, 1 - (prestige * malus));
     return Math.floor(baseXP * modifier);
 }
 
 // ─── Nachrichten formatieren ──────────────────────────────────────────────────
 function formatInfiltrationMsg(user, map) {
-    return `${getMapEmoji(map)} @${user} ist auf ${map} infiltriert.`;
+    return `${getMapEmoji(map)} @${user} startet einen Raid auf ${map}...`;
 }
 
 function formatLootMsg(user, loot, hasKappa = false) {

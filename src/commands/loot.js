@@ -20,7 +20,7 @@ async function handler({ client, channel, user }) {
         const delay = general.CooldownMessageDelaySeconds || 0;
         setTimeout(() => {
             client.say(channel,
-                `⏳ @${user}, du bist noch im Cooldown! Warte noch ${formatDuration(remaining)}.`
+                `⏳ @${user}, dein Raid läuft noch ${formatDuration(remaining)}.`
             );
         }, delay * 1000);
         return;
