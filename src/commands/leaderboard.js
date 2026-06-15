@@ -34,8 +34,6 @@ async function handler({ client, channel, user }) {
         return `${medals[i]} @${p.username}${prestige}${kappa} — ${formatShort(p.stash_value)} ₽`;
     });
 
-    client.say(channel, `/me 🏆 TOP LOOTERS: ${parts.join(' | ')}`);
-
     // Overlay-Daten im RAM speichern — triggert das OBS Overlay
     latestLeaderboardData = {
         timestamp:   Date.now(),

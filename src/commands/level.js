@@ -28,12 +28,6 @@ async function handler({ client, channel, user, args }) {
     const prestigeTag = prestige > 0 ? ` | ⭐ Prestige ${prestige}` : '';
     const kappaTag    = player.has_kappa ? ' | 🧳 Kappa' : '';
 
-    client.say(channel,
-        `/me 🪖 @${target} — Level ${currentLevel} | ${rankName}${prestigeTag}${kappaTag} | ` +
-        `XP: ${xpInLevel}/${xpNeeded} (${progress}%) | Stash: ${formatCurrency(stashValue)} | ` +
-        `Raids: ${player.raids_total || 0} | Überlebt: ${player.raids_survived || 0}`
-    );
-
     // Overlay-Daten im RAM speichern
     latestLevelData = {
         timestamp:     Date.now(),
