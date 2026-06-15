@@ -40,14 +40,19 @@ function createServer() {
     // Overlay (kein Auth)
     app.get('/overlay/leaderboard', (req, res) => {
         try {
-            const { getLeaderboard } = require('../db/players');
-            const { formatShort }    = require('../utils/format');
-            const players = getLeaderboard(5);
-            res.json({ timestamp: Date.now(), players: players.map(p => ({
-                name: p.username, value: p.stash_value,
-                formattedValue: formatShort(p.stash_value),
-                level: p.level, prestige: p.prestige, hasKappa: p.has_kappa === 1
-            }))});
+            const { getLatestLeaderboardData } = require('../commands/leaderboard');
+            const data = getLatestLeaderboardData();
+            if (!data) return res.status(404).json({ error: 'Noch kein !toplooter getriggert' });
+            res.json(data);
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.get('/overlay/level/latest', (req, res) => {
+        try {
+            const { getLatestLevelData } = require('../commands/level');
+            const data = getLatestLevelData();
+            if (!data) return res.status(404).json({ error: 'Noch kein !lvl getriggert' });
+            res.json(data);
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 

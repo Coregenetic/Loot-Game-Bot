@@ -1,22 +1,20 @@
 const { getOrCreatePlayer, getStashValue } = require('../db/players');
 const { getLeveling } = require('../db/config');
 const { calcXPForLevel, getRankName, formatCurrency } = require('../utils/format');
-const fs   = require('fs');
-const path = require('path');
 
 const COMMAND = '!lvl';
 
-// Pfad für OBS Overlay Datei
-const LEVEL_DATA_PATH = process.env.LEVEL_DATA_PATH ||
-    path.join(__dirname, '../../../data/level_data.json');
+// Letzter !lvl Aufruf — für /overlay/level/latest
+let latestLevelData = null;
+function getLatestLevelData() { return latestLevelData; }
 
 async function handler({ client, channel, user, args }) {
-    const target = (args[0] || '').replace('@', '').toLowerCase() || user;
-    const player = await getOrCreatePlayer(target);
+    const target   = (args[0] || '').replace('@', '').toLowerCase() || user;
+    const player   = await getOrCreatePlayer(target);
     const leveling = getLeveling();
 
-    const currentLevel = player.level || 1;
-    const totalXP      = player.xp    || 0;
+    const currentLevel = player.level    || 1;
+    const totalXP      = player.xp       || 0;
     const prestige     = player.prestige || 0;
 
     const xpForCurrent = calcXPForLevel(currentLevel, leveling);
@@ -36,26 +34,22 @@ async function handler({ client, channel, user, args }) {
         `Raids: ${player.raids_total || 0} | Überlebt: ${player.raids_survived || 0}`
     );
 
-    // OBS Overlay Datei schreiben
-    try {
-        const levelData = {
-            timestamp:    Date.now(),
-            user:         target,
-            level:        currentLevel,
-            rank:         rankName,
-            prestige,
-            hasKappa:     player.has_kappa === 1,
-            xp:           xpInLevel,
-            xpNeeded,
-            progress,
-            stashValue,
-            raidsTotal:   player.raids_total    || 0,
-            raidsSurvived:player.raids_survived || 0,
-            raidsDied:    player.raids_died     || 0
-        };
-        fs.mkdirSync(path.dirname(LEVEL_DATA_PATH), { recursive: true });
-        fs.writeFileSync(LEVEL_DATA_PATH, JSON.stringify(levelData, null, 2));
-    } catch {}
+    // Overlay-Daten im RAM speichern
+    latestLevelData = {
+        timestamp:     Date.now(),
+        user:          target,
+        level:         currentLevel,
+        rank:          rankName,
+        prestige,
+        hasKappa:      player.has_kappa === 1,
+        xp:            xpInLevel,
+        xpNeeded,
+        progress,
+        stashValue,
+        raidsTotal:    player.raids_total    || 0,
+        raidsSurvived: player.raids_survived || 0,
+        raidsDied:     player.raids_died     || 0
+    };
 }
 
-module.exports = { command: COMMAND, handler };
+module.exports = { command: COMMAND, handler, getLatestLevelData };
