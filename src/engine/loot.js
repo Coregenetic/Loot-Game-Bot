@@ -53,27 +53,7 @@ function selectMap(config) {
 function selectItem(mapName) {
     const items = getItemsForMap(mapName);
     if (!items.length) return null;
-
-    // Map-spezifische Items 3x höher gewichten
-    const weighted = [];
-    for (const item of items) {
-        try {
-            const maps = JSON.parse(item.map);
-            const isSpecific = Array.isArray(maps) ? maps.length <= 3 : true;
-            weighted.push({ item, weight: isSpecific ? 3 : 1 });
-        } catch {
-            weighted.push({ item, weight: 3 }); // single map = spezifisch
-        }
-    }
-
-    const total  = weighted.reduce((sum, w) => sum + w.weight, 0);
-    let   random = Math.random() * total;
-
-    for (const { item, weight } of weighted) {
-        random -= weight;
-        if (random <= 0) return item;
-    }
-    return weighted[weighted.length - 1].item;
+    return items[Math.floor(Math.random() * items.length)];
 }
 
 // ─── Loot generieren ─────────────────────────────────────────────────────────
