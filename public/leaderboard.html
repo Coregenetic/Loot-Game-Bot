@@ -36,7 +36,7 @@
         }
         
         .tarkov-gradient {
-            background: linear-gradient(180deg, rgba(30,32,28,0.95) 0%, rgba(18,19,16,0.95) 100%);
+            background: linear-gradient(180deg, #1e201c 0%, #121310 100%);
         }
         
         @keyframes subtle-pulse {
@@ -160,15 +160,12 @@
         async function checkForUpdates() {
             try {
                 const response = await fetch(`${BOT_URL}/overlay/leaderboard?cb=${Date.now()}`);
-                if (!response.ok) throw new Error("File not found");
+                if (!response.ok) return; // Noch kein !toplooter — warten
                 
                 const data = await response.json();
+                if (!data.timestamp) return;
 
                 if (data.timestamp > lastTimestamp) {
-                    if (lastTimestamp === 0) {
-                        lastTimestamp = data.timestamp;
-                        return;
-                    }
                     lastTimestamp = data.timestamp;
                     updateAndShowOverlay(data);
                 }

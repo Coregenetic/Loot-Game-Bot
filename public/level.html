@@ -49,7 +49,7 @@
             transform: translateX(calc(-1 * (var(--panel-w) + var(--offset-x) + 20px)));
             opacity: 0;
 
-            background: linear-gradient(180deg, rgba(30,32,28,0.95) 0%, rgba(18,19,16,0.95) 100%);
+            background: linear-gradient(180deg, #1e201c 0%, #121310 100%);
             border: 1px solid #333;
             border-left: 6px solid #9a8c66;
             box-shadow: 5px 5px 15px rgba(0,0,0,0.9);
@@ -209,7 +209,7 @@
         <div class="absolute inset-0 scanline pointer-events-none opacity-40"></div>
 
         <!-- Header -->
-        <div style="background:rgba(18,19,16,0.8); padding:8px 12px; border-bottom:1px solid #3a3b35; position:relative;">
+        <div style="background:#121310; padding:8px 12px; border-bottom:1px solid #3a3b35; position:relative;">
             <div class="font-tech" style="color:#6b7b5c; font-size:10px; letter-spacing:0.2em; margin-bottom:2px;">// OPERATOR PROFILE</div>
             <div style="font-size:1.1rem; color:#d0c8b0; font-weight:700; letter-spacing:0.2em;">[ RAID STATS ]</div>
         </div>
@@ -394,17 +394,12 @@
     async function checkForUpdates() {
         try {
             const response = await fetch(`${BOT_URL}/overlay/level/latest?cb=${Date.now()}`);
-            if (!response.ok) throw new Error('not found');
+            if (!response.ok) return; // Noch kein !lvl — warten
 
             const data = await response.json();
+            if (!data.timestamp) return;
 
             if (data.timestamp > lastTimestamp) {
-                if (lastTimestamp === 0) {
-                    // Erster Load beim OBS-Start: Timestamp merken, aber nicht anzeigen.
-                    // Verhindert dass beim Stream-Start ein altes Overlay aufpoppt.
-                    lastTimestamp = data.timestamp;
-                    return;
-                }
                 lastTimestamp = data.timestamp;
                 showOverlay(data);
             }

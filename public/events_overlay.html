@@ -58,9 +58,9 @@ body {
     transform: translateX(20px);
 }
 
-.pill-green  { background: rgba(16,185,129,0.12); border-color: #10b981; color: #10b981; }
-.pill-amber  { background: rgba(245,158,11,0.12);  border-color: #f59e0b; color: #f59e0b; }
-.pill-purple { background: rgba(167,139,250,0.12); border-color: #a78bfa; color: #a78bfa; }
+.pill-green  { background: rgba(16,185,129,0.85); border-color: #10b981; color: #fff; }
+.pill-amber  { background: rgba(180,110,0,0.9);  border-color: #f59e0b; color: #fff; }
+.pill-purple { background: rgba(109,77,210,0.9); border-color: #a78bfa; color: #fff; }
 
 .pill-icon   { font-size: 14px; flex-shrink: 0; }
 .pill-info   { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
@@ -87,8 +87,8 @@ body {
     <div id="pill-map"    class="pill pill-green"  style="display:none">
         <div class="pill-icon">🗺</div>
         <div class="pill-info">
-            <div class="pill-title">Forced Map · <span id="map-name">—</span></div>
-            <div class="pill-detail">Nur diese Map aktiv</div>
+            <div class="pill-title"><span id="map-name">—</span></div>
+            <div class="pill-detail">Nur diese Map ist aktiv</div>
         </div>
         <div class="pill-time" id="map-time">—</div>
         <div class="pill-bar"><div class="pill-bar-fill" id="map-bar" style="width:100%"></div></div>

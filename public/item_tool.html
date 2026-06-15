@@ -639,11 +639,14 @@
         }
 
         function parseCurrencyToNumber(valStr) {
-            if(!valStr) return 0;
-            let clean = valStr.replace(/Rubel/gi, '').trim().replace(',', '.');
+            if(!valStr && valStr !== 0) return 0;
+            if(typeof valStr === 'number') return valStr;
+            const s = String(valStr);
+            let clean = s.replace(/Rubel/gi, '').replace(/₽/g, '').trim().replace(',', '.');
             let mult = 1;
-            if(clean.toLowerCase().endsWith('m') || clean.toLowerCase().endsWith('mio')) { mult = 1000000; clean = clean.replace(/m/gi, '').replace(/io/gi, ''); }
-            else if(clean.toLowerCase().endsWith('k')) { mult = 1000; clean = clean.replace(/k/gi, ''); }
+            if(clean.toLowerCase().endsWith('b')) { mult = 1000000000; clean = clean.slice(0,-1); }
+            else if(clean.toLowerCase().endsWith('m') || clean.toLowerCase().endsWith('mio')) { mult = 1000000; clean = clean.replace(/mio/gi,'').replace(/m/gi,''); }
+            else if(clean.toLowerCase().endsWith('k')) { mult = 1000; clean = clean.replace(/k/gi,''); }
             return parseFloat(clean) * mult || 0;
         }
 
