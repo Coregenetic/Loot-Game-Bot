@@ -1,9 +1,11 @@
 const { getOrCreatePlayer, updatePlayer, getInventory,
         addOrUpdateInventoryItem, removeInventoryItem } = require('../db/players');
 const { getKappaItems } = require('../db/items');
+const { generateKappaToken } = require('../utils/kappaTokens');
 
 const COMMAND = '!kappa';
 const KAPPA_CONTAINER_NAME = 'Kappa Container';
+const BASE_URL = process.env.GAME_CENTER_URL || 'https://lootgamebot.fly.dev';
 
 async function handler({ client, channel, user }) {
     const player = await getOrCreatePlayer(user);
@@ -33,9 +35,11 @@ async function handler({ client, channel, user }) {
     }
 
     if (found < total) {
+        const token = generateKappaToken(user);
         client.say(channel,
             `🧳 @${user}: ${found} / ${total} Kappa-Items gesammelt. ` +
-            `Noch ${total - found} Items übrig — weiter looten, Timmy!`
+            `Noch ${total - found} Items übrig — weiter looten, Timmy! ` +
+            `📋 Deine Übersicht: ${BASE_URL}/kappa.html?token=${token}`
         );
         return;
     }

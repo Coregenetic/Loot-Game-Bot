@@ -87,6 +87,46 @@ function createServer() {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
+    // Kappa-Übersicht (öffentlich, Token-geschützt)
+    app.get('/api/kappa/:token', (req, res) => {
+        try {
+            const { validateKappaToken } = require('../utils/kappaTokens');
+            const username = validateKappaToken(req.params.token);
+            if (!username) return res.status(401).json({ error: 'Link abgelaufen oder ungültig. Tippe !kappa erneut im Chat.' });
+
+            const { getPlayer, getInventory } = require('../db/players');
+            const { getKappaItems }           = require('../db/items');
+
+            const player = getPlayer(username);
+            if (!player) return res.status(404).json({ error: 'Spieler nicht gefunden' });
+
+            const kappaItems = getKappaItems();
+            const inventory  = getInventory(player.id);
+            const invMap     = new Map(inventory.map(i => [i.item_name.toLowerCase(), i]));
+
+            const items = kappaItems.map(item => {
+                const name    = item.text || item.name;
+                const invItem = invMap.get(name.toLowerCase());
+                return {
+                    name,
+                    have:  !!(invItem && invItem.count > 0),
+                    count: invItem ? invItem.count : 0,
+                    value: item.value || 0
+                };
+            });
+
+            const found = items.filter(i => i.have).length;
+
+            res.json({
+                username:  player.username,
+                hasKappa:  player.has_kappa === 1,
+                found,
+                total:     items.length,
+                items
+            });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
     // Log-Buffer
     app.get('/api/logs', sessionAuth, (req, res) => {
         res.json(logger.getBuffer());

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kappa-Übersicht — Loot-Game</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--green:#10b981;--green2:rgba(16,185,129,0.08);--green3:rgba(16,185,129,0.22);
+--red:#f87171;--red2:rgba(248,113,113,0.08);--red3:rgba(248,113,113,0.22);
+--amber:#f59e0b;--purple:#a78bfa;
+--text:#c8cdd2;--text2:#52606e;--text3:#2a3240;
+--bg:#070809;--bg1:#0c0d0e;--bg2:#101213;--border:#1a1c1e;--border2:#232629}
+html,body{min-height:100vh;background:var(--bg);font-family:'Rajdhani',sans-serif;color:var(--text)}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:36px 36px;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:32px 20px}
+
+.header{text-align:center;margin-bottom:24px}
+.logo-icon{width:48px;height:48px;background:#07110d;border:1px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;position:relative}
+.logo-icon::after{content:'';position:absolute;inset:5px;border:1px solid rgba(16,185,129,0.12)}
+.logo-icon svg{width:22px;height:22px;stroke:var(--green);fill:none;stroke-width:1.5;position:relative;z-index:1}
+.header h1{font-size:24px;font-weight:700;color:#edeae3;text-transform:uppercase;letter-spacing:0.06em}
+.header .sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:0.15em;margin-top:4px}
+
+.player-card{background:var(--bg1);border:1px solid var(--border);padding:20px;margin-bottom:16px;text-align:center}
+.player-name{font-size:28px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px}
+
+.progress-wrap{margin:16px 0}
+.progress-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:6px}
+.progress-label span{color:var(--green);font-weight:700}
+.progress-bar{height:10px;background:var(--bg);border:1px solid var(--border2);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),#34d399);transition:width 0.6s ease}
+
+.complete-badge{background:var(--green2);border:1px solid var(--green3);color:var(--green);padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.1em;text-align:center;margin-top:12px}
+
+.items-grid{display:grid;grid-template-columns:1fr;gap:6px}
+.item-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);transition:border-color 0.15s}
+.item-row.have{border-left:3px solid var(--green)}
+.item-row.missing{border-left:3px solid var(--red)}
+.item-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700}
+.item-icon.have{background:var(--green2);color:var(--green)}
+.item-icon.missing{background:var(--red2);color:var(--red)}
+.item-name{flex:1;font-size:14px;color:#e4e0d8}
+.item-row.have .item-name{color:var(--text2);text-decoration:line-through;text-decoration-color:var(--green3)}
+.item-value{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);flex-shrink:0}
+.item-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg);padding:2px 6px;flex-shrink:0}
+
+.error-box{background:var(--red2);border:1px solid var(--red3);padding:24px;text-align:center;color:var(--red)}
+.error-box .title{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.error-box .detail{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text2)}
+
+.loading{text-align:center;padding:40px;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:12px}
+
+.footer{margin-top:24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:0.1em}
+
+.filter-bar{display:flex;gap:6px;margin-bottom:12px}
+.filter-btn{flex:1;padding:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;background:var(--bg1);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:all 0.15s}
+.filter-btn.active{border-color:var(--green3);color:var(--green);background:var(--green2)}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+    <h1>Kappa-Übersicht</h1>
+    <div class="sub">// Loot-Game by Coregenetic</div>
+  </div>
+
+  <div id="content"><div class="loading">Lade Daten...</div></div>
+
+  <div class="footer">LOOT-GAME HUB · Link gültig für 15 Minuten</div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const token  = params.get('token');
+let allItems = [];
+let currentFilter = 'all';
+
+async function load() {
+  if (!token) {
+    showError('Kein Token angegeben', 'Tippe !kappa im Chat um deinen persönlichen Link zu erhalten.');
+    return;
+  }
+  try {
+    const res  = await fetch('/api/kappa/' + token);
+    const data = await res.json();
+    if (data.error) {
+      showError('Link abgelaufen', data.error);
+      return;
+    }
+    render(data);
+  } catch (err) {
+    showError('Fehler', err.message);
+  }
+}
+
+function showError(title, detail) {
+  document.getElementById('content').innerHTML = `
+    <div class="error-box">
+      <div class="title">⚠ ${title}</div>
+      <div class="detail">${detail}</div>
+    </div>`;
+}
+
+function render(data) {
+  allItems = data.items;
+  const progress = Math.round((data.found / data.total) * 100);
+
+  let html = `
+    <div class="player-card">
+      <div class="player-name">${data.username}</div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>${data.found} / ${data.total} Items</span>
+          <span>${progress}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+      </div>
+      ${data.hasKappa
+        ? '<div class="complete-badge">🏆 KAPPA CONTAINER ERHALTEN — LEGENDE!</div>'
+        : data.found === data.total
+          ? '<div class="complete-badge">✅ Alle Items vorhanden — tippe !kappa im Chat zum Einlösen!</div>'
+          : ''}
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter('all')" id="f-all">Alle (${data.total})</button>
+      <button class="filter-btn" onclick="setFilter('missing')" id="f-missing">Fehlend (${data.total - data.found})</button>
+      <button class="filter-btn" onclick="setFilter('have')" id="f-have">Vorhanden (${data.found})</button>
+    </div>
+
+    <div class="items-grid" id="itemsGrid"></div>
+  `;
+
+  document.getElementById('content').innerHTML = html;
+  renderItems();
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('f-' + filter).classList.add('active');
+  renderItems();
+}
+
+function renderItems() {
+  const filtered = allItems.filter(item => {
+    if (currentFilter === 'missing') return !item.have;
+    if (currentFilter === 'have') return item.have;
+    return true;
+  });
+
+  const grid = document.getElementById('itemsGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<p style="text-align:center;color:var(--text3);font-family:JetBrains Mono,monospace;font-size:12px;padding:20px;">Keine Items in dieser Kategorie</p>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(item => `
+    <div class="item-row ${item.have ? 'have' : 'missing'}">
+      <div class="item-icon ${item.have ? 'have' : 'missing'}">${item.have ? '✓' : '✕'}</div>
+      <div class="item-name">${item.name}</div>
+      ${item.have ? `<div class="item-count">x${item.count}</div>` : ''}
+      <div class="item-value">${formatValue(item.value)} ₽</div>
+    </div>
+  `).join('');
+}
+
+function formatValue(v) {
+  if (!v) return '0';
+  if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+  return v;
+}
+
+load();
+</script>
+</body>
+</html>
