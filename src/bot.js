@@ -4,6 +4,24 @@ const logger = require('./utils/logger');
 const commands       = new Map();
 const activeChannels = new Set();
 const disabledCmds   = new Set();
+let   maintenanceMode = false;
+
+function setMaintenance(active, client) {
+    maintenanceMode = active;
+    logger.bot('BOT', `Wartungsmodus ${active ? 'aktiviert' : 'deaktiviert'}`);
+
+    // Ankündigung in allen aktiven Channels
+    if (client) {
+        const msg = active
+            ? '🔧 Das Loot-Game ist jetzt im Wartungsmodus. Wir sind gleich zurück!'
+            : '✅ Das Loot-Game ist wieder verfügbar! Viel Erfolg beim Looten!';
+        for (const ch of activeChannels) {
+            client.say(`#${ch}`, msg).catch(() => {});
+        }
+    }
+}
+
+function getMaintenanceMode() { return maintenanceMode; }
 
 function registerCommand(name, handler) {
     commands.set(name.toLowerCase(), handler);
@@ -83,6 +101,14 @@ function createBot() {
         const ch = channel.replace('#', '').toLowerCase();
         if (!activeChannels.has(ch)) return;
 
+        // Wartungsmodus
+        if (maintenanceMode) {
+            if (message.startsWith('!')) {
+                client.say(channel, `🔧 @${userstate.username}, das Loot-Game ist gerade im Wartungsmodus. Wir sind gleich zurück!`);
+            }
+            return;
+        }
+
         const parts   = message.trim().split(/\s+/);
         const cmdName = parts[0].toLowerCase();
 
@@ -110,7 +136,7 @@ function createBot() {
 
     loadCommands();
 
-    return { connect: () => client.connect(), client, setChannelActive, getChannelStatus, setCommandActive, getCommandStatus };
+    return { connect: () => client.connect(), client, setChannelActive, getChannelStatus, setCommandActive, getCommandStatus, setMaintenance: (active) => setMaintenance(active, client), getMaintenanceMode };
 }
 
 module.exports = { createBot };

@@ -4,6 +4,22 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Wartungsmodus ────────────────────────────────────────────────────────────
+
+router.get('/maintenance', (req, res) => {
+    const bot = global.botInstance;
+    res.json({ active: bot ? bot.getMaintenanceMode() : false });
+});
+
+router.post('/maintenance', (req, res) => {
+    const { password, active } = req.body;
+    if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const bot = global.botInstance;
+    if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+    bot.setMaintenance(active);
+    res.json({ success: true, active });
+});
+
 // ─── Fly.io Machine Info ──────────────────────────────────────────────────────
 
 router.get('/machine', (req, res) => {
