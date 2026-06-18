@@ -3,7 +3,8 @@ const { getOrCreatePlayer, updatePlayer, addOrUpdateInventoryItem,
 const { getGeneral, getActiveEvents, getLeveling } = require('../db/config');
 const { generateLoot, calculateXPGain,
         formatInfiltrationMsg, formatLootMsg, formatDeathMsg } = require('../engine/loot');
-const { calcLevelFromXP, calcXPForLevel, getRankName, formatDuration } = require('../utils/format');
+const { calcLevelFromXP, getRankName, formatDuration } = require('../utils/format');
+const logger = require('../utils/logger');
 
 const COMMAND = '!loot';
 
@@ -38,13 +39,12 @@ async function handler({ client, channel, user }) {
     const exfilTime = Math.floor(Math.random() * (maxExfil - minExfil + 1)) + minExfil;
 
     // Cooldown = Exfil-Zeit → Spieler ist "im Raid"
-    // Nach dem Exfil wird der Cooldown gelöscht → sofort wieder looten möglich
     setCooldown(player.id, 'loot', exfilTime + 1);
 
     // Infiltrations-Nachricht
     client.say(channel, formatInfiltrationMsg(user, map));
 
-    // Nach Exfil-Zeit: überleben oder sterben
+    // Nach Exfil-Zeit: Ergebnis
     setTimeout(async () => {
         try {
             const survivalChance = general.SurvivalChance || 0.75;
@@ -56,7 +56,6 @@ async function handler({ client, channel, user }) {
 
             if (!survived) {
                 updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
-                // Cooldown löschen — Spieler kann wieder looten
                 setCooldown(player.id, 'loot', 0);
                 client.say(channel, formatDeathMsg(user, map));
                 return;
@@ -69,12 +68,12 @@ async function handler({ client, channel, user }) {
             }
 
             // XP berechnen
-            const events      = getActiveEvents();
-            const now         = Math.floor(Date.now() / 1000);
-            const leveling    = getLeveling();
-            let xpMultiplier  = 1;
+            const events     = getActiveEvents();
+            const now        = Math.floor(Date.now() / 1000);
+            const leveling   = getLeveling();
+            let xpMultiplier = 1;
 
-            if (events.XPBoost && events.XPBoost.Multiplier > 1 && events.XPBoost.ExpiresAt > now) {
+            if (events.XPBoost?.Multiplier > 1 && events.XPBoost?.ExpiresAt > now) {
                 xpMultiplier = events.XPBoost.Multiplier;
             }
 
@@ -92,7 +91,7 @@ async function handler({ client, channel, user }) {
                 raids_died:     raidsDied
             });
 
-            // Cooldown löschen — Spieler kann wieder looten
+            // Cooldown löschen — sofort wieder looten möglich
             setCooldown(player.id, 'loot', 0);
 
             // Loot-Nachricht + XP
@@ -106,7 +105,7 @@ async function handler({ client, channel, user }) {
             client.say(channel, lootMsg);
 
         } catch (err) {
-            console.error(`[LOOT] Fehler im Exfil-Timer für ${user}:`, err.message);
+            logger.error('LOOT', `Fehler im Exfil-Timer für ${user}: ${err.message}`);
             setCooldown(player.id, 'loot', 0);
             client.say(channel, `❌ @${user}, beim Exfil ist etwas schiefgelaufen!`);
         }

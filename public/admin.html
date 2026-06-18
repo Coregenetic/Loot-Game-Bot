@@ -533,6 +533,23 @@
 
         <div id="serverActionResult" class="hidden mt-4 text-xs font-mono p-4 rounded-xl border bg-slate-900/50"></div>
 
+        <!-- Turnier-Modus -->
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Turnier-Modus</h3>
+              <p class="text-xs font-mono text-slate-500 mt-1">Bot ist komplett still — einmalige Ankündigung beim Aktivieren</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span id="tournamentStatus" class="text-xs font-mono text-emerald-400">INAKTIV</span>
+              <button id="tournamentBtn" onclick="toggleTournament()"
+                class="px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20">
+                AKTIVIEREN
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Wartungsmodus -->
         <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
           <div class="flex items-center justify-between">
@@ -1068,6 +1085,7 @@ async function unlockServerControl() {
       loadCommands_panel();
       loadMachineInfo();
       loadMaintenance();
+      loadTournament();
       showToast('✓ Server Control entsperrt', 'success');
     } else { 
       msg.textContent='✗ '+d.error; 
@@ -1300,6 +1318,48 @@ async function toggleCommand(cmd, active) {
     showToast(`${cmd} ${active ? 'aktiviert' : 'deaktiviert'}`, active ? 'success' : 'info');
   } catch (err) {
     showToast('Fehler: ' + err.message, 'error');
+  }
+}
+
+// ─── Turnier-Modus ────────────────────────────────────────────────────────────
+async function loadTournament() {
+  try {
+    const data = await apiCall('/api/admin/tournament');
+    updateTournamentUI(data.active);
+  } catch {}
+}
+
+async function toggleTournament() {
+  if (!serverPw) return;
+  try {
+    const current = document.getElementById('tournamentBtn').dataset.active === 'true';
+    const res = await fetch('/api/admin/tournament', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw, active: !current })
+    });
+    const data = await res.json();
+    if (data.success) {
+      updateTournamentUI(data.active);
+      showToast(data.active ? '🏆 Turnier-Modus aktiviert' : '✅ Turnier-Modus deaktiviert', data.active ? 'info' : 'success');
+    }
+  } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+function updateTournamentUI(active) {
+  const btn    = document.getElementById('tournamentBtn');
+  const status = document.getElementById('tournamentStatus');
+  btn.dataset.active = active;
+  if (active) {
+    status.textContent = 'AKTIV';
+    status.className = 'text-xs font-mono text-blue-400';
+    btn.textContent = 'DEAKTIVIEREN';
+    btn.className = 'px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20';
+  } else {
+    status.textContent = 'INAKTIV';
+    status.className = 'text-xs font-mono text-emerald-400';
+    btn.textContent = 'AKTIVIEREN';
+    btn.className = 'px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20';
   }
 }
 

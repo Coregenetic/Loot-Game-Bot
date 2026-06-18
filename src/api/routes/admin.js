@@ -4,6 +4,22 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Turnier-Modus ────────────────────────────────────────────────────────────
+
+router.get('/tournament', (req, res) => {
+    const bot = global.botInstance;
+    res.json({ active: bot ? bot.getTournamentMode() : false });
+});
+
+router.post('/tournament', (req, res) => {
+    const { password, active } = req.body;
+    if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const bot = global.botInstance;
+    if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
+    bot.setTournament(active);
+    res.json({ success: true, active });
+});
+
 // ─── Wartungsmodus ────────────────────────────────────────────────────────────
 
 router.get('/maintenance', (req, res) => {
