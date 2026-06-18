@@ -25,8 +25,8 @@ function setTournament(active, client) {
     logger.bot('BOT', `Turnier-Modus ${active ? 'aktiviert' : 'deaktiviert'}`);
     if (client) {
         const msg = active
-            ? '🏆 Das Loot-Game ist während des Turniers pausiert. Nach dem Turnier geht es weiter!'
-            : '✅ Das Loot-Game ist wieder aktiv — viel Erfolg beim Looten!';
+            ? '🏆 Das Loot-Game ist während des Raids pausiert. Nach dem Raid geht es weiter!'
+            : '✅ Das Loot-Game ist wieder aktiv — viel Spaß beim Looten!';
         for (const ch of activeChannels) {
             client.say(`#${ch}`, msg).catch(() => {});
         }
