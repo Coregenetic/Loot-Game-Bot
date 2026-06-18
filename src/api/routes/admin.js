@@ -4,6 +4,18 @@ const bcrypt  = require('bcrypt');
 const { run, all, get, saveDb } = require('../../db/schema');
 const { invalidateAll } = require('../../db/cache');
 
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+router.get('/analytics', (req, res) => {
+    try {
+        const { readLogs, calcStats } = require('../../utils/analytics');
+        const days  = parseInt(req.query.days) || 7;
+        const since = Date.now() - days * 24 * 60 * 60 * 1000;
+        const logs  = readLogs(0).filter(l => l.ts >= since);
+        res.json({ days, total: logs.length, stats: calcStats(logs) });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── Turnier-Modus ────────────────────────────────────────────────────────────
 
 router.get('/tournament', (req, res) => {

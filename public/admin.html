@@ -118,6 +118,10 @@
           <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
           Dashboard
         </button>
+        <button onclick="showTab('analytics')" id="nav-analytics" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
+          <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Statistiken
+        </button>
         <button onclick="showTab('logs')" id="nav-logs" class="nav-item w-full flex items-center gap-3 px-6 py-2.5 text-xs font-mono text-slate-400 border-l-2 border-transparent hover:text-slate-200 hover:bg-slate-800/30 transition-all">
           <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
           Bot Log
@@ -164,6 +168,70 @@
 <main class="flex-1 overflow-x-hidden overflow-y-auto relative p-4 md:p-6 min-h-0 w-full">
   
   <!-- DASHBOARD TAB -->
+  <!-- ANALYTICS TAB -->
+  <div id="tab-analytics" class="max-w-7xl w-full mx-auto space-y-6 hidden">
+    <div class="flex items-center justify-between">
+      <h2 class="text-xl font-bold text-white uppercase tracking-wide">Statistiken</h2>
+      <div class="flex gap-2">
+        <button onclick="loadAnalytics(1)"  id="an-1"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">24h</button>
+        <button onclick="loadAnalytics(7)"  id="an-7"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors">7 Tage</button>
+        <button onclick="loadAnalytics(30)" id="an-30" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">30 Tage</button>
+        <button onclick="loadAnalytics(0)"  id="an-0"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">Gesamt</button>
+      </div>
+    </div>
+
+    <!-- Zahlen oben -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="an-stats-grid">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Commands total</div>
+        <div class="text-3xl font-bold text-white" id="an-total">—</div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Raids gespielt</div>
+        <div class="text-3xl font-bold text-emerald-400" id="an-raids">—</div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Survival Rate</div>
+        <div class="text-3xl font-bold text-blue-400" id="an-survival">—</div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Gesamt-Loot</div>
+        <div class="text-3xl font-bold text-amber-400" id="an-value">—</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Commands Verteilung -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Commands Verteilung</h3>
+        <div id="an-commands" class="space-y-2"></div>
+      </div>
+
+      <!-- Aktivste Spieler -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivste Spieler</h3>
+        <div id="an-users" class="space-y-2"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Aktivste Stunden -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivität nach Uhrzeit</h3>
+        <div id="an-hours" class="flex items-end gap-1 h-24"></div>
+        <div class="flex justify-between text-xs font-mono text-slate-600 mt-1">
+          <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+        </div>
+      </div>
+
+      <!-- Top Items -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Häufigste Loot-Items</h3>
+        <div id="an-items" class="space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="tab-dashboard" class="max-w-7xl w-full mx-auto space-y-6 hidden">
     <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-white tracking-widest uppercase mb-2">Dashboard</h1>
       
@@ -760,6 +828,7 @@ function showTab(tab) {
   activeTab = tab;
   if (tab !== 'logs' && logPoll) { clearInterval(logPoll); logPoll = null; updateLogStatus(false); }
   if (tab === 'dashboard')  { loadStats(); loadTournament(); }
+  if (tab === 'analytics')  loadAnalytics(currentAnDays || 7);
   if (tab === 'logs')       startLogPoll();
   if (tab === 'cooldowns')  loadCooldowns();
   if (tab === 'players')    loadPlayers();
@@ -1324,12 +1393,72 @@ async function toggleCommand(cmd, active) {
   }
 }
 
-// ─── Turnier-Modus ────────────────────────────────────────────────────────────
-async function loadTournament() {
+// ─── Analytics ────────────────────────────────────────────────────────────────
+let currentAnDays = 7;
+
+async function loadAnalytics(days) {
+  currentAnDays = days;
+  ['1','7','30','0'].forEach(d => {
+    const btn = document.getElementById('an-' + d);
+    if (!btn) return;
+    btn.className = String(d) === String(days)
+      ? 'px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors'
+      : 'px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors';
+  });
   try {
-    const data = await apiCall('/api/admin/tournament');
-    updateTournamentUI(data.active);
-  } catch {}
+    const url  = `/api/admin/analytics?days=${days > 0 ? days : 3650}`;
+    const data = await apiCall(url);
+    const s    = data.stats;
+    document.getElementById('an-total').textContent    = data.total.toLocaleString('de-DE');
+    document.getElementById('an-raids').textContent    = (s.lootStats?.total || 0).toLocaleString('de-DE');
+    const surv = s.lootStats?.total > 0 ? Math.round((s.lootStats.survived/s.lootStats.total)*100)+'%' : '—';
+    document.getElementById('an-survival').textContent = surv;
+    document.getElementById('an-value').textContent    = formatAnValue(s.lootStats?.totalValue || 0);
+    const maxBar = (arr) => Math.max(...arr.map(([,v])=>v), 1);
+    const cmds = Object.entries(s.byCommand||{}).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('an-commands').innerHTML = cmds.map(([cmd,count])=>`
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-xs text-slate-300 w-24 shrink-0">${cmd}</span>
+        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-emerald-500 rounded-full" style="width:${Math.round((count/maxBar(cmds))*100)}%"></div>
+        </div>
+        <span class="font-mono text-xs text-slate-400 w-10 text-right">${count}</span>
+      </div>`).join('');
+    const users = Object.entries(s.byUser||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    document.getElementById('an-users').innerHTML = users.map(([user,count])=>`
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-xs text-slate-300 w-28 shrink-0 truncate">${user}</span>
+        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 rounded-full" style="width:${Math.round((count/maxBar(users))*100)}%"></div>
+        </div>
+        <span class="font-mono text-xs text-slate-400 w-10 text-right">${count}</span>
+      </div>`).join('');
+    const hours = s.byHour||new Array(24).fill(0);
+    const maxH  = Math.max(...hours, 1);
+    document.getElementById('an-hours').innerHTML = hours.map((h,i)=>`
+      <div class="flex-1 bg-slate-800 rounded-sm relative" title="${i}:00 — ${h}x">
+        <div class="absolute bottom-0 left-0 right-0 bg-purple-500 rounded-sm" style="height:${Math.round((h/maxH)*100)}%;opacity:0.8"></div>
+      </div>`).join('');
+    const items   = Object.entries(s.lootStats?.topItems||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const maxItem = items[0]?.[1]||1;
+    document.getElementById('an-items').innerHTML = items.length ? items.map(([name,count])=>`
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-xs text-slate-300 flex-1 truncate" title="${name}">${name}</span>
+        <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-amber-500 rounded-full" style="width:${Math.round((count/maxItem)*100)}%"></div>
+        </div>
+        <span class="font-mono text-xs text-slate-400 w-8 text-right">${count}x</span>
+      </div>`).join('')
+      : '<p class="text-xs font-mono text-slate-600">Noch keine Loot-Daten</p>';
+  } catch(err) { console.error('Analytics:', err); }
+}
+
+function formatAnValue(v) {
+  if (!v) return '0 ₽';
+  if (v >= 1e9) return (v/1e9).toFixed(1)+'B ₽';
+  if (v >= 1e6) return (v/1e6).toFixed(1)+'M ₽';
+  if (v >= 1e3) return (v/1e3).toFixed(0)+'K ₽';
+  return v+' ₽';
 }
 
 // ─── Turnier-Modus ────────────────────────────────────────────────────────────

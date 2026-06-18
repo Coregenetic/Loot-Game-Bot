@@ -4,6 +4,7 @@ const { getGeneral, getActiveEvents, getLeveling } = require('../db/config');
 const { generateLoot, calculateXPGain,
         formatInfiltrationMsg, formatLootMsg, formatDeathMsg } = require('../engine/loot');
 const { calcLevelFromXP, getRankName, formatDuration } = require('../utils/format');
+const { logCommand } = require('../utils/analytics');
 const logger = require('../utils/logger');
 
 const COMMAND = '!loot';
@@ -57,6 +58,7 @@ async function handler({ client, channel, user }) {
             if (!survived) {
                 updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
                 setCooldown(player.id, 'loot', 0);
+                logCommand('!loot', user, channel, { map, survived: false });
                 client.say(channel, formatDeathMsg(user, map));
                 return;
             }
@@ -93,6 +95,16 @@ async function handler({ client, channel, user }) {
 
             // Cooldown löschen — sofort wieder looten möglich
             setCooldown(player.id, 'loot', 0);
+
+            // Analytics
+            const mainItem = loot[0]?.item;
+            logCommand('!loot', user, channel, {
+                map,
+                survived:  true,
+                itemName:  mainItem?.text || mainItem?.name,
+                itemValue: mainItem?.value || 0,
+                xpGain
+            });
 
             // Loot-Nachricht + XP
             let lootMsg = formatLootMsg(user, loot, player.has_kappa === 1);

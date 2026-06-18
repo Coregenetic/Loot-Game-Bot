@@ -135,6 +135,12 @@ function createBot() {
 
         logger.cmd('CMD', `${userstate.username} → ${cmdName} in ${channel}`);
 
+        // Analytics — alle Commands außer !loot (der loggt sich selbst mit mehr Details)
+        if (cmdName !== '!loot') {
+            const { logCommand } = require('./utils/analytics');
+            logCommand(cmdName, userstate.username, channel);
+        }
+
         try {
             await handler({ client, channel, user: userstate.username, userstate, args: parts.slice(1) });
         } catch (err) {
