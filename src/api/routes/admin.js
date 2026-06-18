@@ -12,8 +12,7 @@ router.get('/tournament', (req, res) => {
 });
 
 router.post('/tournament', (req, res) => {
-    const { password, active } = req.body;
-    if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+    const { active } = req.body;
     const bot = global.botInstance;
     if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
     bot.setTournament(active);
