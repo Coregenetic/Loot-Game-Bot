@@ -1372,15 +1372,33 @@ async function selectPlayer(username) {
     if (!p.inventory || !p.inventory.length) {
       invEl.innerHTML = '<p class="text-slate-600 text-xs font-mono">Inventar leer</p>';
     } else {
-      invEl.innerHTML = p.inventory.map(item => `
-        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-colors">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">x${item.count}</span>
-            <span class="text-sm text-slate-200">${item.item_name}</span>
+      const sorted = [...p.inventory].sort((a,b) => (b.value*b.count) - (a.value*a.count));
+      invEl.innerHTML = sorted.map(item => {
+        const total = item.value * item.count;
+        const tier  = total >= 500000 ? 'red' : total >= 100000 ? 'amber' : total >= 20000 ? 'blue' : 'slate';
+        const tierColors = {
+          red:   { border: '#ef4444', bg: 'rgba(239,68,68,0.06)',  text: '#f87171' },
+          amber: { border: '#f59e0b', bg: 'rgba(245,158,11,0.06)', text: '#fbbf24' },
+          blue:  { border: '#60a5fa', bg: 'rgba(96,165,250,0.06)', text: '#93c5fd' },
+          slate: { border: '#64748b', bg: 'rgba(100,116,139,0.06)', text: '#94a3b8' }
+        };
+        const c = tierColors[tier];
+        return `
+        <div class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-slate-800/30"
+             style="background:${c.bg};border-left:3px solid ${c.border};">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono font-bold flex-shrink-0"
+                 style="background:rgba(255,255,255,0.04);color:${c.text}">
+              ${item.count}x
+            </div>
+            <span class="text-sm text-slate-200 truncate">${item.item_name}</span>
           </div>
-          <span class="text-xs font-mono text-amber-400">${formatVal(item.value * item.count)}</span>
-        </div>
-      `).join('');
+          <div class="text-right flex-shrink-0 ml-2">
+            <div class="text-sm font-mono font-semibold" style="color:${c.text}">${formatVal(total)}</div>
+            <div class="text-xs font-mono text-slate-600">${formatVal(item.value)}/Stk</div>
+          </div>
+        </div>`;
+      }).join('');
     }
   } catch (err) {
     console.error('Player load error:', err);
