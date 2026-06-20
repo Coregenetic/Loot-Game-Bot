@@ -53,3 +53,77 @@
     <div id="an-items" class="space-y-2"></div>
   </div>
 </div>
+
+<div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+  <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Recap-Karte erstellen</h3>
+  <div class="flex flex-wrap items-end gap-3 mb-5">
+    <div>
+      <label class="block text-xs font-mono text-slate-500 mb-1">Von</label>
+      <input type="date" id="recap-from" class="bg-slate-900/50 border border-slate-700 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
+    </div>
+    <div>
+      <label class="block text-xs font-mono text-slate-500 mb-1">Bis</label>
+      <input type="date" id="recap-to" class="bg-slate-900/50 border border-slate-700 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
+    </div>
+    <button onclick="generateRecap()" class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-sm font-mono transition-colors">Vorschau generieren</button>
+  </div>
+
+  <div id="recap-preview" class="hidden">
+    <div id="recap-card" style="background:#05080c;border:1px solid #1e293b;border-radius:16px;padding:24px;font-family:'Inter',sans-serif;color:#e2e8f0;max-width:680px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;">
+        <div>
+          <div style="font-size:11px;letter-spacing:0.08em;color:#10b981;font-weight:500;">LOOT-GAME RECAP</div>
+          <div id="recap-daterange" style="font-size:19px;font-weight:500;color:#fff;margin-top:2px;">—</div>
+        </div>
+        <div style="font-size:11px;color:#64748b;font-family:'JetBrains Mono',monospace;">GunnyOneTV</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px;">
+          <div style="font-size:10px;color:#6ee7b7;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Top Looter</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="recap-looter-avatar" style="width:34px;height:34px;border-radius:9px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#10b981;font-family:'JetBrains Mono',monospace;">—</div>
+            <div>
+              <div id="recap-looter-name" style="font-size:14px;color:#fff;">—</div>
+              <div id="recap-looter-value" style="font-size:13px;color:#10b981;font-family:'JetBrains Mono',monospace;">—</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:14px;">
+          <div style="font-size:10px;color:#fcd34d;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;">Wertvollster Drop</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:34px;height:34px;border-radius:9px;background:rgba(251,191,36,0.15);display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:16px;">★</div>
+            <div>
+              <div id="recap-drop-name" style="font-size:14px;color:#fff;">—</div>
+              <div id="recap-drop-value" style="font-size:13px;color:#fbbf24;font-family:'JetBrains Mono',monospace;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;">
+        <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:11px;">
+          <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Raids</div>
+          <div id="recap-raids" style="font-size:18px;font-weight:500;color:#fff;font-family:'JetBrains Mono',monospace;">—</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:11px;">
+          <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Survival</div>
+          <div id="recap-survival" style="font-size:18px;font-weight:500;color:#10b981;font-family:'JetBrains Mono',monospace;">—</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:11px;">
+          <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Server-Loot</div>
+          <div id="recap-loot" style="font-size:18px;font-weight:500;color:#fbbf24;font-family:'JetBrains Mono',monospace;">—</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.06);border-radius:10px;padding:11px;">
+          <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Top Map</div>
+          <div id="recap-map" style="font-size:14px;font-weight:500;color:#fff;margin-top:2px;">—</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding-top:10px;border-top:1px solid #1e293b;font-size:10px;color:#475569;font-family:'JetBrains Mono',monospace;">Loot-Game by Coregenetic</div>
+    </div>
+
+    <div class="flex gap-2 mt-4">
+      <button onclick="downloadRecap()" class="px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-sm font-mono transition-colors">Als PNG herunterladen</button>
+      <button onclick="copyRecap()" class="px-4 py-2 rounded-lg bg-slate-700/30 border border-slate-700 text-slate-300 hover:bg-slate-700/50 text-sm font-mono transition-colors">In Zwischenablage kopieren</button>
+    </div>
+  </div>
+  <p id="recap-empty" class="text-xs font-mono text-slate-600">Zeitraum wählen und Vorschau generieren.</p>
+</div>

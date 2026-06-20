@@ -6,6 +6,7 @@
 <title>Admin — Loot-Game Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   tailwind.config = {
     theme: {
@@ -1278,6 +1279,88 @@ function formatAnValue(v) {
   if (v >= 1e6) return (v/1e6).toFixed(1)+'M ₽';
   if (v >= 1e3) return (v/1e3).toFixed(0)+'K ₽';
   return v+' ₽';
+}
+
+// ─── Recap-Karte ──────────────────────────────────────────────────────────────
+let recapData = null;
+
+function formatDe(dateStr) {
+  const [y,m,d] = dateStr.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+async function generateRecap() {
+  const from = document.getElementById('recap-from').value;
+  const to   = document.getElementById('recap-to').value;
+  if (!from || !to) { showToast('Bitte Von- und Bis-Datum wählen', 'error'); return; }
+
+  try {
+    const data = await apiCall(`/api/admin/recap?from=${from}&to=${to}`);
+    recapData = data;
+
+    document.getElementById('recap-daterange').textContent = `${formatDe(from)} – ${formatDe(to)}`;
+    document.getElementById('recap-raids').textContent     = data.totalRaids.toLocaleString('de-DE');
+    document.getElementById('recap-survival').textContent  = data.survivalRate + '%';
+    document.getElementById('recap-loot').textContent      = formatAnValue(data.totalValue);
+    document.getElementById('recap-map').textContent       = data.topMap ? data.topMap.name : '—';
+
+    const looterAvatar = document.getElementById('recap-looter-avatar');
+    if (data.topLooter) {
+      looterAvatar.textContent = data.topLooter.username.slice(0,2).toUpperCase();
+      document.getElementById('recap-looter-name').textContent  = data.topLooter.username;
+      document.getElementById('recap-looter-value').textContent = '+' + formatAnValue(data.topLooter.value);
+    } else {
+      looterAvatar.textContent = '—';
+      document.getElementById('recap-looter-name').textContent  = 'Keine Daten';
+      document.getElementById('recap-looter-value').textContent = '—';
+    }
+
+    if (data.biggestDrop) {
+      document.getElementById('recap-drop-name').textContent  = data.biggestDrop.itemName || '—';
+      document.getElementById('recap-drop-value').textContent = formatAnValue(data.biggestDrop.value) + ' · ' + data.biggestDrop.username;
+    } else {
+      document.getElementById('recap-drop-name').textContent  = 'Keine Daten';
+      document.getElementById('recap-drop-value').textContent = '—';
+    }
+
+    document.getElementById('recap-empty').classList.add('hidden');
+    document.getElementById('recap-preview').classList.remove('hidden');
+  } catch (err) {
+    showToast('Fehler: ' + err.message, 'error');
+  }
+}
+
+async function renderRecapCanvas() {
+  const el = document.getElementById('recap-card');
+  return await html2canvas(el, { backgroundColor: '#05080c', scale: 2 });
+}
+
+async function downloadRecap() {
+  try {
+    const canvas = await renderRecapCanvas();
+    const link = document.createElement('a');
+    link.download = `loot-recap_${recapData.from}_${recapData.to}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    showToast('Fehler beim Export: ' + err.message, 'error');
+  }
+}
+
+async function copyRecap() {
+  try {
+    const canvas = await renderRecapCanvas();
+    canvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('Recap-Karte in Zwischenablage kopiert', 'success');
+      } catch (err) {
+        showToast('Kopieren nicht möglich — bitte Download nutzen', 'error');
+      }
+    }, 'image/png');
+  } catch (err) {
+    showToast('Fehler beim Export: ' + err.message, 'error');
+  }
 }
 
 // ─── Turnier-Modus ────────────────────────────────────────────────────────────

@@ -16,6 +16,58 @@ router.get('/analytics', (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// GET /api/admin/recap?from=YYYY-MM-DD&to=YYYY-MM-DD
+// Aggregierte Stats für die Recap-Karte (frei wählbarer Zeitraum)
+router.get('/recap', (req, res) => {
+    try {
+        const { readLogs } = require('../../utils/analytics');
+        const { from, to } = req.query;
+        if (!from || !to) return res.status(400).json({ error: 'from und to sind erforderlich (YYYY-MM-DD)' });
+
+        const fromMs = new Date(from + 'T00:00:00').getTime();
+        const toMs   = new Date(to   + 'T23:59:59.999').getTime();
+        if (isNaN(fromMs) || isNaN(toMs)) return res.status(400).json({ error: 'Ungültiges Datum' });
+
+        const logs = readLogs(0).filter(l => l.cmd === '!loot' && l.ts >= fromMs && l.ts <= toMs);
+
+        const totalRaids = logs.length;
+        const survived   = logs.filter(l => l.survived === true).length;
+        const died       = logs.filter(l => l.survived === false).length;
+        const survivalRate = totalRaids > 0 ? Math.round((survived / totalRaids) * 100) : 0;
+
+        // Top Looter — Summe der geloggten Item-Werte pro User
+        const valueByUser = {};
+        for (const l of logs) {
+            if (l.itemValue) valueByUser[l.user] = (valueByUser[l.user] || 0) + l.itemValue;
+        }
+        const topLooterEntry = Object.entries(valueByUser).sort((a, b) => b[1] - a[1])[0];
+        const topLooter = topLooterEntry ? { username: topLooterEntry[0], value: topLooterEntry[1] } : null;
+
+        // Wertvollster Einzeldrop
+        let biggestDrop = null;
+        for (const l of logs) {
+            if (l.itemValue && (!biggestDrop || l.itemValue > biggestDrop.value)) {
+                biggestDrop = { username: l.user, itemName: l.itemName, value: l.itemValue };
+            }
+        }
+
+        // Beliebteste Map
+        const mapCounts = {};
+        for (const l of logs) {
+            if (l.map) mapCounts[l.map] = (mapCounts[l.map] || 0) + 1;
+        }
+        const topMapEntry = Object.entries(mapCounts).sort((a, b) => b[1] - a[1])[0];
+        const topMap = topMapEntry ? { name: topMapEntry[0], count: topMapEntry[1] } : null;
+
+        // Server-Gesamtwert (Summe aller geloggten Item-Werte im Zeitraum)
+        const totalValue = logs.reduce((sum, l) => sum + (l.itemValue || 0), 0);
+
+        res.json({ from, to, totalRaids, survived, died, survivalRate, totalValue, topLooter, biggestDrop, topMap });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Turnier-Modus ────────────────────────────────────────────────────────────
 
 router.get('/tournament', (req, res) => {
