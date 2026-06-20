@@ -1,7 +1,7 @@
 <div class="h-full flex gap-4">
 
   <!-- LEFT: Player List -->
-  <div class="w-80 shrink-0 flex flex-col h-full">
+  <div class="w-80 shrink-0 flex flex-col h-full min-h-0">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold text-white tracking-wide uppercase">Spieler</h2>
       <span id="playerCount" class="text-xs font-mono text-slate-500 tabular-nums">— Gesamt</span>
@@ -13,11 +13,11 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div id="playerList" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
+    <div id="playerList" class="flex-1 min-h-0 overflow-y-auto space-y-1 pr-1"></div>
   </div>
 
   <!-- RIGHT: Player Detail -->
-  <div class="flex-1 h-full overflow-y-auto">
+  <div class="flex-1 h-full min-h-0 overflow-y-auto">
     <div id="playerEmpty" class="h-full flex flex-col items-center justify-center text-center">
       <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       <p class="text-slate-500 text-sm font-mono">Spieler auswählen</p>
