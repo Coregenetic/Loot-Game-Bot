@@ -1,49 +1,55 @@
-<div class="space-y-8">
+<div class="space-y-10">
 
   <!-- LIVE ÜBERSICHT -->
   <div>
-    <div class="flex items-center gap-3 mb-4">
+    <div class="flex items-center gap-3 mb-5">
       <div class="w-1 h-4 bg-emerald-500 rounded-full"></div>
       <h2 class="text-xs font-mono tracking-widest text-slate-300 uppercase">Live Übersicht</h2>
       <div class="flex-1 h-px bg-slate-800"></div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-      <div class="glass-card border-t-2 border-t-emerald-500 border-x border-b border-slate-700/50 rounded-2xl p-4">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Memory</div>
-        <div class="text-xl font-bold text-white mb-2" id="ov-memory">— MB</div>
-        <svg width="100%" height="24" viewBox="0 0 200 24" preserveAspectRatio="none">
-          <polyline id="ov-memory-line" points="0,20 200,20" fill="none" stroke="#10b981" stroke-width="1.5"/>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+
+      <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 50ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-60"></div>
+        <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Memory</div>
+        <div class="text-3xl font-bold text-white mb-3" id="ov-memory">— MB</div>
+        <svg width="100%" height="28" viewBox="0 0 200 28" preserveAspectRatio="none">
+          <polyline id="ov-memory-line" points="0,22 200,22" fill="none" stroke="#10b981" stroke-width="2"/>
         </svg>
       </div>
 
-      <div class="glass-card border-t-2 border-t-emerald-500 border-x border-b border-slate-700/50 rounded-2xl p-4">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Health Score</div>
-        <div class="flex items-center gap-2">
-          <div class="w-9 h-9 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center shrink-0">
-            <span class="text-emerald-400 text-xs font-bold font-mono" id="ov-health-score">—</span>
+      <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 100ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-60"></div>
+        <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Health Score</div>
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full border-2 border-emerald-500 bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <span class="text-emerald-400 text-sm font-bold font-mono" id="ov-health-score">—</span>
           </div>
-          <span class="text-emerald-400 text-[10px] font-mono" id="ov-health-label">Lädt...</span>
+          <span class="text-emerald-400 text-xs font-mono" id="ov-health-label">Lädt...</span>
         </div>
       </div>
 
-      <div class="glass-card border-t-2 border-t-amber-500 border-x border-b border-slate-700/50 rounded-2xl p-4">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Top Looter</div>
+      <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 150ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-300 opacity-60"></div>
+        <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Top Looter</div>
         <div class="flex items-center gap-2" id="ov-top-looter">
           <span class="text-xs text-slate-500 font-mono">Lädt...</span>
         </div>
       </div>
 
-      <div class="glass-card border-t-2 border-t-purple-500 border-x border-b border-slate-700/50 rounded-2xl p-4">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Raids heute</div>
-        <div class="text-xl font-bold text-white" id="ov-raids-today">—</div>
-        <div class="text-[10px] font-mono text-purple-400 mt-1" id="ov-raids-sub">—</div>
+      <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 200ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-purple-300 opacity-60"></div>
+        <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Raids gesamt</div>
+        <div class="text-3xl font-bold text-white" id="ov-raids-today">—</div>
+        <div class="text-[10px] font-mono text-purple-400 mt-2" id="ov-raids-sub">über alle Spieler</div>
       </div>
     </div>
 
-    <div class="glass-card border-t-2 border-t-blue-500 border-x border-b border-slate-700/50 rounded-2xl p-4">
-      <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-2">Live Activity Feed</div>
-      <div id="ov-activity-feed" class="flex flex-col gap-1.5">
+    <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 250ms;">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-60"></div>
+      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Live Activity Feed</div>
+      <div id="ov-activity-feed" class="flex flex-col gap-2">
         <span class="text-xs text-slate-500 font-mono">Lädt...</span>
       </div>
     </div>
@@ -51,60 +57,108 @@
 
   <!-- VERWALTUNG -->
   <div>
-    <div class="flex items-center gap-3 mb-4">
+    <div class="flex items-center gap-3 mb-5">
       <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
       <h2 class="text-xs font-mono tracking-widest text-slate-300 uppercase">Verwaltung</h2>
       <div class="flex-1 h-px bg-slate-800"></div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
 
-      <div onclick="navigateTo('dashboard')" class="nav-tile glass-card border-t-2 border-t-emerald-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-emerald-500/40 transition-colors">
-        <div class="text-xl mb-2">📊</div>
-        <div class="text-sm font-semibold text-white">Dashboard</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1">Übersicht & Stats</div>
+      <div onclick="navigateTo('dashboard')" class="animate-reveal group glass border border-slate-800/60 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)] relative overflow-hidden" style="animation-delay: 50ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Dashboard</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1">Übersicht & Stats</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-emerald-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('analytics')" class="nav-tile glass-card border-t-2 border-t-blue-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-blue-500/40 transition-colors">
-        <div class="text-xl mb-2">📈</div>
-        <div class="text-sm font-semibold text-white">Statistiken</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1">Command Analytics</div>
+      <div onclick="navigateTo('analytics')" class="animate-reveal group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden" style="animation-delay: 100ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Statistiken</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1">Command Analytics</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-blue-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('logs')" class="nav-tile glass-card border-t-2 border-t-purple-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-purple-500/40 transition-colors">
-        <div class="text-xl mb-2">📜</div>
-        <div class="text-sm font-semibold text-white">Bot Log</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1">Live Terminal</div>
+      <div onclick="navigateTo('logs')" class="animate-reveal group glass border border-slate-800/60 hover:border-purple-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(168,85,247,0.1)] relative overflow-hidden" style="animation-delay: 150ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-purple-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Bot Log</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1">Live Terminal</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-purple-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('cooldowns')" class="nav-tile glass-card border-t-2 border-t-amber-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-amber-500/40 transition-colors">
-        <div class="text-xl mb-2">⏱️</div>
-        <div class="text-sm font-semibold text-white">Cooldowns</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1" id="ov-cd-count">— aktiv</div>
+      <div onclick="navigateTo('cooldowns')" class="animate-reveal group glass border border-slate-800/60 hover:border-amber-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(245,158,11,0.1)] relative overflow-hidden" style="animation-delay: 200ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Cooldowns</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1" id="ov-cd-count">— aktiv</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-amber-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('players')" class="nav-tile glass-card border-t-2 border-t-emerald-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-emerald-500/40 transition-colors">
-        <div class="text-xl mb-2">👥</div>
-        <div class="text-sm font-semibold text-white">Spieler</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1" id="ov-player-count">— registriert</div>
+      <div onclick="navigateTo('players')" class="animate-reveal group glass border border-slate-800/60 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)] relative overflow-hidden" style="animation-delay: 250ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Spieler</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1" id="ov-player-count">— registriert</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-emerald-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('events')" class="nav-tile glass-card border-t-2 border-t-rose-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-rose-500/40 transition-colors">
-        <div class="text-xl mb-2">⚡</div>
-        <div class="text-sm font-semibold text-white">Live Events</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1" id="ov-events-status">— aktiv</div>
+      <div onclick="navigateTo('events')" class="animate-reveal group glass border border-slate-800/60 hover:border-rose-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(244,63,94,0.1)] relative overflow-hidden" style="animation-delay: 300ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-rose-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Live Events</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1" id="ov-events-status">— aktiv</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-rose-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('users')" class="nav-tile glass-card border-t-2 border-t-blue-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-blue-500/40 transition-colors">
-        <div class="text-xl mb-2">👤</div>
-        <div class="text-sm font-semibold text-white">Users</div>
-        <div class="text-[10px] font-mono text-slate-500 mt-1" id="ov-user-count">— Dashboard-User</div>
+      <div onclick="navigateTo('users')" class="animate-reveal group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden" style="animation-delay: 350ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Users</h3>
+        <p class="font-mono text-[10px] text-slate-500 flex-1" id="ov-user-count">— Dashboard-User</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-blue-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
-      <div onclick="navigateTo('server')" class="nav-tile glass-card border-t-2 border-t-rose-500 border-x border-b border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-rose-500/40 transition-colors">
-        <div class="text-xl mb-2">🔧</div>
-        <div class="text-sm font-semibold text-white">Server Control</div>
-        <div class="text-[10px] font-mono text-rose-400 mt-1">🔒 Geschützt</div>
+      <div onclick="navigateTo('server')" class="animate-reveal group glass border border-rose-900/40 hover:border-rose-500/60 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(244,63,94,0.15)] relative overflow-hidden" style="animation-delay: 400ms;">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-rose-300 opacity-70 group-hover:opacity-100 transition-opacity"></div>
+        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/20 transition-all mb-4">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Server Control</h3>
+        <p class="font-mono text-[10px] text-rose-400/80 flex-1">🔒 Passwortgeschützt</p>
+        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
+          <div class="text-rose-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
+        </div>
       </div>
 
     </div>
