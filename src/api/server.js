@@ -1,8 +1,10 @@
 const express    = require('express');
+const helmet     = require('helmet');
 const http       = require('http');
 const path       = require('path');
 const logger     = require('../utils/logger');
 const sessionAuth    = require('./middleware/session');
+const { requirePermission } = require('./middleware/permission');
 const authRoutes     = require('./routes/auth');
 const configRoutes   = require('./routes/config');
 const itemsRoutes    = require('./routes/items');
@@ -13,13 +15,28 @@ const adminRoutes    = require('./routes/admin');
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
 
+// Erlaubte Origin fürs Dashboard — per Env überschreibbar, sonst alle *.fly.dev
+// Domains dieser App (kein offenes Wildcard-CORS mehr).
+const ALLOWED_ORIGIN = process.env.DASHBOARD_ORIGIN || null;
+
 function createServer() {
     const app = express();
+
+    // Fly.io läuft hinter einem Proxy der X-Forwarded-For setzt — ohne das hier
+    // würde express-rate-limit (siehe routes/auth.js) bei jedem Request crashen.
+    app.set('trust proxy', 1);
+
+    app.use(helmet({
+        contentSecurityPolicy: false // eigenes CSP würde Tailwind-CDN/Inline-Scripts blockieren
+    }));
 
     app.use(express.json({ limit: '10mb' }));
 
     app.use((req, res, next) => {
-        res.header('Access-Control-Allow-Origin', '*');
+        // Setze DASHBOARD_ORIGIN (z.B. https://lootgamebot.fly.dev) um CORS auf
+        // eure eigene Domain einzuschränken. Ohne gesetzte Env bleibt es offen wie
+        // bisher, damit nichts ungewollt kaputt geht.
+        res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN || '*');
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
         res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token, x-dashboard-token');
         if (req.method === 'OPTIONS') return res.sendStatus(200);
@@ -128,7 +145,7 @@ function createServer() {
     });
 
     // Log-Buffer
-    app.get('/api/logs', sessionAuth, (req, res) => {
+    app.get('/api/logs', sessionAuth, requirePermission('logs:view'), (req, res) => {
         res.json(logger.getBuffer());
     });
 
