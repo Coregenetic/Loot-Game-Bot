@@ -27,7 +27,12 @@ router.get('/', (req, res) => {
             ...p,
             in_raid: !!p.in_raid,
             online: isOnline(p)
-        }));
+        })).sort((a, b) => {
+            if (a.online !== b.online) return a.online ? -1 : 1;
+            if (b.prestige !== a.prestige) return b.prestige - a.prestige;
+            if (b.level !== a.level) return b.level - a.level;
+            return b.stash_value - a.stash_value;
+        });
         res.json(enriched);
     } catch (err) {
         res.status(500).json({ error: err.message });
