@@ -28,7 +28,23 @@ function getItemsForMap(mapName) {
     });
 }
 
+function parseValue(v) {
+    if (typeof v === 'number') return v;
+    const s = String(v).replace(/[₽\s]/g, '').replace('Rubel', '').toLowerCase().trim();
+    if (s.endsWith('b')) return Math.round(parseFloat(s) * 1e9);
+    if (s.endsWith('m')) return Math.round(parseFloat(s) * 1e6);
+    if (s.endsWith('k')) return Math.round(parseFloat(s) * 1e3);
+    return parseInt(s) || 0;
+}
+
 function upsertItem(name, data) {
+    const value   = parseValue(data.value);
+    const newText = data.text || '';
+
+    // Alten Text-Wert holen bevor wir überschreiben (für Inventar-Sync)
+    const existing = all(`SELECT text FROM items WHERE name = ?`, [name]);
+    const oldText  = existing.length ? existing[0].text : null;
+
     run(
         `INSERT INTO items (name, text, value, map, icon, is_kappa)
          VALUES (?, ?, ?, ?, ?, ?)
@@ -36,15 +52,24 @@ function upsertItem(name, data) {
              text = ?, value = ?, map = ?, icon = ?, is_kappa = ?`,
         [
             name,
-            data.text || '', data.value || 0,
+            newText, value,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
             data.icon || '', data.isKappa ? 1 : 0,
-            data.text || '', data.value || 0,
+            newText, value,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
             data.icon || '', data.isKappa ? 1 : 0
         ]
     );
     cache.invalidate(cache.KEYS.ITEMS);
+
+    // Inventar aller Spieler aktualisieren — neuer Wert UND ggf. neuer Name
+    const matchText = oldText || newText;
+    if (matchText) {
+        run(
+            `UPDATE inventory SET value = ?, item_name = ? WHERE lower(item_name) = lower(?)`,
+            [value, newText, matchText]
+        );
+    }
 }
 
 function deleteItem(name) {
