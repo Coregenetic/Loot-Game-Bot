@@ -655,6 +655,36 @@
           </div>
         </div>
 
+        <!-- Item zum Spielerinventar hinzufügen -->
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Item zu Spieler hinzufügen</h3>
+          <p class="text-xs font-mono text-slate-500 mb-4">Item manuell ins Inventar eines Spielers legen</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_100px_auto] gap-2 mb-3">
+            <input id="giveUsername" type="text" placeholder="Spieler-Username"
+              class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+
+            <div class="relative">
+              <input id="giveItemSearch" type="text" placeholder="Item suchen..." autocomplete="off"
+                oninput="filterGiveItems(this.value)"
+                onfocus="filterGiveItems(this.value)"
+                class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-full focus:border-emerald-500 outline-none">
+              <div id="giveItemDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg max-h-56 overflow-y-auto shadow-xl"></div>
+            </div>
+
+            <input id="giveCount" type="number" value="1" min="1" placeholder="Menge"
+              class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+
+            <button onclick="giveItemToPlayer()"
+              class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono whitespace-nowrap transition-colors">
+              + Hinzufügen
+            </button>
+          </div>
+
+          <div id="giveItemSelected" class="hidden text-xs font-mono text-slate-400 mb-2"></div>
+          <div id="giveItemResult" class="text-xs font-mono min-h-[16px]"></div>
+        </div>
+
       </div>
     </div>
 
@@ -1352,6 +1382,101 @@ async function clearUserCD_player() {
     });
     showToast('CD von ' + selectedPlayer.username + ' gelöscht', 'success');
   } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+// ─── Item zu Spieler geben ────────────────────────────────────────────────────
+let allItemsCache  = [];
+let selectedGiveItem = null;
+
+async function loadAllItemsCache() {
+  if (allItemsCache.length) return allItemsCache;
+  try {
+    const items = await apiCall('/api/items');
+    allItemsCache = Object.entries(items).map(([name, data]) => ({
+      name, value: data.value || 0
+    }));
+  } catch {}
+  return allItemsCache;
+}
+
+async function filterGiveItems(query) {
+  await loadAllItemsCache();
+  const dropdown = document.getElementById('giveItemDropdown');
+  selectedGiveItem = null;
+
+  if (!query || query.length < 1) {
+    dropdown.classList.add('hidden');
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const matches = allItemsCache.filter(i => i.name.toLowerCase().includes(q)).slice(0, 30);
+
+  if (!matches.length) {
+    dropdown.innerHTML = '<div class="px-3 py-2 text-xs font-mono text-slate-500">Keine Treffer</div>';
+    dropdown.classList.remove('hidden');
+    return;
+  }
+
+  dropdown.innerHTML = matches.map(item => `
+    <div class="px-3 py-2 flex items-center justify-between border-b border-slate-800 last:border-0 cursor-pointer hover:bg-slate-800/60 transition-colors"
+      onclick="selectGiveItem('${item.name.replace(/'/g,"\\'")}', ${item.value})">
+      <span class="text-sm text-white">${item.name}</span>
+      <span class="text-xs font-mono text-amber-400">${formatVal(item.value)}</span>
+    </div>
+  `).join('');
+  dropdown.classList.remove('hidden');
+}
+
+function selectGiveItem(name, value) {
+  selectedGiveItem = { name, value };
+  document.getElementById('giveItemSearch').value = name;
+  document.getElementById('giveItemDropdown').classList.add('hidden');
+  const selEl = document.getElementById('giveItemSelected');
+  selEl.textContent = `✓ Ausgewählt: ${name} (${formatVal(value)})`;
+  selEl.className = 'text-xs font-mono text-emerald-400 mb-2';
+  selEl.classList.remove('hidden');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#giveItemSearch') && !e.target.closest('#giveItemDropdown')) {
+    document.getElementById('giveItemDropdown')?.classList.add('hidden');
+  }
+});
+
+async function giveItemToPlayer() {
+  if (!serverPw) return;
+  const username = document.getElementById('giveUsername').value.trim();
+  const count    = parseInt(document.getElementById('giveCount').value) || 1;
+  const resultEl = document.getElementById('giveItemResult');
+
+  if (!username) { resultEl.textContent = '⚠ Bitte Username angeben'; resultEl.className = 'text-xs font-mono text-amber-400'; return; }
+  if (!selectedGiveItem) { resultEl.textContent = '⚠ Bitte Item aus der Liste auswählen'; resultEl.className = 'text-xs font-mono text-amber-400'; return; }
+
+  try {
+    const res = await fetch('/api/admin/give-item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw, username, itemName: selectedGiveItem.name, count })
+    });
+    const data = await res.json();
+    if (data.success) {
+      resultEl.textContent = `✓ ${count}x "${data.itemName}" an ${username} übergeben`;
+      resultEl.className = 'text-xs font-mono text-emerald-400';
+      showToast(`✓ Item an ${username} übergeben`, 'success');
+      document.getElementById('giveUsername').value = '';
+      document.getElementById('giveItemSearch').value = '';
+      document.getElementById('giveCount').value = '1';
+      document.getElementById('giveItemSelected').classList.add('hidden');
+      selectedGiveItem = null;
+    } else {
+      resultEl.textContent = '✗ ' + (data.error || 'Fehler');
+      resultEl.className = 'text-xs font-mono text-rose-400';
+    }
+  } catch (err) {
+    resultEl.textContent = '✗ ' + err.message;
+    resultEl.className = 'text-xs font-mono text-rose-400';
+  }
 }
 
 // ─── Command Control ──────────────────────────────────────────────────────────

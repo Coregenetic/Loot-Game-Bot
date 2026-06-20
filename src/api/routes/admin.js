@@ -77,7 +77,30 @@ router.get('/machine', (req, res) => {
     }
 });
 
-// ─── Command Control ──────────────────────────────────────────────────────────
+// ─── Item zu Spieler geben ────────────────────────────────────────────────────
+
+router.post('/give-item', async (req, res) => {
+    try {
+        const { password, username, itemName, count } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        if (!username || !itemName) return res.status(400).json({ error: 'Username und Item erforderlich' });
+
+        const { getOrCreatePlayer, addOrUpdateInventoryItem } = require('../../db/players');
+        const { getAllItems } = require('../../db/items');
+
+        const items = getAllItems();
+        const item  = items.find(i => (i.text || i.name).toLowerCase() === itemName.toLowerCase());
+        if (!item) return res.status(404).json({ error: 'Item nicht in der Datenbank gefunden' });
+
+        const player = await getOrCreatePlayer(username);
+        const qty    = Math.max(1, parseInt(count) || 1);
+        addOrUpdateInventoryItem(player.id, item.text || item.name, qty, item.value || 0);
+
+        res.json({ success: true, username, itemName: item.text || item.name, count: qty });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // ─── Command Control ──────────────────────────────────────────────────────────
 
