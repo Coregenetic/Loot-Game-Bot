@@ -5,9 +5,11 @@ const { getPlayer, getOrCreatePlayer, updatePlayer,
         clearInventory, addOrUpdateInventoryItem,
         isOnline } = require('../../db/players');
 const { all } = require('../../db/schema');
+const { requirePermission } = require('../middleware/permission');
+const { logAudit } = require('../../db/audit');
 
 // GET /api/players — alle Spieler
-router.get('/', (req, res) => {
+router.get('/', requirePermission('players:view'), (req, res) => {
     try {
         const players = all(`
             SELECT p.id, p.username, p.level, p.xp, p.prestige, p.has_kappa,
@@ -40,7 +42,7 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/players/:username
-router.get('/:username', (req, res) => {
+router.get('/:username', requirePermission('players:view'), (req, res) => {
     try {
         const player = getPlayer(req.params.username);
         if (!player) return res.status(404).json({ error: 'Player not found' });
@@ -59,7 +61,7 @@ router.get('/:username', (req, res) => {
 });
 
 // PATCH /api/players/:username — Stats setzen, Spieler wird angelegt wenn nicht vorhanden
-router.patch('/:username', async (req, res) => {
+router.patch('/:username', requirePermission('players:manage'), async (req, res) => {
     try {
         // Spieler anlegen falls nicht vorhanden
         await getOrCreatePlayer(req.params.username);
@@ -73,6 +75,7 @@ router.patch('/:username', async (req, res) => {
             if (req.body[key] !== undefined) updates[key] = req.body[key];
         }
         if (Object.keys(updates).length) updatePlayer(req.params.username, updates);
+        logAudit(req.session.username, 'player_patch', { username: req.params.username, updates });
         res.json({ success: true, username: req.params.username, updates });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -80,7 +83,7 @@ router.patch('/:username', async (req, res) => {
 });
 
 // PUT /api/players/:username/inventory — Inventar komplett ersetzen
-router.put('/:username/inventory', async (req, res) => {
+router.put('/:username/inventory', requirePermission('players:manage'), async (req, res) => {
     try {
         await getOrCreatePlayer(req.params.username);
         const player = getPlayer(req.params.username);
@@ -109,7 +112,7 @@ router.put('/:username/inventory', async (req, res) => {
 });
 
 // GET /api/players/leaderboard/top
-router.get('/leaderboard/top', (req, res) => {
+router.get('/leaderboard/top', requirePermission('players:view'), (req, res) => {
     try {
         const limit   = parseInt(req.query.limit) || 5;
         const players = getLeaderboard(limit);

@@ -191,21 +191,71 @@ async function initDashboardUsers() {
     const db = await getDb();
     db.run(`
         CREATE TABLE IF NOT EXISTS dashboard_users (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            username     TEXT NOT NULL UNIQUE COLLATE NOCASE,
-            password_hash TEXT NOT NULL,
-            created_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
-            updated_at   INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            username        TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            password_hash   TEXT NOT NULL,
+            role            TEXT NOT NULL DEFAULT 'mod',
+            failed_attempts INTEGER NOT NULL DEFAULT 0,
+            locked_until    INTEGER NOT NULL DEFAULT 0,
+            created_at      INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+            updated_at      INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
 
         CREATE TABLE IF NOT EXISTS dashboard_sessions (
-            token      TEXT PRIMARY KEY,
+            token_hash TEXT PRIMARY KEY,
             user_id    INTEGER NOT NULL REFERENCES dashboard_users(id) ON DELETE CASCADE,
             username   TEXT NOT NULL,
             expires_at INTEGER NOT NULL,
             created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
+
+        CREATE TABLE IF NOT EXISTS role_permissions (
+            role        TEXT PRIMARY KEY,
+            permissions TEXT NOT NULL DEFAULT '[]',
+            updated_at  INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            action   TEXT NOT NULL,
+            details  TEXT,
+            ts       INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts);
     `);
+
+    // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte
+    const userCols = db.exec(`PRAGMA table_info(dashboard_users)`);
+    const userColNames = userCols.length > 0 ? userCols[0].values.map(r => r[1]) : [];
+    if (!userColNames.includes('role')) {
+        db.run(`ALTER TABLE dashboard_users ADD COLUMN role TEXT NOT NULL DEFAULT 'mod'`);
+        console.log('[DB] Migration: role Spalte zu dashboard_users hinzugefügt.');
+    }
+    if (!userColNames.includes('failed_attempts')) {
+        db.run(`ALTER TABLE dashboard_users ADD COLUMN failed_attempts INTEGER NOT NULL DEFAULT 0`);
+        db.run(`ALTER TABLE dashboard_users ADD COLUMN locked_until INTEGER NOT NULL DEFAULT 0`);
+        console.log('[DB] Migration: Lockout-Spalten zu dashboard_users hinzugefügt.');
+    }
+
+    // Migration: dashboard_sessions auf gehashte Tokens umstellen (Sicherheits-Upgrade).
+    // Bricht bewusst alle aktiven Sessions einmalig — danach einmal neu einloggen.
+    const sessCols = db.exec(`PRAGMA table_info(dashboard_sessions)`);
+    const sessColNames = sessCols.length > 0 ? sessCols[0].values.map(r => r[1]) : [];
+    if (sessCols.length > 0 && !sessColNames.includes('token_hash')) {
+        db.run(`DROP TABLE dashboard_sessions`);
+        db.run(`
+            CREATE TABLE dashboard_sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id    INTEGER NOT NULL REFERENCES dashboard_users(id) ON DELETE CASCADE,
+                username   TEXT NOT NULL,
+                expires_at INTEGER NOT NULL,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+            );
+        `);
+        console.log('[DB] Migration: dashboard_sessions auf gehashte Tokens umgestellt (alle Sessions wurden zurückgesetzt).');
+    }
+
     saveDb();
 }
 

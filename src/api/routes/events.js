@@ -1,6 +1,10 @@
 const express = require('express');
 const router  = express.Router();
 const { getActiveEvents, setConfig } = require('../../db/config');
+const { requirePermission } = require('../middleware/permission');
+const { logAudit } = require('../../db/audit');
+
+router.use(requirePermission('events:manage'));
 
 // GET /api/events
 router.get('/', (req, res) => {
@@ -23,6 +27,7 @@ router.put('/forcedmap', (req, res) => {
         events.ForcedMap = { MapName: mapName || '', ExpiresAt: expiresAt };
         setConfig('ActiveEvents', events);
 
+        logAudit(req.session.username, 'event_forcedmap', events.ForcedMap);
         res.json({ success: true, event: events.ForcedMap });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -41,6 +46,7 @@ router.put('/doubleloot', (req, res) => {
         events.DoubleLootOverride = { Chance: chance || 0, ExpiresAt: expiresAt };
         setConfig('ActiveEvents', events);
 
+        logAudit(req.session.username, 'event_doubleloot', events.DoubleLootOverride);
         res.json({ success: true, event: events.DoubleLootOverride });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -59,6 +65,7 @@ router.put('/xpboost', (req, res) => {
         events.XPBoost = { Multiplier: multiplier || 1, ExpiresAt: expiresAt };
         setConfig('ActiveEvents', events);
 
+        logAudit(req.session.username, 'event_xpboost', events.XPBoost);
         res.json({ success: true, event: events.XPBoost });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -76,6 +83,7 @@ router.delete('/:type', (req, res) => {
         if (type === 'xpboost')     events.XPBoost            = { Multiplier: 1, ExpiresAt: 0 };
 
         setConfig('ActiveEvents', events);
+        logAudit(req.session.username, 'event_disable', { type });
         res.json({ success: true, type });
     } catch (err) {
         res.status(500).json({ error: err.message });

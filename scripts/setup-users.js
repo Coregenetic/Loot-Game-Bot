@@ -24,12 +24,12 @@ async function main() {
     await initDashboardUsers();
 
     const users = [
-        { label: 'Admin (du)', defaultName: 'coregenetic' },
-        { label: 'Gunny',      defaultName: 'gunny' }
+        { label: 'Superadmin (du)', defaultName: 'coregenetic', role: 'superadmin' },
+        { label: 'Gunny (Admin)',   defaultName: 'gunny',        role: 'admin' }
     ];
 
     for (const u of users) {
-        console.log(`\n--- ${u.label} ---`);
+        console.log(`\n--- ${u.label} — Rolle: ${u.role} ---`);
         const username = (await ask(`  Username [${u.defaultName}]: `)).trim() || u.defaultName;
 
         if (userExists(username)) {
@@ -41,13 +41,13 @@ async function main() {
         }
 
         let password = '';
-        while (password.length < 6) {
-            password = (await ask(`  Passwort (min. 6 Zeichen): `)).trim();
-            if (password.length < 6) console.log('  Zu kurz, bitte nochmal.');
+        while (password.length < 10) {
+            password = (await ask(`  Passwort (min. 10 Zeichen): `)).trim();
+            if (password.length < 10) console.log('  Zu kurz, bitte nochmal.');
         }
 
-        await createUser(username, password);
-        console.log(`  ✓ Benutzer "${username}" angelegt.`);
+        await createUser(username, password, u.role);
+        console.log(`  ✓ Benutzer "${username}" angelegt (Rolle: ${u.role}).`);
     }
 
     console.log('\n✓ Setup abgeschlossen. Starte den Bot mit: npm start\n');

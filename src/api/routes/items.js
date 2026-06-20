@@ -1,6 +1,10 @@
 const express = require('express');
 const router  = express.Router();
 const { getAllItems, upsertItem, deleteItem } = require('../../db/items');
+const { requirePermission } = require('../middleware/permission');
+const { logAudit } = require('../../db/audit');
+
+router.use(requirePermission('items:manage'));
 
 // GET /api/items
 router.get('/', (req, res) => {
@@ -28,6 +32,7 @@ router.put('/:name', (req, res) => {
     try {
         const name = decodeURIComponent(req.params.name);
         upsertItem(name, req.body);
+        logAudit(req.session.username, 'item_upsert', { name });
         res.json({ success: true, name });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -39,6 +44,7 @@ router.delete('/:name', (req, res) => {
     try {
         const name = decodeURIComponent(req.params.name);
         deleteItem(name);
+        logAudit(req.session.username, 'item_delete', { name });
         res.json({ success: true, name });
     } catch (err) {
         res.status(500).json({ error: err.message });
