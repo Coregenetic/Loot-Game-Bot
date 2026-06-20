@@ -1,21 +1,58 @@
 require('dotenv').config();
 
+const fs     = require('fs');
 const logger = require('./utils/logger');
-const { initSchema, initDashboardUsers, initMessages } = require('./db/schema');
+const { initSchema, initDashboardUsers, initMessages, all } = require('./db/schema');
 const { getUserCount } = require('./db/users');
 const { createBot }    = require('./bot');
 const { startServer }  = require('./api/server');
+const { DB_PATH, listBackups, restoreBackup, createBackup } = require('./utils/backup');
 
 async function main() {
     logger.info('BOOT', '╔══════════════════════════════════════╗');
     logger.info('BOOT', '║   Loot-Game Bot v2.0 by Coregenetic  ║');
     logger.info('BOOT', '╚══════════════════════════════════════╝');
 
+    // Prüfen ob DB-Datei fehlt — vor initSchema, da das sonst eine leere DB anlegt
+    const dbMissing = !fs.existsSync(DB_PATH);
+    if (dbMissing) {
+        logger.warn('BOOT', 'Keine Datenbank-Datei gefunden — prüfe auf Backups...');
+        const backups = listBackups();
+        if (backups.length > 0) {
+            try {
+                restoreBackup(backups[0].filename);
+                logger.info('BOOT', `Neuestes Backup automatisch wiederherstellt: ${backups[0].filename}`);
+            } catch (err) {
+                logger.error('BOOT', `Auto-Restore fehlgeschlagen: ${err.message}`);
+            }
+        } else {
+            logger.warn('BOOT', 'Keine Backups vorhanden — starte mit leerer Datenbank.');
+        }
+    }
+
     logger.info('BOOT', 'Initialisiere Datenbank...');
     await initSchema();
     await initDashboardUsers();
     await initMessages();
     logger.info('BOOT', 'Datenbank bereit.');
+
+    // Zusätzlicher Check: DB existierte, aber Items-Tabelle ist komplett leer
+    // (z.B. bei beschädigter/zurückgesetzter DB) — dann ebenfalls Backup laden
+    if (!dbMissing) {
+        try {
+            const items = all(`SELECT COUNT(*) as count FROM items`);
+            if (items[0]?.count === 0) {
+                logger.warn('BOOT', 'Items-Tabelle ist leer — prüfe auf Backups...');
+                const backups = listBackups();
+                if (backups.length > 0) {
+                    restoreBackup(backups[0].filename);
+                    logger.info('BOOT', `Backup wiederherstellt: ${backups[0].filename} — bitte Server manuell neu starten.`);
+                }
+            }
+        } catch (err) {
+            logger.error('BOOT', `Leer-Check fehlgeschlagen: ${err.message}`);
+        }
+    }
 
     const userCount = getUserCount();
     if (userCount === 0) {
@@ -35,7 +72,6 @@ async function main() {
     logger.info('BOOT', 'Bereit für Commands.');
 
     // Automatisches Backup alle 6 Stunden
-    const { createBackup } = require('./utils/backup');
     setInterval(() => {
         try {
             const backup = createBackup('auto');
