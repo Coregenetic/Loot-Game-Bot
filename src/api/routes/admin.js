@@ -77,6 +77,54 @@ router.get('/machine', (req, res) => {
     }
 });
 
+// ─── Backups ──────────────────────────────────────────────────────────────────
+
+router.get('/backups', (req, res) => {
+    try {
+        const { listBackups } = require('../../utils/backup');
+        res.json(listBackups());
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/backups/create', (req, res) => {
+    try {
+        const { password } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        const { createBackup } = require('../../utils/backup');
+        const backup = createBackup('manual');
+        res.json({ success: true, backup });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.post('/backups/restore', (req, res) => {
+    try {
+        const { password, filename } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        if (!filename) return res.status(400).json({ error: 'Dateiname erforderlich' });
+        const { restoreBackup } = require('../../utils/backup');
+        restoreBackup(filename);
+        res.json({ success: true, message: 'Backup wiederherstellt. Server-Neustart empfohlen damit die Änderungen greifen.' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.delete('/backups/:filename', (req, res) => {
+    try {
+        const { password } = req.body;
+        if (password !== SERVER_CONTROL_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        const { deleteBackup } = require('../../utils/backup');
+        deleteBackup(req.params.filename);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.get('/backups/:filename/download', (req, res) => {
+    try {
+        const { getBackupPath } = require('../../utils/backup');
+        const filepath = getBackupPath(req.params.filename);
+        res.download(filepath, req.params.filename);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ─── Item zu Spieler geben ────────────────────────────────────────────────────
 
 router.post('/give-item', async (req, res) => {

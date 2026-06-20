@@ -655,6 +655,20 @@
           </div>
         </div>
 
+        <!-- Backups -->
+        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+          <div class="flex items-center justify-between mb-1">
+            <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Datenbank-Backups</h3>
+            <button onclick="createManualBackup()" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono transition-colors">
+              + Backup jetzt erstellen
+            </button>
+          </div>
+          <p class="text-xs font-mono text-slate-500 mb-4">Automatisch alle 6 Stunden · max. 20 Backups werden behalten</p>
+          <div id="backupList" class="space-y-2">
+            <p class="text-xs font-mono text-slate-500">Lade Backups...</p>
+          </div>
+        </div>
+
         <!-- Item zum Spielerinventar hinzufügen -->
         <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
           <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Item zu Spieler hinzufügen</h3>
@@ -1188,6 +1202,7 @@ async function unlockServerControl() {
       loadMachineInfo();
       loadMaintenance();
       loadTournament();
+      loadBackups();
       showToast('✓ Server Control entsperrt', 'success');
     } else { 
       msg.textContent='✗ '+d.error; 
@@ -1381,6 +1396,109 @@ async function clearUserCD_player() {
       headers: { 'x-session-token': LootGameAPI.getToken() }
     });
     showToast('CD von ' + selectedPlayer.username + ' gelöscht', 'success');
+  } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+// ─── Backups ──────────────────────────────────────────────────────────────────
+async function loadBackups() {
+  try {
+    const backups = await apiCall('/api/admin/backups');
+    const el = document.getElementById('backupList');
+    if (!backups.length) {
+      el.innerHTML = '<p class="text-xs font-mono text-slate-500">Noch keine Backups vorhanden</p>';
+      return;
+    }
+    el.innerHTML = backups.map(b => {
+      const date = new Date(b.createdAt).toLocaleString('de-DE');
+      const sizeKb = Math.round(b.size / 1024);
+      const labelMatch = b.filename.match(/_([a-z-]+)\.db$/);
+      const label = labelMatch ? labelMatch[1] : 'unknown';
+      const labelColors = {
+        auto: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+        manual: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        startup: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+        'before-restore': 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+      };
+      const labelClass = labelColors[label] || 'text-slate-400 bg-slate-800 border-slate-700';
+
+      return `
+        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-mono px-2 py-0.5 rounded border ${labelClass}">${label}</span>
+            <div>
+              <div class="text-sm font-mono text-white">${date}</div>
+              <div class="text-xs font-mono text-slate-500">${sizeKb} KB</div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="downloadBackup('${b.filename}')" class="px-3 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono transition-colors">↓ Download</button>
+            <button onclick="restoreBackupConfirm('${b.filename}')" class="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-mono transition-colors">↺ Wiederherstellen</button>
+            <button onclick="deleteBackupConfirm('${b.filename}')" class="px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    document.getElementById('backupList').innerHTML = '<p class="text-xs font-mono text-rose-400">Fehler: ' + err.message + '</p>';
+  }
+}
+
+async function createManualBackup() {
+  if (!serverPw) return;
+  try {
+    const res = await fetch('/api/admin/backups/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✓ Backup erstellt', 'success');
+      loadBackups();
+    } else {
+      showToast('✗ ' + (data.error || 'Fehler'), 'error');
+    }
+  } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+function downloadBackup(filename) {
+  window.open('/api/admin/backups/' + filename + '/download', '_blank');
+}
+
+async function restoreBackupConfirm(filename) {
+  if (!serverPw) return;
+  if (!confirm(`Backup "${filename}" wiederherstellen?\n\nALLE aktuellen Daten werden überschrieben! Ein Sicherheits-Backup wird automatisch vorher erstellt.\n\nDer Server muss danach neu gestartet werden.`)) return;
+  try {
+    const res = await fetch('/api/admin/backups/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw, filename })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✓ Backup wiederherstellt — bitte Server neu starten', 'success');
+      loadBackups();
+    } else {
+      showToast('✗ ' + (data.error || 'Fehler'), 'error');
+    }
+  } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+}
+
+async function deleteBackupConfirm(filename) {
+  if (!serverPw) return;
+  if (!confirm(`Backup "${filename}" löschen?`)) return;
+  try {
+    const res = await fetch('/api/admin/backups/' + filename, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ password: serverPw })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('✓ Backup gelöscht', 'success');
+      loadBackups();
+    } else {
+      showToast('✗ ' + (data.error || 'Fehler'), 'error');
+    }
   } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
 }
 

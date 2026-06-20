@@ -33,6 +33,25 @@ async function main() {
     const channels = process.env.TWITCH_CHANNEL || '';
     logger.bot('BOOT', `Bot verbunden — läuft in #${channels}`);
     logger.info('BOOT', 'Bereit für Commands.');
+
+    // Automatisches Backup alle 6 Stunden
+    const { createBackup } = require('./utils/backup');
+    setInterval(() => {
+        try {
+            const backup = createBackup('auto');
+            logger.info('BACKUP', `Automatisches Backup erstellt: ${backup.filename}`);
+        } catch (err) {
+            logger.error('BACKUP', `Backup fehlgeschlagen: ${err.message}`);
+        }
+    }, 6 * 60 * 60 * 1000);
+
+    // Erstes Backup direkt beim Start
+    try {
+        const backup = createBackup('startup');
+        logger.info('BACKUP', `Start-Backup erstellt: ${backup.filename}`);
+    } catch (err) {
+        logger.error('BACKUP', `Start-Backup fehlgeschlagen: ${err.message}`);
+    }
 }
 
 main().catch(err => {
