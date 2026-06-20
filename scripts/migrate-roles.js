@@ -10,8 +10,8 @@ const { initSchema, initDashboardUsers } = require('../src/db/schema');
 const { userExists, setUserRole } = require('../src/db/users');
 
 const ASSIGNMENTS = [
-    { username: 'coregenetic', role: 'superadmin' },
-    { username: 'gunny',       role: 'admin' }
+    { username: 'core',  role: 'superadmin' },
+    { username: 'gunny', role: 'admin' }
 ];
 
 async function main() {
