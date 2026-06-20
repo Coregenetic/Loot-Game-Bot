@@ -142,7 +142,7 @@ router.post('/give-item', async (req, res) => {
 
         const player = await getOrCreatePlayer(username);
         const qty    = Math.max(1, parseInt(count) || 1);
-        addOrUpdateInventoryItem(player.id, item.text || item.name, qty, item.value || 0);
+        addOrUpdateInventoryItem(player.id, item.text || item.name, qty, item.value || 0, item.name);
 
         res.json({ success: true, username, itemName: item.text || item.name, count: qty });
     } catch (err) {

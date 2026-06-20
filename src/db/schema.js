@@ -93,6 +93,7 @@ async function initSchema() {
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             player_id   INTEGER NOT NULL,
             item_name   TEXT    NOT NULL,
+            item_key    TEXT,
             count       INTEGER NOT NULL DEFAULT 1,
             value       INTEGER NOT NULL DEFAULT 0,
             UNIQUE(player_id, item_name),
@@ -142,6 +143,18 @@ async function initSchema() {
         CREATE INDEX IF NOT EXISTS idx_cooldowns_expires ON cooldowns(expires_at);
         CREATE INDEX IF NOT EXISTS idx_items_kappa       ON items(is_kappa);
     `);
+
+    // Migration: item_key Spalte nachrüsten falls Tabelle bereits existierte
+    try {
+        const cols = db.exec(`PRAGMA table_info(inventory)`);
+        const hasItemKey = cols.length > 0 && cols[0].values.some(row => row[1] === 'item_key');
+        if (!hasItemKey) {
+            db.run(`ALTER TABLE inventory ADD COLUMN item_key TEXT`);
+            console.log('[DB] Migration: item_key Spalte zur inventory Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (item_key):', err.message);
+    }
 
     saveDb();
     console.log('[DB] Schema initialisiert.');

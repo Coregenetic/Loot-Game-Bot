@@ -10,11 +10,12 @@ function getPlayer(username) {
 }
 
 async function getOrCreatePlayer(username) {
+    const db = require('./schema');
     const existing = getPlayer(username);
     if (existing) return existing;
 
     run(
-        `INSERT OR IGNORE INTO players (username) VALUES (?)`,
+        `INSERT OR IGNORE INTO players (username, level, xp, prestige, has_kappa, raids_total, raids_survived, raids_died) VALUES (?, 1, 0, 0, 0, 0, 0, 0)`,
         [username.toLowerCase()]
     );
 
@@ -42,14 +43,15 @@ function getInventory(playerId) {
     );
 }
 
-function addOrUpdateInventoryItem(playerId, itemName, count, value) {
+function addOrUpdateInventoryItem(playerId, itemName, count, value, itemKey = null) {
     run(
-        `INSERT INTO inventory (player_id, item_name, count, value)
-         VALUES (?, ?, ?, ?)
+        `INSERT INTO inventory (player_id, item_name, item_key, count, value)
+         VALUES (?, ?, ?, ?, ?)
          ON CONFLICT(player_id, item_name) DO UPDATE SET
              count = count + ?,
-             value = ?`,
-        [playerId, itemName, count, value, count, value]
+             value = ?,
+             item_key = COALESCE(?, item_key)`,
+        [playerId, itemName, itemKey, count, value, count, value, itemKey]
     );
 }
 

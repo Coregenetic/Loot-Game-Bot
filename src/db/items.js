@@ -59,7 +59,7 @@ function upsertItem(name, data) {
     const value   = parseValue(data.value);
     const newText = data.text || '';
 
-    // Alten Text-Wert holen bevor wir überschreiben (für Inventar-Sync)
+    // Alten Text-Wert holen bevor wir überschreiben (Fallback für alte Inventory-Einträge ohne item_key)
     const existing = all(`SELECT text FROM items WHERE name = ?`, [name]);
     const oldText  = existing.length ? existing[0].text : null;
 
@@ -80,12 +80,20 @@ function upsertItem(name, data) {
     );
     cache.invalidate(cache.KEYS.ITEMS);
 
-    // Inventar aller Spieler aktualisieren — neuer Wert UND ggf. neuer Name
+    // Primär: Über stabilen item_key matchen (robust gegen Text-Änderungen)
+    run(
+        `UPDATE inventory SET value = ?, item_name = ? WHERE item_key = ?`,
+        [value, newText, name]
+    );
+
+    // Fallback: Alte Inventory-Einträge ohne item_key über den alten Text matchen
+    // und dabei gleich den item_key nachtragen
     const matchText = oldText || newText;
     if (matchText) {
         run(
-            `UPDATE inventory SET value = ?, item_name = ? WHERE lower(item_name) = lower(?)`,
-            [value, newText, matchText]
+            `UPDATE inventory SET value = ?, item_name = ?, item_key = ?
+             WHERE item_key IS NULL AND lower(item_name) = lower(?)`,
+            [value, newText, name, matchText]
         );
     }
 }

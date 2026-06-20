@@ -66,7 +66,7 @@ async function handler({ client, channel, user }) {
             // Items ins Inventar
             for (const { item } of loot) {
                 const itemName = item.text || item.name;
-                addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0);
+                addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0, item.name);
             }
 
             // XP berechnen
