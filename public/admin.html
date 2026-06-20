@@ -167,542 +167,11 @@
 <!-- MAIN CONTENT -->
 <main class="flex-1 overflow-x-hidden overflow-y-auto relative p-4 md:p-6 min-h-0 w-full">
   
-  <!-- DASHBOARD TAB -->
-  <!-- ANALYTICS TAB -->
-  <div id="tab-analytics" class="max-w-7xl w-full mx-auto space-y-6 hidden">
-    <div class="flex items-center justify-between">
-      <h2 class="text-xl font-bold text-white uppercase tracking-wide">Statistiken</h2>
-      <div class="flex gap-2">
-        <button onclick="loadAnalytics(1)"  id="an-1"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">24h</button>
-        <button onclick="loadAnalytics(7)"  id="an-7"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors">7 Tage</button>
-        <button onclick="loadAnalytics(30)" id="an-30" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">30 Tage</button>
-        <button onclick="loadAnalytics(0)"  id="an-0"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">Gesamt</button>
-      </div>
-    </div>
-
-    <!-- Zahlen oben -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="an-stats-grid">
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Commands total</div>
-        <div class="text-3xl font-bold text-white" id="an-total">—</div>
-      </div>
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Raids gespielt</div>
-        <div class="text-3xl font-bold text-emerald-400" id="an-raids">—</div>
-      </div>
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Survival Rate</div>
-        <div class="text-3xl font-bold text-blue-400" id="an-survival">—</div>
-      </div>
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Gesamt-Loot</div>
-        <div class="text-3xl font-bold text-amber-400" id="an-value">—</div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Commands Verteilung -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Commands Verteilung</h3>
-        <div id="an-commands" class="space-y-2"></div>
-      </div>
-
-      <!-- Aktivste Spieler -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivste Spieler</h3>
-        <div id="an-users" class="space-y-2"></div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Aktivste Stunden -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivität nach Uhrzeit</h3>
-        <div id="an-hours" class="flex items-end gap-1 h-24"></div>
-        <div class="flex justify-between text-xs font-mono text-slate-600 mt-1">
-          <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
-        </div>
-      </div>
-
-      <!-- Top Items -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Häufigste Loot-Items</h3>
-        <div id="an-items" class="space-y-2"></div>
-      </div>
-    </div>
+  <div id="tab-container">
+    <div class="flex items-center justify-center h-40 text-slate-500 text-xs font-mono">Lade...</div>
   </div>
 
-  <div id="tab-dashboard" class="max-w-7xl w-full mx-auto space-y-6 hidden">
-    <h1 id="page-title" class="text-xl sm:text-2xl font-bold text-white tracking-widest uppercase mb-2">Dashboard</h1>
-      
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="glass-card border border-emerald-500/20 rounded-2xl p-5 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 p-4 opacity-10 text-emerald-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
-          <div class="text-[10px] font-mono text-emerald-500 tracking-[0.1em] uppercase mb-1">Spieler Total</div>
-          <div class="text-4xl font-bold text-white tracking-tight" id="stat-players">—</div>
-          <div class="text-xs text-slate-400 mt-2">registrierte Accounts</div>
-        </div>
-
-        <div class="glass-card border border-blue-500/20 rounded-2xl p-5 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 p-4 opacity-10 text-blue-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
-          <div class="text-[10px] font-mono text-blue-500 tracking-[0.1em] uppercase mb-1">Items in Pool</div>
-          <div class="text-4xl font-bold text-white tracking-tight" id="stat-items">—</div>
-          <div class="text-xs text-slate-400 mt-2">lootbare Items</div>
-        </div>
-
-        <div class="glass-card border border-amber-500/20 rounded-2xl p-5 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 p-4 opacity-10 text-amber-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <div class="text-[10px] font-mono text-amber-500 tracking-[0.1em] uppercase mb-1">Aktive Cooldowns</div>
-          <div class="text-4xl font-bold text-white tracking-tight" id="stat-cooldowns">—</div>
-          <div class="text-xs text-slate-400 mt-2">Spieler im CD</div>
-        </div>
-
-        <div class="glass-card border border-purple-500/20 rounded-2xl p-5 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 p-4 opacity-10 text-purple-500 group-hover:scale-110 transition-transform"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
-          <div class="text-[10px] font-mono text-purple-500 tracking-[0.1em] uppercase mb-1">Messages</div>
-          <div class="text-4xl font-bold text-white tracking-tight" id="stat-messages">—</div>
-          <div class="text-xs text-slate-400 mt-2">Chat-Nachrichten</div>
-        </div>
-      </div>
-
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
-          <h2 class="text-xs font-mono tracking-widest text-slate-300 uppercase">Schnellaktionen</h2>
-        </div>
-        
-        <div class="flex flex-wrap gap-4">
-          <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono tracking-wide transition-colors" onclick="clearAllCooldowns()">
-            🗑 Alle CDs löschen
-          </button>
-          <button class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-mono tracking-wide transition-colors" onclick="clearCache()">
-            ⟳ Cache leeren
-          </button>
-          <button class="px-4 py-2 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-mono tracking-wide transition-colors" onclick="loadStats()">
-            ↺ Aktualisieren
-          </button>
-          <button id="dashTournamentBtn" onclick="dashToggleTournament()"
-            class="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono tracking-wide transition-colors">
-            🏆 Turnier-Modus: AUS
-          </button>
-        </div>
-        <div id="quickActionMsg" class="hidden"></div>
-      </div>
-    </div>
-
-    <!-- BOT LOG TAB -->
-    <div id="tab-logs" class="h-full flex flex-col hidden max-w-7xl w-full mx-auto">
-      <div class="glass-card border border-slate-700/50 rounded-t-2xl p-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
-        <div class="flex flex-wrap gap-2">
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ALL" onclick="setFilter('ALL')">ALL</button>
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-CMD" onclick="setFilter('CMD')">CMD</button>
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-BOT" onclick="setFilter('BOT')">BOT</button>
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ERROR" onclick="setFilter('ERROR')">ERROR</button>
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-API" onclick="setFilter('API')">API</button>
-          <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-INFO" onclick="setFilter('INFO')">INFO</button>
-        </div>
-        
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 cursor-pointer text-[10px] font-mono text-slate-400 hover:text-slate-200">
-            <input type="checkbox" id="autoScroll" checked class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900">
-            AUTO-SCROLL
-          </label>
-          <button class="text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors" onclick="clearLogDisplay()">LEEREN</button>
-        </div>
-      </div>
-      
-      <div class="flex-1 glass-card border-x border-b border-slate-700/50 rounded-b-2xl p-4 overflow-y-auto" id="logContainer">
-        <!-- Logs injected here -->
-      </div>
-    </div>
-
-    <!-- COOLDOWNS TAB -->
-    <div id="tab-cooldowns" class="max-w-5xl w-full mx-auto flex flex-col h-full hidden">
-      <div class="glass-card border border-slate-700/50 rounded-t-2xl p-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="relative">
-            <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            <input class="bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none w-64 transition-all" placeholder="Spieler suchen..." oninput="filterCooldowns(this.value)">
-          </div>
-          <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors" onclick="clearAllCooldowns()">Alle löschen</button>
-          <button class="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white text-xs font-mono transition-colors" onclick="loadCooldowns()">↺ Refresh</button>
-        </div>
-        <span id="cdCount" class="text-xs font-mono text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800">—</span>
-      </div>
-      <div class="flex-1 glass-card border-x border-b border-slate-700/50 rounded-b-2xl overflow-y-auto p-2" id="cooldownList">
-        <!-- CDs injected here -->
-      </div>
-    </div>
-
-    <!-- LIVE EVENTS TAB -->
-    <!-- SPIELER TAB -->
-    <div id="tab-players" class="max-w-7xl w-full mx-auto hidden h-full flex gap-4">
-
-      <!-- LEFT: Player List -->
-      <div class="w-80 shrink-0 flex flex-col h-full">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-sm font-semibold text-white tracking-wide uppercase">Spieler</h2>
-          <span id="playerCount" class="text-xs font-mono text-slate-500">— Gesamt</span>
-        </div>
-        <div class="relative mb-3">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" placeholder="Spieler suchen..." oninput="filterPlayers(this.value)">
-        </div>
-        <div id="playerList" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
-      </div>
-
-      <!-- RIGHT: Player Detail -->
-      <div class="flex-1 h-full overflow-y-auto">
-        <!-- Empty state -->
-        <div id="playerEmpty" class="h-full flex flex-col items-center justify-center text-center">
-          <svg class="w-16 h-16 text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          <p class="text-slate-500 text-sm font-mono">Spieler auswählen</p>
-          <p class="text-slate-600 text-xs mt-1">Klicke auf einen Spieler um Details zu sehen</p>
-        </div>
-
-        <!-- Detail Panel -->
-        <div id="playerDetail" class="hidden space-y-4">
-
-          <!-- Header -->
-          <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
-            <div class="flex items-start justify-between">
-              <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <span class="text-2xl font-bold text-emerald-400 font-mono" id="pd-avatar">—</span>
-                </div>
-                <div>
-                  <div class="text-xl font-bold text-white" id="pd-name">—</div>
-                  <div class="flex items-center gap-2 mt-1">
-                    <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg" id="pd-rank">—</span>
-                    <span id="pd-kappa" class="text-xs font-mono text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-lg hidden">🎒 KAPPA</span>
-                    <span id="pd-prestige" class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg hidden">✦ PRESTIGE</span>
-                  </div>
-                </div>
-              </div>
-              <button onclick="clearUserCD_player()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors">CD Reset</button>
-            </div>
-          </div>
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
-              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Level</div>
-              <div class="text-2xl font-bold text-white" id="pd-level">—</div>
-              <div class="text-xs text-slate-500 mt-1" id="pd-xp">— XP</div>
-            </div>
-            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
-              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Raids Total</div>
-              <div class="text-2xl font-bold text-white" id="pd-raids">—</div>
-              <div class="text-xs text-emerald-400 mt-1" id="pd-survived">— überlebt</div>
-            </div>
-            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
-              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Gestorben</div>
-              <div class="text-2xl font-bold text-rose-400" id="pd-died">—</div>
-              <div class="text-xs text-slate-500 mt-1" id="pd-survrate">— % Survival</div>
-            </div>
-            <div class="glass-card rounded-xl border border-slate-700/50 p-4">
-              <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Stash Wert</div>
-              <div class="text-2xl font-bold text-amber-400" id="pd-stash">—</div>
-              <div class="text-xs text-slate-500 mt-1" id="pd-items-count">— Items</div>
-            </div>
-          </div>
-
-          <!-- Inventory -->
-          <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Inventar</h3>
-              <span class="text-xs font-mono text-slate-500" id="pd-inv-count">— Items</span>
-            </div>
-            <div id="pd-inventory" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-              <p class="text-slate-600 text-xs font-mono">Kein Inventar</p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-events" class="max-w-7xl w-full mx-auto space-y-6 hidden">
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-6">
-        <div class="text-xs font-mono text-slate-400 bg-slate-900/50 border border-slate-800 p-3 rounded-xl mb-6 flex items-center justify-center" id="eventsStatusBar">
-          Lade aktive Events...
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <!-- Forced Map -->
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-xs font-mono tracking-widest text-emerald-400 uppercase mb-4 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
-              FORCED MAP
-            </h3>
-            <div class="space-y-3 mb-5">
-              <select class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapSelect">
-                <option value="">— Deaktiviert —</option>
-                <option>Customs</option><option>Factory</option><option>Ground Zero</option>
-                <option>Interchange</option><option>Icebreaker</option><option>Lighthouse</option>
-                <option>Reserve</option><option>Shoreline</option><option>Streets</option>
-                <option>Lab</option><option>Woods</option><option>The Labyrinth</option>
-              </select>
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapDur" placeholder="Dauer (Min, 0=∞)" value="60">
-            </div>
-            <div class="flex gap-3">
-              <button class="flex-1 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setForcedMap()">AKTIVIEREN</button>
-              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('forcedmap')">STOP</button>
-            </div>
-          </div>
-
-          <!-- Double Loot -->
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-4 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
-              DOUBLE LOOT
-            </h3>
-            <div class="space-y-3 mb-5">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootChance" placeholder="Chance (0-1)" value="0.5" step="0.05" min="0" max="1">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootDur" placeholder="Dauer (Min)" value="30">
-            </div>
-            <div class="flex gap-3">
-              <button class="flex-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setDoubleLoot()">AKTIVIEREN</button>
-              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('doubleloot')">STOP</button>
-            </div>
-          </div>
-
-          <!-- XP Boost -->
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-xs font-mono tracking-widest text-purple-400 uppercase mb-4 flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              XP BOOST
-            </h3>
-            <div class="space-y-3 mb-5">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostMult" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1">
-              <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostDur" placeholder="Dauer (Min)" value="30">
-            </div>
-            <div class="flex gap-3">
-              <button class="flex-1 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setXPBoost()">AKTIVIEREN</button>
-              <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('xpboost')">STOP</button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- USERS TAB -->
-    <div id="tab-users" class="max-w-5xl w-full mx-auto hidden h-full">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pb-4">
-        
-        <div class="glass-card border border-slate-700/50 rounded-2xl flex flex-col overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">DASHBOARD USERS</div>
-          <div class="flex-1 overflow-y-auto p-2" id="userList">
-            <!-- Users injected here -->
-          </div>
-        </div>
-
-        <div class="glass-card border border-slate-700/50 rounded-2xl h-fit">
-          <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">NEUEN USER ANLEGEN</div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
-              <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername">
-            </div>
-            <div>
-              <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
-              <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 6 Zeichen">
-            </div>
-            <div id="userMsg" class="text-xs hidden"></div>
-            <button class="w-full px-4 py-2.5 mt-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]" onclick="createUser()">USER ANLEGEN</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- SERVER CONTROL TAB -->
-    <div id="tab-server" class="hidden max-w-5xl w-full mx-auto">
-      
-      <!-- Password Lock Screen -->
-      <div id="serverLock" class="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-        <div class="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.15)]">
-          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        </div>
-        <div class="text-center space-y-2">
-          <h2 class="text-rose-500 font-bold tracking-widest uppercase">SERVER CONTROL — RESTRICTED ACCESS</h2>
-          <p class="text-xs text-slate-400">Bitte Master-Passwort eingeben, um Core-Aktionen freizuschalten.</p>
-        </div>
-        
-        <div class="w-full max-w-sm space-y-4">
-          <input id="serverPwInput" type="password" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl px-4 py-3 text-center text-white tracking-[0.2em] focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all shadow-inner" placeholder="••••••••" onkeydown="if(event.key==='Enter')unlockServerControl()">
-          <div id="serverPwMsg" class="text-xs text-center hidden"></div>
-          <button class="w-full px-4 py-3 rounded-2xl bg-rose-500 text-white font-bold tracking-widest hover:bg-rose-600 transition-colors shadow-[0_0_20px_rgba(244,63,94,0.3)]" onclick="unlockServerControl()">ENTSPERREN</button>
-        </div>
-      </div>
-
-      <!-- Control Panel -->
-      <div id="serverPanel" class="hidden space-y-6">
-        <div class="glass-card border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(244,63,94,0.05)]">
-          <div class="flex items-center gap-3">
-            <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
-            <span class="text-xs font-mono text-rose-400 tracking-widest">AUTHORISIERT</span>
-          </div>
-          <button class="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white text-xs font-mono transition-colors flex items-center gap-2" onclick="lockServerControl()">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-            SPERREN
-          </button>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
-            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Uptime</div>
-            <div class="text-lg font-medium text-white" id="srvUptime">—</div>
-          </div>
-          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
-            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Memory</div>
-            <div class="text-lg font-medium text-white" id="srvMem">—</div>
-          </div>
-          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
-            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Node.js</div>
-            <div class="text-lg font-medium text-white" id="srvNode">—</div>
-          </div>
-          <div class="glass-card border border-slate-700/50 rounded-xl p-4">
-            <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Channel</div>
-            <div class="text-lg font-medium text-white" id="srvChannel">—</div>
-          </div>
-        </div>
-
-        <!-- Fly.io Machine Info -->
-        <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase">Fly.io Machine</h3>
-            <button onclick="loadMachineInfo()" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors">↺ Refresh</button>
-          </div>
-          <div id="machineInfoGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-            <p class="text-xs font-mono text-slate-500 col-span-4">Lade...</p>
-          </div>
-          <div id="machineImage" class="font-mono text-[10px] text-slate-600 truncate"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
-            <h3 class="text-xs font-mono tracking-widest text-rose-400 uppercase mb-2">Bot Reconnect</h3>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Trennt den Bot von Twitch und verbindet neu. Laufende Commands werden abgebrochen.</p>
-            <button class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('reconnect')">⟳ RECONNECT</button>
-          </div>
-          
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
-            <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-2">Cache leeren</h3>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Leert den In-Memory Cache. Config, Items und Messages werden neu geladen — kein Neustart nötig.</p>
-            <button class="w-full px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('cache')">🗑 CACHE LEEREN</button>
-          </div>
-
-          <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
-            <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase mb-2">DB Snapshot</h3>
-            <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Speichert die aktuelle Datenbank manuell auf die Festplatte (passiert auch automatisch).</p>
-            <button class="w-full px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('snapshot')">💾 SNAPSHOT</button>
-          </div>
-        </div>
-
-        <div id="serverActionResult" class="hidden mt-4 text-xs font-mono p-4 rounded-xl border bg-slate-900/50"></div>
-
-        <!-- Turnier-Modus -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Turnier-Modus</h3>
-              <p class="text-xs font-mono text-slate-500 mt-1">Bot ist komplett still — einmalige Ankündigung beim Aktivieren</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span id="tournamentStatus" class="text-xs font-mono text-emerald-400">INAKTIV</span>
-              <button id="tournamentBtn" onclick="toggleTournament()"
-                class="px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20">
-                AKTIVIEREN
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Wartungsmodus -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Wartungsmodus</h3>
-              <p class="text-xs font-mono text-slate-500 mt-1">Bot antwortet auf Commands mit Wartungs-Nachricht</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span id="maintenanceStatus" class="text-xs font-mono text-emerald-400">INAKTIV</span>
-              <button id="maintenanceBtn" onclick="toggleMaintenance()"
-                class="px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20">
-                AKTIVIEREN
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Channel Control -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Channel Control</h3>
-          <div id="channelList" class="space-y-3">
-            <p class="text-xs font-mono text-slate-500">Lade Channels...</p>
-          </div>
-        </div>
-
-        <!-- Command Control -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Command Control</h3>
-          <p class="text-xs font-mono text-slate-500 mb-4">Commands einzeln aktivieren oder deaktivieren</p>
-          <div id="commandList" class="grid grid-cols-2 gap-2">
-            <p class="text-xs font-mono text-slate-500 col-span-2">Lade Commands...</p>
-          </div>
-        </div>
-
-        <!-- Backups -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <div class="flex items-center justify-between mb-1">
-            <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Datenbank-Backups</h3>
-            <button onclick="createManualBackup()" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono transition-colors">
-              + Backup jetzt erstellen
-            </button>
-          </div>
-          <p class="text-xs font-mono text-slate-500 mb-4">Automatisch alle 6 Stunden · max. 20 Backups werden behalten</p>
-          <div id="backupList" class="space-y-2">
-            <p class="text-xs font-mono text-slate-500">Lade Backups...</p>
-          </div>
-        </div>
-
-        <!-- Item zum Spielerinventar hinzufügen -->
-        <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
-          <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Item zu Spieler hinzufügen</h3>
-          <p class="text-xs font-mono text-slate-500 mb-4">Item manuell ins Inventar eines Spielers legen</p>
-
-          <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_100px_auto] gap-2 mb-3">
-            <input id="giveUsername" type="text" placeholder="Spieler-Username"
-              class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
-
-            <div class="relative">
-              <input id="giveItemSearch" type="text" placeholder="Item suchen..." autocomplete="off"
-                oninput="filterGiveItems(this.value)"
-                onfocus="filterGiveItems(this.value)"
-                class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-full focus:border-emerald-500 outline-none">
-              <div id="giveItemDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg max-h-56 overflow-y-auto shadow-xl"></div>
-            </div>
-
-            <input id="giveCount" type="number" value="1" min="1" placeholder="Menge"
-              class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
-
-            <button onclick="giveItemToPlayer()"
-              class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono whitespace-nowrap transition-colors">
-              + Hinzufügen
-            </button>
-          </div>
-
-          <div id="giveItemSelected" class="hidden text-xs font-mono text-slate-400 mb-2"></div>
-          <div id="giveItemResult" class="text-xs font-mono min-h-[16px]"></div>
-        </div>
-
-      </div>
-    </div>
-
-  </main>
+</main>
 </div>
 
 <!-- ========================================== -->
@@ -714,7 +183,7 @@
   <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-sm scale-95 transition-transform duration-300" id="confirm-modal-content">
     <h3 class="text-lg font-bold text-white mb-2" id="confirm-title">Bestätigen</h3>
     <p class="text-sm text-slate-400 mb-6" id="confirm-msg">Möchtest du diese Aktion wirklich ausführen?</p>
-    
+
     <div class="flex justify-end gap-3">
       <button onclick="closeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Abbrechen</button>
       <button onclick="executeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]">Bestätigen</button>
@@ -837,26 +306,45 @@ setInterval(pingHealth, 10000);
 pingHealth();
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-function showTab(tab) {
-  document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.add('hidden'));
+const tabCache = {};
+
+async function loadTabContent(tab) {
+  if (tabCache[tab]) return tabCache[tab];
+  const res = await fetch('admin-tabs/' + tab + '.html');
+  const html = await res.text();
+  tabCache[tab] = html;
+  return html;
+}
+
+async function showTab(tab) {
   document.querySelectorAll('.nav-item').forEach(e => {
     e.classList.remove('text-emerald-400', 'bg-slate-800/50', 'border-emerald-500');
     e.classList.add('border-transparent', 'text-slate-400');
   });
-  
-  document.getElementById('tab-' + tab).classList.remove('hidden');
-  
+
+  const container = document.getElementById('tab-container');
+  container.innerHTML = '<div class="flex items-center justify-center h-40 text-slate-500 text-xs font-mono">Lade...</div>';
+
+  try {
+    const html = await loadTabContent(tab);
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = '<div class="text-rose-400 text-xs font-mono p-4">Fehler beim Laden des Tabs: ' + err.message + '</div>';
+    return;
+  }
+
   const activeNav = document.getElementById('nav-' + tab);
   if(activeNav) {
     activeNav.classList.remove('border-transparent', 'text-slate-400');
     activeNav.classList.add('text-emerald-400', 'bg-slate-800/50', 'border-emerald-500');
   }
 
-  // Update dynamic page title
   const titles = {
     'dashboard': 'Dashboard Overview',
+    'analytics': 'Statistiken',
     'logs': 'Bot Log Terminal',
     'cooldowns': 'Cooldown Management',
+    'players': 'Spieler-Verwaltung',
     'events': 'Live Event Control',
     'users': 'User Management',
     'server': 'Server Diagnostics'
@@ -864,7 +352,6 @@ function showTab(tab) {
   const titleEl = document.getElementById('page-title');
   if(titleEl) titleEl.textContent = titles[tab] || tab;
 
-  // Auto-close sidebar on mobile after clicking
   if(window.innerWidth < 768 && isSidebarOpen) {
     toggleSidebar();
   }
@@ -1883,4 +1370,4 @@ async function toggleChannel(channel, active) {
 showTab('dashboard'); // Initialisiert den aktiven Tab optisch korrekt beim Laden
 </script>
 </body>
-</html>
+</body></html>

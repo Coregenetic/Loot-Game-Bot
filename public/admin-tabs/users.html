@@ -1,0 +1,25 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pb-4">
+
+  <div class="glass-card border border-slate-700/50 rounded-2xl flex flex-col overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">DASHBOARD USERS</div>
+    <div class="flex-1 overflow-y-auto p-2" id="userList">
+    </div>
+  </div>
+
+  <div class="glass-card border border-slate-700/50 rounded-2xl h-fit">
+    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">NEUEN USER ANLEGEN</div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
+        <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername">
+      </div>
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
+        <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 6 Zeichen">
+      </div>
+      <div id="userMsg" class="text-xs hidden"></div>
+      <button class="w-full px-4 py-2.5 mt-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]" onclick="createUser()">USER ANLEGEN</button>
+    </div>
+  </div>
+
+</div>

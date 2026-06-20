@@ -1,0 +1,170 @@
+<div id="serverLock" class="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+  <div class="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.15)]">
+    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+  </div>
+  <div class="text-center space-y-2">
+    <h2 class="text-rose-500 font-bold tracking-widest uppercase">SERVER CONTROL — RESTRICTED ACCESS</h2>
+    <p class="text-xs text-slate-400">Bitte Master-Passwort eingeben, um Core-Aktionen freizuschalten.</p>
+  </div>
+
+  <div class="w-full max-w-sm space-y-4">
+    <input id="serverPwInput" type="password" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl px-4 py-3 text-center text-white tracking-[0.2em] focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none transition-all shadow-inner" placeholder="••••••••" onkeydown="if(event.key==='Enter')unlockServerControl()">
+    <div id="serverPwMsg" class="text-xs text-center hidden"></div>
+    <button class="w-full px-4 py-3 rounded-2xl bg-rose-500 text-white font-bold tracking-widest hover:bg-rose-600 transition-colors shadow-[0_0_20px_rgba(244,63,94,0.3)]" onclick="unlockServerControl()">ENTSPERREN</button>
+  </div>
+</div>
+
+<div id="serverPanel" class="hidden space-y-6">
+  <div class="glass-card border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_15px_rgba(244,63,94,0.05)]">
+    <div class="flex items-center gap-3">
+      <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+      <span class="text-xs font-mono text-rose-400 tracking-widest">AUTHORISIERT</span>
+    </div>
+    <button class="px-4 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white text-xs font-mono transition-colors flex items-center gap-2" onclick="lockServerControl()">
+      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      SPERREN
+    </button>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Uptime</div>
+      <div class="text-lg font-medium text-white" id="srvUptime">—</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Memory</div>
+      <div class="text-lg font-medium text-white" id="srvMem">—</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Node.js</div>
+      <div class="text-lg font-medium text-white" id="srvNode">—</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-1">Channel</div>
+      <div class="text-lg font-medium text-white" id="srvChannel">—</div>
+    </div>
+  </div>
+
+  <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase">Fly.io Machine</h3>
+      <button onclick="loadMachineInfo()" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors">↺ Refresh</button>
+    </div>
+    <div id="machineInfoGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+      <p class="text-xs font-mono text-slate-500 col-span-4">Lade...</p>
+    </div>
+    <div id="machineImage" class="font-mono text-[10px] text-slate-600 truncate"></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+      <h3 class="text-xs font-mono tracking-widest text-rose-400 uppercase mb-2">Bot Reconnect</h3>
+      <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Trennt den Bot von Twitch und verbindet neu. Laufende Commands werden abgebrochen.</p>
+      <button class="w-full px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('reconnect')">⟳ RECONNECT</button>
+    </div>
+
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+      <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-2">Cache leeren</h3>
+      <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Leert den In-Memory Cache. Config, Items und Messages werden neu geladen — kein Neustart nötig.</p>
+      <button class="w-full px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('cache')">🗑 CACHE LEEREN</button>
+    </div>
+
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+      <h3 class="text-xs font-mono tracking-widest text-blue-400 uppercase mb-2">DB Snapshot</h3>
+      <p class="text-xs text-slate-400 leading-relaxed mb-6 flex-1">Speichert die aktuelle Datenbank manuell auf die Festplatte (passiert auch automatisch).</p>
+      <button class="w-full px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-bold tracking-widest transition-colors" onclick="serverAction('snapshot')">💾 SNAPSHOT</button>
+    </div>
+  </div>
+
+  <div id="serverActionResult" class="hidden mt-4 text-xs font-mono p-4 rounded-xl border bg-slate-900/50"></div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Turnier-Modus</h3>
+        <p class="text-xs font-mono text-slate-500 mt-1">Bot ist komplett still — einmalige Ankündigung beim Aktivieren</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="tournamentStatus" class="text-xs font-mono text-emerald-400">INAKTIV</span>
+        <button id="tournamentBtn" onclick="toggleTournament()"
+          class="px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20">
+          AKTIVIEREN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Wartungsmodus</h3>
+        <p class="text-xs font-mono text-slate-500 mt-1">Bot antwortet auf Commands mit Wartungs-Nachricht</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="maintenanceStatus" class="text-xs font-mono text-emerald-400">INAKTIV</span>
+        <button id="maintenanceBtn" onclick="toggleMaintenance()"
+          class="px-5 py-2 rounded-lg text-xs font-mono font-bold transition-colors bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20">
+          AKTIVIEREN
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-4">Channel Control</h3>
+    <div id="channelList" class="space-y-3">
+      <p class="text-xs font-mono text-slate-500">Lade Channels...</p>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Command Control</h3>
+    <p class="text-xs font-mono text-slate-500 mb-4">Commands einzeln aktivieren oder deaktivieren</p>
+    <div id="commandList" class="grid grid-cols-2 gap-2">
+      <p class="text-xs font-mono text-slate-500 col-span-2">Lade Commands...</p>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Datenbank-Backups</h3>
+      <button onclick="createManualBackup()" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono transition-colors">
+        + Backup jetzt erstellen
+      </button>
+    </div>
+    <p class="text-xs font-mono text-slate-500 mb-4">Automatisch alle 6 Stunden · max. 20 Backups werden behalten</p>
+    <div id="backupList" class="space-y-2">
+      <p class="text-xs font-mono text-slate-500">Lade Backups...</p>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-700/50 bg-slate-900/30 p-5">
+    <h3 class="text-sm font-semibold text-white uppercase tracking-wide mb-1">Item zu Spieler hinzufügen</h3>
+    <p class="text-xs font-mono text-slate-500 mb-4">Item manuell ins Inventar eines Spielers legen</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_1fr_100px_auto] gap-2 mb-3">
+      <input id="giveUsername" type="text" placeholder="Spieler-Username"
+        class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+
+      <div class="relative">
+        <input id="giveItemSearch" type="text" placeholder="Item suchen..." autocomplete="off"
+          oninput="filterGiveItems(this.value)"
+          onfocus="filterGiveItems(this.value)"
+          class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white w-full focus:border-emerald-500 outline-none">
+        <div id="giveItemDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg max-h-56 overflow-y-auto shadow-xl"></div>
+      </div>
+
+      <input id="giveCount" type="number" value="1" min="1" placeholder="Menge"
+        class="bg-slate-900/60 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+
+      <button onclick="giveItemToPlayer()"
+        class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono whitespace-nowrap transition-colors">
+        + Hinzufügen
+      </button>
+    </div>
+
+    <div id="giveItemSelected" class="hidden text-xs font-mono text-slate-400 mb-2"></div>
+    <div id="giveItemResult" class="text-xs font-mono min-h-[16px]"></div>
+  </div>
+
+</div>

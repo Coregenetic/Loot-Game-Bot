@@ -1,0 +1,60 @@
+<div class="glass-card border border-slate-700/50 rounded-2xl p-6">
+  <div class="text-xs font-mono text-slate-400 bg-slate-900/50 border border-slate-800 p-3 rounded-xl mb-6 flex items-center justify-center" id="eventsStatusBar">
+    Lade aktive Events...
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+      <h3 class="text-xs font-mono tracking-widest text-emerald-400 uppercase mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        FORCED MAP
+      </h3>
+      <div class="space-y-3 mb-5">
+        <select class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapSelect">
+          <option value="">— Deaktiviert —</option>
+          <option>Customs</option><option>Factory</option><option>Ground Zero</option>
+          <option>Interchange</option><option>Icebreaker</option><option>Lighthouse</option>
+          <option>Reserve</option><option>Shoreline</option><option>Streets</option>
+          <option>Lab</option><option>Woods</option><option>The Labyrinth</option>
+        </select>
+        <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="forcedMapDur" placeholder="Dauer (Min, 0=∞)" value="60">
+      </div>
+      <div class="flex gap-3">
+        <button class="flex-1 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setForcedMap()">AKTIVIEREN</button>
+        <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('forcedmap')">STOP</button>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+      <h3 class="text-xs font-mono tracking-widest text-amber-400 uppercase mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+        DOUBLE LOOT
+      </h3>
+      <div class="space-y-3 mb-5">
+        <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootChance" placeholder="Chance (0-1)" value="0.5" step="0.05" min="0" max="1">
+        <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="doubleLootDur" placeholder="Dauer (Min)" value="30">
+      </div>
+      <div class="flex gap-3">
+        <button class="flex-1 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setDoubleLoot()">AKTIVIEREN</button>
+        <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('doubleloot')">STOP</button>
+      </div>
+    </div>
+
+    <div class="bg-slate-900/40 border border-slate-700/50 rounded-xl p-5">
+      <h3 class="text-xs font-mono tracking-widest text-purple-400 uppercase mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        XP BOOST
+      </h3>
+      <div class="space-y-3 mb-5">
+        <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostMult" placeholder="Multiplikator (z.B. 2)" value="2" step="0.5" min="1">
+        <input type="number" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" id="xpBoostDur" placeholder="Dauer (Min)" value="30">
+      </div>
+      <div class="flex gap-3">
+        <button class="flex-1 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="setXPBoost()">AKTIVIEREN</button>
+        <button class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearEvent('xpboost')">STOP</button>
+      </div>
+    </div>
+
+  </div>
+</div>

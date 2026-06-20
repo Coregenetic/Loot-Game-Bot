@@ -1,0 +1,55 @@
+<div class="flex items-center justify-between">
+  <h2 class="text-xl font-bold text-white uppercase tracking-wide">Statistiken</h2>
+  <div class="flex gap-2">
+    <button onclick="loadAnalytics(1)"  id="an-1"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">24h</button>
+    <button onclick="loadAnalytics(7)"  id="an-7"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors">7 Tage</button>
+    <button onclick="loadAnalytics(30)" id="an-30" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">30 Tage</button>
+    <button onclick="loadAnalytics(0)"  id="an-0"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">Gesamt</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="an-stats-grid">
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Commands total</div>
+    <div class="text-3xl font-bold text-white" id="an-total">—</div>
+  </div>
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Raids gespielt</div>
+    <div class="text-3xl font-bold text-emerald-400" id="an-raids">—</div>
+  </div>
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Survival Rate</div>
+    <div class="text-3xl font-bold text-blue-400" id="an-survival">—</div>
+  </div>
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Gesamt-Loot</div>
+    <div class="text-3xl font-bold text-amber-400" id="an-value">—</div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Commands Verteilung</h3>
+    <div id="an-commands" class="space-y-2"></div>
+  </div>
+
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivste Spieler</h3>
+    <div id="an-users" class="space-y-2"></div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivität nach Uhrzeit</h3>
+    <div id="an-hours" class="flex items-end gap-1 h-24"></div>
+    <div class="flex justify-between text-xs font-mono text-slate-600 mt-1">
+      <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
+    </div>
+  </div>
+
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Häufigste Loot-Items</h3>
+    <div id="an-items" class="space-y-2"></div>
+  </div>
+</div>
