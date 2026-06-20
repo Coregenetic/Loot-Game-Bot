@@ -1341,6 +1341,7 @@ async function toggleTournament() {
 function updateTournamentUI(active) {
   const btn    = document.getElementById('tournamentBtn');
   const status = document.getElementById('tournamentStatus');
+  if (!btn || !status) return; // Server-Control-Tab evtl. noch nicht geladen
   btn.dataset.active = active;
   if (active) {
     status.textContent = 'AKTIV';
@@ -1383,6 +1384,7 @@ async function toggleMaintenance() {
 function updateMaintenanceUI(active) {
   const btn    = document.getElementById('maintenanceBtn');
   const status = document.getElementById('maintenanceStatus');
+  if (!btn || !status) return; // Server-Control-Tab evtl. noch nicht geladen
   btn.dataset.active = active;
   if (active) {
     status.textContent = 'AKTIV';
