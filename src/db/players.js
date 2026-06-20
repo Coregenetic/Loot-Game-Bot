@@ -32,15 +32,45 @@ function updatePlayer(username, fields) {
     );
 }
 
+// ─── Online-Status (aus Chat-Aktivität abgeleitet) ─────────────────────────────
+
+const ONLINE_THRESHOLD_SECONDS = 600; // 10 Minuten ohne Chat-Nachricht = offline
+
+function touchLastSeen(username) {
+    // Nur ein Update, kein Insert — wir wollen keine Player-Zeilen für
+    // Zuschauer anlegen, die das Loot-Game nie spielen.
+    run(
+        `UPDATE players SET last_seen = strftime('%s','now') WHERE lower(username) = lower(?)`,
+        [username.toLowerCase()]
+    );
+}
+
+function isOnline(player) {
+    if (!player || !player.last_seen) return false;
+    const now = Math.floor(Date.now() / 1000);
+    return (now - player.last_seen) < ONLINE_THRESHOLD_SECONDS;
+}
+
 // ─── Inventar ─────────────────────────────────────────────────────────────────
 
 function getInventory(playerId) {
-    return all(
-        `SELECT item_name, count, value FROM inventory
-         WHERE player_id = ?
-         ORDER BY (count * value) DESC`,
+    const { inferCategory } = require('./items');
+    const rows = all(
+        `SELECT inv.item_name, inv.count, inv.value,
+                it.icon AS icon, it.category AS category
+         FROM inventory inv
+         LEFT JOIN items it ON it.name = inv.item_key
+         WHERE inv.player_id = ?
+         ORDER BY (inv.count * inv.value) DESC`,
         [playerId]
     );
+    return rows.map(r => ({
+        item_name: r.item_name,
+        count: r.count,
+        value: r.value,
+        icon: r.icon || null,
+        category: r.category || inferCategory(r.item_name)
+    }));
 }
 
 function addOrUpdateInventoryItem(playerId, itemName, count, value, itemKey = null) {
@@ -134,5 +164,6 @@ module.exports = {
     getInventory, addOrUpdateInventoryItem, removeInventoryItem,
     clearInventory, getStashValue,
     isOnCooldown, setCooldown, getRemainingCooldown,
-    getLeaderboard
+    getLeaderboard,
+    touchLastSeen, isOnline, ONLINE_THRESHOLD_SECONDS
 };

@@ -4,11 +4,14 @@
   <div class="w-80 shrink-0 flex flex-col h-full">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold text-white tracking-wide uppercase">Spieler</h2>
-      <span id="playerCount" class="text-xs font-mono text-slate-500">— Gesamt</span>
+      <span id="playerCount" class="text-xs font-mono text-slate-500 tabular-nums">— Gesamt</span>
     </div>
     <div class="relative mb-3">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" placeholder="Spieler suchen..." oninput="filterPlayers(this.value)">
+      <input id="playerSearchInput" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl pl-9 pr-9 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" placeholder="Spieler suchen..." oninput="onPlayerSearchInput(this.value)">
+      <button id="playerSearchClear" onclick="clearPlayerSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors" aria-label="Suche leeren" type="button">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
     <div id="playerList" class="flex-1 overflow-y-auto space-y-1 pr-1"></div>
   </div>
@@ -26,51 +29,87 @@
       <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative">
               <span class="text-2xl font-bold text-emerald-400 font-mono" id="pd-avatar">—</span>
+              <span id="pd-status-dot" class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#05080c] bg-slate-600"></span>
             </div>
             <div>
-              <div class="text-xl font-bold text-white" id="pd-name">—</div>
+              <div class="flex items-center gap-2">
+                <div class="text-xl font-bold text-white" id="pd-name">—</div>
+                <span id="pd-status-text" class="text-xs font-mono text-slate-500">Offline</span>
+              </div>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg" id="pd-rank">—</span>
                 <span id="pd-kappa" class="text-xs font-mono text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-lg hidden">🎒 KAPPA</span>
                 <span id="pd-prestige" class="text-xs font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg hidden">✦ PRESTIGE</span>
+                <span id="pd-activity" class="text-xs font-mono text-slate-400 bg-slate-700/30 border border-slate-700 px-2 py-0.5 rounded-lg hidden">In Hideout</span>
               </div>
             </div>
           </div>
-          <button onclick="clearUserCD_player()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors">CD Reset</button>
+          <button onclick="clearUserCD_player()" class="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono transition-colors">CD Reset</button>
         </div>
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div class="glass-card rounded-xl border border-slate-700/50 p-4">
           <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Level</div>
-          <div class="text-2xl font-bold text-white" id="pd-level">—</div>
-          <div class="text-xs text-slate-500 mt-1" id="pd-xp">— XP</div>
+          <div class="text-2xl font-bold text-white tabular-nums" id="pd-level">—</div>
+          <div class="text-xs text-slate-500 mt-1 tabular-nums" id="pd-xp">— XP</div>
         </div>
         <div class="glass-card rounded-xl border border-slate-700/50 p-4">
           <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Raids Total</div>
-          <div class="text-2xl font-bold text-white" id="pd-raids">—</div>
-          <div class="text-xs text-emerald-400 mt-1" id="pd-survived">— überlebt</div>
+          <div class="text-2xl font-bold text-white tabular-nums" id="pd-raids">—</div>
+          <div class="text-xs text-emerald-400 mt-1 tabular-nums" id="pd-survived">— überlebt</div>
         </div>
-        <div class="glass-card rounded-xl border border-slate-700/50 p-4">
-          <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Gestorben</div>
-          <div class="text-2xl font-bold text-rose-400" id="pd-died">—</div>
-          <div class="text-xs text-slate-500 mt-1" id="pd-survrate">— % Survival</div>
+        <div class="glass-card rounded-xl border border-slate-700/50 p-4 flex items-center gap-3">
+          <svg width="48" height="48" viewBox="0 0 60 60" class="flex-shrink-0" aria-hidden="true">
+            <circle cx="30" cy="30" r="24" fill="none" stroke="#1e293b" stroke-width="6"></circle>
+            <circle id="pd-survring" cx="30" cy="30" r="24" fill="none" stroke="#10b981" stroke-width="6" stroke-dasharray="0 1000" stroke-linecap="round" transform="rotate(-90 30 30)"></circle>
+            <text id="pd-survring-text" x="30" y="34" text-anchor="middle" font-size="12" fill="#10b981" font-weight="500">—</text>
+          </svg>
+          <div>
+            <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Survival</div>
+            <div class="text-xs text-slate-500 tabular-nums" id="pd-died">— gestorben</div>
+          </div>
         </div>
         <div class="glass-card rounded-xl border border-slate-700/50 p-4">
           <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Stash Wert</div>
-          <div class="text-2xl font-bold text-amber-400" id="pd-stash">—</div>
-          <div class="text-xs text-slate-500 mt-1" id="pd-items-count">— Items</div>
+          <div class="text-2xl font-bold text-amber-400 tabular-nums" id="pd-stash">—</div>
+          <div class="text-xs text-slate-500 mt-1 tabular-nums" id="pd-items-count">— Items</div>
         </div>
       </div>
 
       <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Raid-Verlauf</h3>
+          <span class="text-xs font-mono text-slate-500" id="pd-percentile">—</span>
+        </div>
+        <div id="pd-raidbars" class="flex items-end gap-1 h-12">
+          <p class="text-slate-600 text-xs font-mono">Keine Verlaufsdaten</p>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h3 class="text-sm font-semibold text-white uppercase tracking-wide">Inventar</h3>
           <span class="text-xs font-mono text-slate-500" id="pd-inv-count">— Items</span>
         </div>
-        <div id="pd-inventory" class="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div id="pd-cat-filters" class="flex gap-1.5 flex-wrap">
+            <span class="cat-pill on" data-cat="all">Alle</span>
+            <span class="cat-pill" data-cat="weapons">Weapons</span>
+            <span class="cat-pill" data-cat="gear">Gear</span>
+            <span class="cat-pill" data-cat="valuables">Valuables</span>
+            <span class="cat-pill" data-cat="other">Sonstiges</span>
+          </div>
+          <select id="pd-sort-select" onchange="renderInventory()" class="bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500">
+            <option value="price_desc">Preis ↓</option>
+            <option value="price_asc">Preis ↑</option>
+            <option value="qty_desc">Menge ↓</option>
+            <option value="qty_asc">Menge ↑</option>
+          </select>
+        </div>
+        <div id="pd-inventory" class="grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
           <p class="text-slate-600 text-xs font-mono">Kein Inventar</p>
         </div>
       </div>
@@ -78,3 +117,9 @@
     </div>
   </div>
 </div>
+
+<style>
+  .cat-pill { font-size: 11px; padding: 4px 10px; border-radius: 8px; border: 1px solid #334155; color: #94a3b8; cursor: pointer; transition: all .15s; }
+  .cat-pill:hover { border-color: #475569; color: #cbd5e1; }
+  .cat-pill.on { border-color: #10b981; color: #10b981; background: rgba(16,185,129,0.1); }
+</style>

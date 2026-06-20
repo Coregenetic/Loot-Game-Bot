@@ -156,6 +156,30 @@ async function initSchema() {
         console.error('[DB] Migration-Fehler (item_key):', err.message);
     }
 
+    // Migration: last_seen Spalte nachrüsten (für Online-Status im Admin Panel)
+    try {
+        const cols = db.exec(`PRAGMA table_info(players)`);
+        const hasLastSeen = cols.length > 0 && cols[0].values.some(row => row[1] === 'last_seen');
+        if (!hasLastSeen) {
+            db.run(`ALTER TABLE players ADD COLUMN last_seen INTEGER`);
+            console.log('[DB] Migration: last_seen Spalte zur players Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (last_seen):', err.message);
+    }
+
+    // Migration: category Spalte nachrüsten (für Item-Filter im Admin Panel)
+    try {
+        const cols = db.exec(`PRAGMA table_info(items)`);
+        const hasCategory = cols.length > 0 && cols[0].values.some(row => row[1] === 'category');
+        if (!hasCategory) {
+            db.run(`ALTER TABLE items ADD COLUMN category TEXT`);
+            console.log('[DB] Migration: category Spalte zur items Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (category):', err.message);
+    }
+
     saveDb();
     console.log('[DB] Schema initialisiert.');
 }

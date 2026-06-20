@@ -55,27 +55,44 @@ function parseValue(v) {
     return parseInt(s) || 0;
 }
 
+function inferCategory(name) {
+    const n = (name || '').toLowerCase();
+    const weapons = ['rifle', 'pistol', 'gun', 'shotgun', 'smg', 'akm', 'ak-', 'm4', 'mp5',
+        'mp7', 'rebel', 'sniper', 'carbine', 'revolver', 'vss', 'vepr', 'saiga', 'gewehr', 'pistole'];
+    const gear = ['armor', 'rüstung', 'vest', 'weste', 'helmet', 'helm', 'plate', 'rig', 'backpack',
+        'rucksack', 'headset', 'medkit', 'salve', 'bandage', 'verband', 'cms', 'surv12', 'morphin',
+        'aid', 'splint', 'tourniquet'];
+    const valuables = ['key', 'schlüssel', 'marked', 'gold', 'bitcoin', 'graphics card', 'gpu',
+        'rolex', 'watch', 'antique', 'intelligence', 'flash drive', 'ledx', 'gphone'];
+    if (weapons.some(k => n.includes(k))) return 'weapons';
+    if (gear.some(k => n.includes(k))) return 'gear';
+    if (valuables.some(k => n.includes(k))) return 'valuables';
+    return 'other';
+}
+
 function upsertItem(name, data) {
-    const value   = parseValue(data.value);
-    const newText = data.text || '';
+    const value    = parseValue(data.value);
+    const newText  = data.text || '';
+    const category = data.category || null; // null = noch nicht manuell gesetzt -> Heuristik greift beim Lesen
 
     // Alten Text-Wert holen bevor wir überschreiben (Fallback für alte Inventory-Einträge ohne item_key)
     const existing = all(`SELECT text FROM items WHERE name = ?`, [name]);
     const oldText  = existing.length ? existing[0].text : null;
 
     run(
-        `INSERT INTO items (name, text, value, map, icon, is_kappa)
-         VALUES (?, ?, ?, ?, ?, ?)
+        `INSERT INTO items (name, text, value, map, icon, is_kappa, category)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(name) DO UPDATE SET
-             text = ?, value = ?, map = ?, icon = ?, is_kappa = ?`,
+             text = ?, value = ?, map = ?, icon = ?, is_kappa = ?,
+             category = COALESCE(?, category)`,
         [
             name,
             newText, value,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
-            data.icon || '', data.isKappa ? 1 : 0,
+            data.icon || '', data.isKappa ? 1 : 0, category,
             newText, value,
             Array.isArray(data.map) ? JSON.stringify(data.map) : (data.map || ''),
-            data.icon || '', data.isKappa ? 1 : 0
+            data.icon || '', data.isKappa ? 1 : 0, category
         ]
     );
     cache.invalidate(cache.KEYS.ITEMS);
@@ -103,4 +120,4 @@ function deleteItem(name) {
     cache.invalidate(cache.KEYS.ITEMS);
 }
 
-module.exports = { getAllItems, getKappaItems, getItemsForMap, upsertItem, deleteItem };
+module.exports = { getAllItems, getKappaItems, getItemsForMap, parseValue, inferCategory, upsertItem, deleteItem };

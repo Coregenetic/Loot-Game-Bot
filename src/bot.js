@@ -109,9 +109,17 @@ function createBot() {
 
     client.on('message', async (channel, userstate, message, self) => {
         if (self) return;
-        if (!message.startsWith('!')) return;
 
         const ch = channel.replace('#', '').toLowerCase();
+
+        // Online-Status: bei JEDER Nachricht in einem aktiven Channel aktualisieren,
+        // nicht nur bei Commands. Legt keine neuen Spieler an — nur ein Update für
+        // bereits bekannte Spieler (Zuschauer ohne Profil bleiben unberührt).
+        if (activeChannels.has(ch)) {
+            try { require('./db/players').touchLastSeen(userstate.username); } catch (_) {}
+        }
+
+        if (!message.startsWith('!')) return;
         if (!activeChannels.has(ch)) return;
 
         // Wartungsmodus — antwortet mit Meldung
