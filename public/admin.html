@@ -350,10 +350,21 @@ function showTab(tab) { return navigateTo(tab); }
 async function loadOverview() {
   try {
     const s = await fetch('/api/admin/stats', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    const cdCount = s.cooldowns || 0;
     const cdEl = document.getElementById('ov-cd-count');
-    if (cdEl) cdEl.textContent = (s.cooldowns || 0) + ' aktiv';
+    if (cdEl) cdEl.textContent = cdCount + ' aktiv';
+    const cdHeroEl = document.getElementById('ov-cd-hero');
+    if (cdHeroEl) cdHeroEl.textContent = cdCount;
+    const cdBadgeEl = document.getElementById('ov-cd-badge');
+    if (cdBadgeEl) cdBadgeEl.textContent = cdCount + ' AKTIV';
+
+    const plCount = s.players || 0;
     const plEl = document.getElementById('ov-player-count');
-    if (plEl) plEl.textContent = (s.players || 0) + ' registriert';
+    if (plEl) plEl.textContent = plCount + ' registriert';
+    const plHeroEl = document.getElementById('ov-player-hero');
+    if (plHeroEl) plHeroEl.textContent = plCount;
+    const plBadgeEl = document.getElementById('ov-player-badge');
+    if (plBadgeEl) plBadgeEl.textContent = plCount + ' TOTAL';
   } catch {}
 
   try {
@@ -366,12 +377,53 @@ async function loadOverview() {
     const memMb = Math.round((info.memory?.heapUsed || 0) / 1024 / 1024);
     const memEl = document.getElementById('ov-memory');
     if (memEl) memEl.textContent = memMb + ' MB';
+    const uptimeHours = Math.floor((info.uptime || 0) / 3600);
+    const uptimeEl = document.getElementById('ov-server-uptime');
+    if (uptimeEl) uptimeEl.textContent = uptimeHours + 'h';
   } catch {}
 
   try {
     const users = await fetch('/api/admin/users', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    const count = Array.isArray(users) ? users.length : 0;
     const userEl = document.getElementById('ov-user-count');
-    if (userEl) userEl.textContent = (Array.isArray(users) ? users.length : 0) + ' Dashboard-User';
+    if (userEl) userEl.textContent = count + ' Dashboard-User';
+    const userHeroEl = document.getElementById('ov-user-hero');
+    if (userHeroEl) userHeroEl.textContent = count;
+    const userBadgeEl = document.getElementById('ov-user-badge');
+    if (userBadgeEl) userBadgeEl.textContent = count + ' USER';
+  } catch {}
+
+  try {
+    const logs = await fetch('/api/logs', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    const logCount = Array.isArray(logs) ? logs.length : 0;
+    const logCountEl = document.getElementById('ov-log-count');
+    if (logCountEl) logCountEl.textContent = logCount;
+  } catch {}
+
+  try {
+    const an = await fetch('/api/admin/analytics?days=1', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    const cmdTotal = an.total || 0;
+    const cmdCountEl = document.getElementById('ov-cmd-count');
+    if (cmdCountEl) cmdCountEl.textContent = cmdTotal;
+    const cmdBadgeEl = document.getElementById('ov-cmd-badge');
+    if (cmdBadgeEl) cmdBadgeEl.textContent = cmdTotal + ' CMDS';
+  } catch {}
+
+  try {
+    const events = await fetch('/api/events', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    const now = Math.floor(Date.now() / 1000);
+    const activeCount = Object.values(events || {}).filter(e => e && (!e.ExpiresAt || e.ExpiresAt === 0 || e.ExpiresAt > now)).length;
+    const evHeroEl = document.getElementById('ov-events-hero');
+    if (evHeroEl) evHeroEl.textContent = activeCount;
+    const evBadgeEl = document.getElementById('ov-events-badge');
+    if (evBadgeEl) {
+      evBadgeEl.textContent = activeCount > 0 ? activeCount + ' AKTIV' : 'KEINE EVENTS';
+      evBadgeEl.className = activeCount > 0
+        ? 'text-[9px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md'
+        : 'text-[9px] font-mono text-slate-500 bg-slate-800/60 border border-slate-700 px-2 py-0.5 rounded-md';
+    }
+    const evStatusEl = document.getElementById('ov-events-status');
+    if (evStatusEl) evStatusEl.textContent = activeCount + ' aktiv';
   } catch {}
 
   try {
@@ -599,47 +651,24 @@ const ROLE_BADGE = {
   admin:      'bg-blue-500/10 text-blue-400 border-blue-500/30',
   mod:        'bg-slate-700/30 text-slate-300 border-slate-700'
 };
-const ROLE_TOPBAR = {
-  superadmin: '#f59e0b',
-  admin:      '#3b82f6',
-  mod:        '#475569'
-};
-const ROLE_AVATAR_BG = {
-  superadmin: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  admin:      'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  mod:        'bg-slate-700/30 text-slate-300 border-slate-700'
-};
 
 async function loadUsers() {
   try {
     const users = await fetch('/api/admin/users',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
-
-    document.getElementById('um-total').textContent      = users.length;
-    document.getElementById('um-superadmin').textContent = users.filter(u=>u.role==='superadmin').length;
-    document.getElementById('um-admin').textContent      = users.filter(u=>u.role==='admin').length;
-    document.getElementById('um-mod').textContent         = users.filter(u=>u.role==='mod').length;
-
     document.getElementById('userList').innerHTML = users.map(u => {
       const badge = ROLE_BADGE[u.role] || ROLE_BADGE.mod;
-      const avatarBg = ROLE_AVATAR_BG[u.role] || ROLE_AVATAR_BG.mod;
-      const topColor = ROLE_TOPBAR[u.role] || ROLE_TOPBAR.mod;
       const isMe = u.username === currentUser.username;
-      return `
-        <div class="glass-card rounded-2xl border border-slate-700/50 p-4 flex flex-col gap-3" style="border-top:2px solid ${topColor};">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-sm flex-shrink-0 ${avatarBg}">${u.username.slice(0,2).toUpperCase()}</div>
-            <div class="min-w-0">
-              <div class="text-slate-200 font-medium text-sm truncate">${u.username}${isMe ? ' <span class="text-[10px] text-slate-500">(du)</span>' : ''}</div>
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 inline-block ${badge}">${u.role.toUpperCase()}</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-800/50">
-            <select onchange="changeUserRole('${u.username}', this.value)" ${isMe ? 'disabled title="Du kannst dir selbst keine Rolle entziehen"' : ''} class="flex-1 bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500 disabled:opacity-40">
-              ${['mod','admin','superadmin'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('')}
-            </select>
-            ${isMe ? '' : '<button class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition-colors flex-shrink-0" title="User löschen" onclick="deleteUser(\''+u.username+'\')"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>'}
-          </div>
-        </div>`;
+      return '<div class="flex items-center justify-between p-3 rounded-xl border border-slate-800/50 hover:bg-slate-800/30 transition-colors">' +
+        '<div class="flex items-center gap-3">' +
+          '<div><div class="text-slate-200 font-medium text-sm">' + u.username + (isMe ? ' <span class="text-[10px] text-slate-500">(du)</span>' : '') + '</div>' +
+          '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 inline-block ' + badge + '">' + u.role + '</span></div>' +
+        '</div>' +
+        '<div class="flex items-center gap-2">' +
+          '<select onchange="changeUserRole(\'' + u.username + '\', this.value)" ' + (isMe ? 'disabled title="Du kannst dir selbst keine Rolle entziehen"' : '') + ' class="bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500 disabled:opacity-40">' +
+            ['mod','admin','superadmin'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('') +
+          '</select>' +
+          (isMe ? '' : '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button>') +
+        '</div></div>';
     }).join('');
   } catch {}
   loadPermissionMatrix();
@@ -654,8 +683,7 @@ async function createUser() {
 
   if (!username||!password) {
     msg.textContent='⚠ Alle Felder ausfüllen';
-    msg.className='text-xs text-amber-400 block';
-    msg.style.display='block';
+    msg.className='text-xs text-amber-400 mt-2 block';
     return;
   }
   try {
@@ -663,20 +691,18 @@ async function createUser() {
     const d = await res.json();
     if (d.success) {
       showToast('✓ User ' + username + ' angelegt', 'success');
-      msg.style.display='none';
+      msg.className='hidden';
       document.getElementById('newUsername').value='';
       document.getElementById('newPassword').value='';
       loadUsers();
     }
     else {
       msg.textContent='✗ '+(d.error||'Fehler');
-      msg.className='text-xs text-rose-400 block';
-      msg.style.display='block';
+      msg.className='text-xs text-rose-400 mt-2 block';
     }
   } catch(e) {
     msg.textContent='✗ '+e.message;
-    msg.className='text-xs text-rose-400 block';
-    msg.style.display='block';
+    msg.className='text-xs text-rose-400 mt-2 block';
   }
 }
 
@@ -698,23 +724,15 @@ async function deleteUser(username) {
 }
 
 // ─── Rollen-Permission-Matrix ──────────────────────────────────────────────────
-function permToggleHtml(checked, disabled, onchange, color) {
-  return `<label class="perm-toggle">
-    <input type="checkbox" ${checked?'checked':''} ${disabled?'disabled':''} ${onchange?`onchange="${onchange}"`:''}>
-    <span class="track"></span>
-    <span class="knob"></span>
-  </label>`;
-}
-
 async function loadPermissionMatrix() {
   try {
     const data = await fetch('/api/admin/permissions',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
     document.getElementById('permMatrixBody').innerHTML = data.keys.map(key => `
       <tr class="border-t border-slate-800/50">
         <td class="py-2.5 pr-4 text-slate-300">${data.labels[key] || key}</td>
-        <td class="py-2.5 px-4"><div class="flex justify-center">${permToggleHtml(true, true)}</div></td>
-        <td class="py-2.5 px-4"><div class="flex justify-center">${permToggleHtml(data.roles.admin.includes(key), false, `togglePermission('admin','${key}',this.checked)`)}</div></td>
-        <td class="py-2.5 px-4"><div class="flex justify-center">${permToggleHtml(data.roles.mod.includes(key), false, `togglePermission('mod','${key}',this.checked)`)}</div></td>
+        <td class="py-2.5 px-4 text-center"><input type="checkbox" checked disabled class="accent-amber-500 opacity-60"></td>
+        <td class="py-2.5 px-4 text-center"><input type="checkbox" ${data.roles.admin.includes(key)?'checked':''} onchange="togglePermission('admin','${key}',this.checked)" class="accent-blue-500"></td>
+        <td class="py-2.5 px-4 text-center"><input type="checkbox" ${data.roles.mod.includes(key)?'checked':''} onchange="togglePermission('mod','${key}',this.checked)" class="accent-emerald-500"></td>
       </tr>`).join('');
   } catch (err) {
     document.getElementById('permMatrixBody').innerHTML = '<tr><td class="text-xs font-mono text-rose-400 py-2">Fehler: ' + err.message + '</td></tr>';
