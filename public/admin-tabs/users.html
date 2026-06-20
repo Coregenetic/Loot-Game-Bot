@@ -1,40 +1,78 @@
 <div class="space-y-6 pb-4">
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="glass-card border border-slate-700/50 rounded-2xl flex flex-col overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">DASHBOARD USERS</div>
-      <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="userList"></div>
+  <!-- Stat-Kacheln -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="glass-card rounded-xl border border-slate-700/50 p-4">
+      <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">User gesamt</div>
+      <div class="text-2xl font-bold text-white tabular-nums" id="um-total">—</div>
     </div>
+    <div class="glass-card rounded-xl border border-amber-500/20 p-4">
+      <div class="text-xs font-mono text-amber-500/70 uppercase tracking-wide mb-1">Superadmin</div>
+      <div class="text-2xl font-bold text-amber-400 tabular-nums" id="um-superadmin">—</div>
+    </div>
+    <div class="glass-card rounded-xl border border-blue-500/20 p-4">
+      <div class="text-xs font-mono text-blue-500/70 uppercase tracking-wide mb-1">Admin</div>
+      <div class="text-2xl font-bold text-blue-400 tabular-nums" id="um-admin">—</div>
+    </div>
+    <div class="glass-card rounded-xl border border-slate-600/30 p-4">
+      <div class="text-xs font-mono text-slate-500 uppercase tracking-wide mb-1">Mod</div>
+      <div class="text-2xl font-bold text-slate-300 tabular-nums" id="um-mod">—</div>
+    </div>
+  </div>
 
-    <div class="glass-card border border-slate-700/50 rounded-2xl h-fit">
-      <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">NEUEN USER ANLEGEN</div>
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
-          <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername">
-        </div>
-        <div>
-          <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
-          <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 10 Zeichen">
-        </div>
-        <div>
-          <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Rolle</label>
-          <select id="newRole" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
-            <option value="mod">Mod</option>
-            <option value="admin">Admin</option>
-            <option value="superadmin">Superadmin</option>
-          </select>
-        </div>
-        <div id="userMsg" class="text-xs hidden"></div>
-        <button class="w-full px-4 py-2.5 mt-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)]" onclick="createUser()">USER ANLEGEN</button>
+  <!-- User-Kacheln -->
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest">Dashboard Users</h3>
+      <button onclick="document.getElementById('newUserCard').scrollIntoView({behavior:'smooth'})" class="text-xs font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Neuen User anlegen
+      </button>
+    </div>
+    <div id="userList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+  </div>
+
+  <!-- Neuen User anlegen -->
+  <div id="newUserCard" class="glass-card rounded-2xl border border-emerald-500/20 overflow-hidden" style="border-top:2px solid #10b981;">
+    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30 flex items-center gap-2">
+      <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      NEUEN USER ANLEGEN
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Username</label>
+        <input class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newUsername" placeholder="Eindeutiger Name">
+      </div>
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Passwort</label>
+        <input type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all" id="newPassword" placeholder="min. 10 Zeichen">
+      </div>
+      <div>
+        <label class="block text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-1.5">Initiale Rolle</label>
+        <select id="newRole" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+          <option value="mod">Mod</option>
+          <option value="admin">Admin</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
+      </div>
+      <div class="md:col-span-3" id="userMsg" style="display:none;"></div>
+      <div class="md:col-span-3">
+        <button class="w-full px-4 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-semibold tracking-wide hover:bg-emerald-400 transition-colors shadow-[0_0_15px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2" onclick="createUser()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          USER ANLEGEN
+        </button>
       </div>
     </div>
   </div>
 
+  <!-- Rollen-Rechte -->
   <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30 flex items-center justify-between">
-      <span>ROLLEN-RECHTE</span>
-      <span class="text-slate-600 normal-case font-sans">Du bestimmst hier, was Admin/Mod sehen & tun dürfen</span>
+    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30 flex items-center justify-between flex-wrap gap-1">
+      <span class="flex items-center gap-2">
+        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+        ROLLEN-RECHTE
+      </span>
+      <span class="text-slate-600 normal-case font-sans">Du bestimmst, was Admin/Mod sehen & tun dürfen</span>
     </div>
     <div class="p-5 overflow-x-auto">
       <table class="w-full text-sm" id="permMatrix">
@@ -51,9 +89,26 @@
     </div>
   </div>
 
+  <!-- Audit Log -->
   <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30">AUDIT LOG</div>
+    <div class="px-5 py-4 border-b border-slate-700/50 text-[10px] font-mono tracking-widest text-slate-400 uppercase bg-slate-900/30 flex items-center gap-2">
+      <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      AUDIT LOG
+    </div>
     <div class="p-2 max-h-72 overflow-y-auto space-y-1" id="auditLog"></div>
   </div>
 
 </div>
+
+<style>
+  /* iOS-Style Toggle Switch für die Rollen-Rechte-Matrix */
+  .perm-toggle { position: relative; display: inline-block; width: 36px; height: 20px; cursor: pointer; flex-shrink: 0; }
+  .perm-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .perm-toggle .track { position: absolute; inset: 0; background: #334155; border-radius: 999px; transition: background-color .15s; }
+  .perm-toggle .knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform .15s; }
+  .perm-toggle input:checked ~ .track { background: #10b981; }
+  .perm-toggle input:checked ~ .knob { transform: translateX(16px); }
+  .perm-toggle input:disabled ~ .track { background: #b45309; opacity: .5; cursor: not-allowed; }
+  .perm-toggle input:disabled { cursor: not-allowed; }
+  .perm-toggle:has(input:disabled) { cursor: not-allowed; }
+</style>
