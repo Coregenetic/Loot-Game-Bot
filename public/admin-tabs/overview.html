@@ -47,11 +47,23 @@
     </div>
 
     <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 250ms;">
-      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-60"></div>
-      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Live Activity Feed</div>
-      <div id="ov-activity-feed" class="flex flex-col gap-2">
-        <span class="text-xs text-slate-500 font-mono">Lädt...</span>
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-purple-300 opacity-60"></div>
+      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Schnellaktionen</div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button onclick="clearAllCooldowns()" class="px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono tracking-wide transition-colors">
+          🗑 CDs löschen
+        </button>
+        <button onclick="clearCache()" class="px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-mono tracking-wide transition-colors">
+          ⟳ Cache leeren
+        </button>
+        <button id="dashTournamentBtn" onclick="dashToggleTournament()" class="px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono tracking-wide transition-colors">
+          🏆 Turnier: AUS
+        </button>
+        <button onclick="loadOverview()" class="px-3 py-2.5 rounded-xl bg-slate-800/50 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-mono tracking-wide transition-colors">
+          ↺ Aktualisieren
+        </button>
       </div>
+      <div id="quickActionMsg" class="hidden mt-3"></div>
     </div>
   </div>
 
@@ -65,19 +77,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
 
-      <div onclick="navigateTo('dashboard')" class="animate-reveal group glass border border-slate-800/60 hover:border-emerald-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(16,185,129,0.1)] relative overflow-hidden" style="animation-delay: 50ms;">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all mb-4">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-        </div>
-        <h3 class="text-sm font-semibold text-slate-200 uppercase tracking-wide mb-1">Dashboard</h3>
-        <p class="font-mono text-[10px] text-slate-500 flex-1">Übersicht & Stats</p>
-        <div class="pt-3 mt-3 border-t border-slate-800/60 flex items-center justify-end text-[10px] font-mono">
-          <div class="text-emerald-400 font-bold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">ÖFFNEN &rarr;</div>
-        </div>
-      </div>
-
-      <div onclick="navigateTo('analytics')" class="animate-reveal group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden" style="animation-delay: 100ms;">
+      <div onclick="navigateTo('analytics')" class="animate-reveal group glass border border-slate-800/60 hover:border-blue-500/50 rounded-2xl p-5 flex flex-col cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(59,130,246,0.1)] relative overflow-hidden" style="animation-delay: 50ms;">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-300 opacity-50 group-hover:opacity-100 transition-opacity"></div>
         <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/20 transition-all mb-4">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>

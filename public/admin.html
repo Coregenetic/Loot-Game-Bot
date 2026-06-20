@@ -253,7 +253,6 @@ async function loadTabContent(tab) {
 
 const tabTitles = {
   'overview': 'Übersicht',
-  'dashboard': 'Dashboard Overview',
   'analytics': 'Statistiken',
   'logs': 'Bot Log Terminal',
   'cooldowns': 'Cooldown Management',
@@ -291,7 +290,6 @@ async function navigateTo(tab) {
   activeTab = tab;
   if (tab !== 'logs' && logPoll) { clearInterval(logPoll); logPoll = null; updateLogStatus(false); }
   if (tab === 'overview')   loadOverview();
-  if (tab === 'dashboard')  { loadStats(); loadTournament(); }
   if (tab === 'analytics')  loadAnalytics(currentAnDays || 7);
   if (tab === 'logs')       startLogPoll();
   if (tab === 'cooldowns')  loadCooldowns();
@@ -311,6 +309,11 @@ async function loadOverview() {
     if (cdEl) cdEl.textContent = (s.cooldowns || 0) + ' aktiv';
     const plEl = document.getElementById('ov-player-count');
     if (plEl) plEl.textContent = (s.players || 0) + ' registriert';
+  } catch {}
+
+  try {
+    const data = await fetch('/api/admin/tournament', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    updateDashTournamentBtn(data.active);
   } catch {}
 
   try {
@@ -348,43 +351,17 @@ async function loadOverview() {
     if (scoreEl) { scoreEl.textContent = '98'; }
     if (labelEl) { labelEl.textContent = 'Ausgezeichnet'; }
   } catch {}
-
-  // Activity Feed — letzte Analytics-Einträge falls verfügbar
-  try {
-    const data = await fetch('/api/admin/analytics?days=1', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-    const feedEl = document.getElementById('ov-activity-feed');
-    if (feedEl && data.stats) {
-      const cmds = Object.entries(data.stats.byCommand || {});
-      if (cmds.length) {
-        feedEl.innerHTML = cmds.slice(0, 4).map(([cmd, count]) =>
-          `<div class="text-xs text-slate-400 font-mono">${cmd} <span class="text-slate-600">×${count} (24h)</span></div>`
-        ).join('');
-      } else {
-        feedEl.innerHTML = '<span class="text-xs text-slate-500 font-mono">Noch keine Aktivität in den letzten 24h</span>';
-      }
-    }
-  } catch {}
 }
 
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
-async function loadStats() {
-  try {
-    const s = await fetch('/api/admin/stats', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-    document.getElementById('stat-players').textContent   = s.players   || 0;
-    document.getElementById('stat-items').textContent     = s.items     || 0;
-    document.getElementById('stat-cooldowns').textContent = s.cooldowns || 0;
-    document.getElementById('stat-messages').textContent  = s.messages  || 0;
-  } catch {}
-}
-
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 async function clearAllCooldowns() {
   showConfirm('Alle Cooldowns löschen?', 'Möchtest du wirklich alle aktiven Spieler-Cooldowns zurücksetzen?', async () => {
     try {
       await fetch('/api/admin/cooldowns', { method:'DELETE', headers:{'x-session-token':LootGameAPI.getToken()} });
       showQuickMsg('✓ Alle Cooldowns gelöscht', 'var(--green)');
-      loadStats();
+      loadOverview();
       if (activeTab === 'cooldowns') loadCooldowns();
     } catch (e) { showQuickMsg('✗ ' + e.message, 'var(--red)'); }
   });
@@ -1240,11 +1217,11 @@ function updateDashTournamentBtn(active) {
   if (!btn) return;
   btn.dataset.active = active;
   if (active) {
-    btn.textContent = '🏆 Turnier-Modus: AN';
-    btn.className = 'px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono tracking-wide transition-colors';
+    btn.textContent = '🏆 Turnier: AN';
+    btn.className = 'px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 text-xs font-mono tracking-wide transition-colors';
   } else {
-    btn.textContent = '🏆 Turnier-Modus: AUS';
-    btn.className = 'px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono tracking-wide transition-colors';
+    btn.textContent = '🏆 Turnier: AUS';
+    btn.className = 'px-3 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-xs font-mono tracking-wide transition-colors';
   }
 }
 
