@@ -182,6 +182,41 @@ router.get('/backups/:filename/download', requirePermission('server:manage'), (r
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Backup-Inhalt einsehen (read-only) ───────────────────────────────────────
+router.get('/backups/:filename/inspect', requirePermission('server:manage'), async (req, res) => {
+    try {
+        const { inspectBackup } = require('../../utils/backup');
+        const counts = await inspectBackup(req.params.filename);
+        res.json({ filename: req.params.filename, tables: counts });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Gezielt einzelne Tabellen aus einem Backup wiederherstellen ─────────────
+router.post('/backups/:filename/restore-tables', requirePermission('server:manage'), async (req, res) => {
+    try {
+        const { tables } = req.body;
+        if (!Array.isArray(tables) || !tables.length) {
+            return res.status(400).json({ error: 'tables muss ein nicht-leeres Array sein' });
+        }
+        const { restoreTablesFromBackup, SELECTIVE_TABLES } = require('../../utils/backup');
+        const schemaModule = require('../../db/schema');
+
+        const invalid = tables.filter(t => !SELECTIVE_TABLES.includes(t));
+        if (invalid.length) {
+            return res.status(400).json({ error: 'Nicht erlaubte Tabellen: ' + invalid.join(', ') + ' (erlaubt: ' + SELECTIVE_TABLES.join(', ') + ')' });
+        }
+
+        const restored = await restoreTablesFromBackup(req.params.filename, tables, schemaModule);
+        invalidateAll();
+        logAudit(req.session.username, 'backup_restore_tables', { filename: req.params.filename, tables: restored });
+        res.json({ success: true, filename: req.params.filename, restored });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Item zu Spieler geben ────────────────────────────────────────────────────
 
 router.post('/give-item', requirePermission('players:manage'), async (req, res) => {
