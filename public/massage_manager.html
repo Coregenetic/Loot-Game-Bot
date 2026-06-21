@@ -332,6 +332,8 @@
       : 'text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md';
     document.getElementById('quickInfoType').textContent = TYPE_LABELS[type];
     document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
+    document.getElementById('filterInput').value = '';
+    document.getElementById('mapFilter').value = '';
     resetEditor();
     renderMessages();
   }
