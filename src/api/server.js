@@ -11,6 +11,7 @@ const itemsRoutes    = require('./routes/items');
 const playersRoutes  = require('./routes/players');
 const eventsRoutes   = require('./routes/events');
 const messagesRoutes = require('./routes/messages');
+const pushRoutes     = require('./routes/push');
 const adminRoutes    = require('./routes/admin');
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
@@ -155,6 +156,7 @@ function createServer() {
     app.use('/api/players',  sessionAuth, playersRoutes);
     app.use('/api/events',   sessionAuth, eventsRoutes);
     app.use('/api/messages', sessionAuth, messagesRoutes);
+    app.use('/api/push',     pushRoutes); // Auth wird pro Route innen gehandhabt (vapid-key ist öffentlich)
     app.use('/api/admin',    sessionAuth, adminRoutes);
 
     return app;

@@ -223,6 +223,15 @@ async function initDashboardUsers() {
             ts       INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
         CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts);
+
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    INTEGER NOT NULL REFERENCES dashboard_users(id) ON DELETE CASCADE,
+            username   TEXT NOT NULL,
+            endpoint   TEXT NOT NULL UNIQUE,
+            keys_json  TEXT NOT NULL,
+            created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
     `);
 
     // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte

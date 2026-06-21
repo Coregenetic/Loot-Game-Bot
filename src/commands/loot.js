@@ -1,6 +1,6 @@
 const { getOrCreatePlayer, updatePlayer, addOrUpdateInventoryItem,
-        setCooldown, getRemainingCooldown } = require('../db/players');
-const { getGeneral, getActiveEvents, getLeveling } = require('../db/config');
+        setCooldown, getRemainingCooldown, getStashValue } = require('../db/players');
+const { getGeneral, getActiveEvents, getLeveling, getConfig, setConfig } = require('../db/config');
 const { generateLoot, calculateXPGain,
         formatInfiltrationMsg, formatLootMsg, formatDeathMsg } = require('../engine/loot');
 const { calcLevelFromXP, getRankName, formatDuration } = require('../utils/format');
@@ -67,6 +67,25 @@ async function handler({ client, channel, user }) {
             for (const { item } of loot) {
                 const itemName = item.text || item.name;
                 addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0, item.name);
+            }
+
+            // Neuer Top-Looter? -> Push-Benachrichtigung an alle Dashboard-User
+            try {
+                const newStashValue = getStashValue(player.id);
+                const record = getConfig('TopLooterRecord') || { username: null, value: 0 };
+                if (newStashValue > record.value && record.username?.toLowerCase() !== user.toLowerCase()) {
+                    setConfig('TopLooterRecord', { username: user, value: newStashValue });
+                    const { sendPushToAll } = require('../utils/push');
+                    sendPushToAll({
+                        title: '🏆 Neuer Top-Looter!',
+                        body: `${user} ist jetzt #1 mit ${newStashValue.toLocaleString('de-DE')} ₽ Stash-Wert.`,
+                        url: '/admin.html'
+                    }).catch(() => {});
+                } else if (newStashValue > record.value) {
+                    setConfig('TopLooterRecord', { username: user, value: newStashValue });
+                }
+            } catch (err) {
+                logger.error?.('Top-Looter-Push-Check fehlgeschlagen: ' + err.message);
             }
 
             // XP berechnen
