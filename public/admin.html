@@ -412,7 +412,10 @@ async function loadOverview() {
   try {
     const events = await fetch('/api/events', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
     const now = Math.floor(Date.now() / 1000);
-    const activeCount = Object.values(events || {}).filter(e => e && (!e.ExpiresAt || e.ExpiresAt === 0 || e.ExpiresAt > now)).length;
+    let activeCount = 0;
+    if (events?.ForcedMap?.MapName && events.ForcedMap.ExpiresAt > now) activeCount++;
+    if (events?.DoubleLootOverride?.Chance > 0 && events.DoubleLootOverride.ExpiresAt > now) activeCount++;
+    if (events?.XPBoost?.Multiplier > 1 && events.XPBoost.ExpiresAt > now) activeCount++;
     const evHeroEl = document.getElementById('ov-events-hero');
     if (evHeroEl) evHeroEl.textContent = activeCount;
     const evBadgeEl = document.getElementById('ov-events-badge');
