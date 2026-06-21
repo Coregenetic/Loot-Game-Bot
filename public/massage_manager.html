@@ -6,7 +6,7 @@
     <title>Loot-Game Message Manager by Coregenetic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="api-client.js"></script>
-    
+
     <!-- Modern Tactical Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,18 +21,18 @@
             --accent-emerald: #10b981;
         }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: #e4e4e7; 
-            font-family: 'Inter', sans-serif; 
-            background-image: 
+        body {
+            background-color: var(--bg-color);
+            color: #e4e4e7;
+            font-family: 'Inter', sans-serif;
+            background-image:
                 radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.15) 0%, transparent 40%),
                 linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
             background-size: 100% 100%, 24px 24px, 24px 24px;
             background-attachment: fixed;
         }
-        
+
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
 
@@ -41,24 +41,24 @@
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent-emerald); }
 
-        .tarkov-input { 
-            background-color: #09090b; 
-            border: 1px solid #3f3f46; 
-            color: #f4f4f5; 
-            padding: 0.6rem 1rem; 
-            border-radius: 0.25rem; 
-            transition: all 0.2s ease; 
+        .tarkov-input {
+            background-color: #09090b;
+            border: 1px solid #3f3f46;
+            color: #f4f4f5;
+            padding: 0.6rem 1rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
             width: 100%;
             box-sizing: border-box;
         }
-        .tarkov-input:focus { 
-            outline: none; 
-            border-color: var(--accent-emerald); 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 12px rgba(16, 185, 129, 0.2); 
+        .tarkov-input:focus {
+            outline: none;
+            border-color: var(--accent-emerald);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 12px rgba(16, 185, 129, 0.2);
             background-color: #000000;
         }
-        
+
         select.tarkov-input {
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -67,40 +67,40 @@
             background-size: 1em;
             padding-right: 2.5rem;
         }
-        
-        .tarkov-btn { 
-            padding: 0.6rem 1.2rem; 
-            border-radius: 0.25rem; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
+
+        .tarkov-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             text-transform: uppercase;
             font-family: 'Rajdhani', sans-serif;
             letter-spacing: 0.05em;
         }
-        .tarkov-btn-primary { 
-            background: #059669; 
-            color: white; 
+        .tarkov-btn-primary {
+            background: #059669;
+            color: white;
             border: 1px solid #10b981;
             box-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
         }
-        .tarkov-btn-primary:hover { 
-            background: #047857; 
+        .tarkov-btn-primary:hover {
+            background: #047857;
             box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
             border-color: #34d399;
         }
-        .tarkov-btn-secondary { 
-            background-color: #18181b; 
-            color: #a1a1aa; 
-            border: 1px solid #3f3f46; 
+        .tarkov-btn-secondary {
+            background-color: #18181b;
+            color: #a1a1aa;
+            border: 1px solid #3f3f46;
         }
-        .tarkov-btn-secondary:hover { 
-            background-color: #27272a; 
-            color: #f4f4f5; 
+        .tarkov-btn-secondary:hover {
+            background-color: #27272a;
+            color: #f4f4f5;
             border-color: #52525b;
             box-shadow: 0 0 10px rgba(255,255,255,0.05);
         }
@@ -114,23 +114,23 @@
             border-radius: 0.5rem;
         }
 
-        #toast { 
-            position: fixed; bottom: 24px; right: 24px; 
-            background: #064e3b; color: #34d399; 
-            padding: 1rem 1.5rem; border-radius: 0.25rem; 
-            box-shadow: 0 0 20px rgba(4, 120, 87, 0.4); 
-            transform: translateY(150%); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        #toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #064e3b; color: #34d399;
+            padding: 1rem 1.5rem; border-radius: 0.25rem;
+            box-shadow: 0 0 20px rgba(4, 120, 87, 0.4);
+            transform: translateY(150%); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 50; border: 1px solid #10b981;
             font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.05em; text-transform: uppercase;
         }
         #toast.show { transform: translateY(0); }
         #toast.error { background: #450a0a; color: #f87171; border-color: #ef4444; box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); }
 
-        .tab-btn { 
-            border-bottom: 2px solid transparent; 
-            padding-bottom: 0.75rem; 
-            color: #52525b; 
-            transition: all 0.2s; 
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0.75rem;
+            color: #52525b;
+            transition: all 0.2s;
             font-family: 'Rajdhani', sans-serif;
             text-transform: uppercase;
             font-size: 1.1rem;
@@ -138,10 +138,32 @@
             letter-spacing: 0.05em;
         }
         .tab-btn:hover { color: #a1a1aa; }
-        .tab-btn.active { 
-            border-color: var(--accent-emerald); 
-            color: var(--accent-emerald); 
+        .tab-btn.active {
+            border-color: var(--accent-emerald);
+            color: var(--accent-emerald);
             text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .type-tab {
+            padding: 0.5rem 1.1rem;
+            border-radius: 0.25rem;
+            font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            background: #18181b;
+            color: #a1a1aa;
+            border: 1px solid #3f3f46;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .type-tab:hover { background: #27272a; color: #e4e4e7; }
+        .type-tab.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            color: #34d399;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
 
         #dropOverlay {
@@ -152,7 +174,6 @@
         }
         #dropOverlay.hidden { display: none; opacity: 0; pointer-events: none; }
 
-        /* Message Card Styling */
         .msg-card {
             background: #09090b;
             border-left: 3px solid #3f3f46;
@@ -168,7 +189,6 @@
             background: rgba(59, 130, 246, 0.05);
         }
 
-        /* Live Preview Styling */
         .preview-box {
             background: #050505;
             border: 1px dashed #3f3f46;
@@ -188,11 +208,13 @@
             text-transform: uppercase;
         }
 
+        .save-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; }
+        .save-dot.saving { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: pulse-dot 1s infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
     </style>
 </head>
 <body class="p-4 md:p-6 h-screen flex flex-col overflow-hidden">
 
-    <!-- Drag & Drop Dropzone -->
     <div id="dropOverlay" class="hidden">
         <svg class="w-24 h-24 text-emerald-500 mb-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
         <h2 class="font-tactical text-4xl text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">UPLOAD CONFIG</h2>
@@ -200,34 +222,42 @@
     </div>
 
     <div class="max-w-[1500px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-        
+
         <!-- LINKE SEITE: Tool & Formular -->
         <div class="lg:col-span-4 xl:col-span-4 flex flex-col gap-6 overflow-y-auto pr-2 pb-8 custom-scroll">
-            
+
             <!-- Header -->
             <div class="flex items-center gap-4 mt-2 mb-2 shrink-0">
                 <div class="w-14 h-14 rounded bg-[#09090b] border border-emerald-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.15)] relative overflow-hidden shrink-0">
                     <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
                     <svg class="w-7 h-7 text-emerald-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                 </div>
-                <div>
+                <div class="flex-1">
                     <h1 class="font-tactical text-3xl text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]">MESSAGE MANAGER</h1>
                     <p class="text-emerald-500/70 text-xs font-mono uppercase mt-0.5 flex items-center gap-2 font-bold">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_#34d399] animate-ping"></span>
-                        BY COREGENETIC
+                        <span id="saveDot" class="save-dot"></span>
+                        <span id="saveLabel">SYNCED</span>
                     </p>
                 </div>
             </div>
-            
+
+            <!-- Typ-Auswahl: Exfil / Tod / Map -->
+            <div class="flex gap-2 shrink-0">
+                <button class="type-tab active flex-1" data-type="map" onclick="switchType('map')">Map / Loot</button>
+                <button class="type-tab flex-1" data-type="death" onclick="switchType('death')">Tod</button>
+                <button class="type-tab flex-1" data-type="exfil" onclick="switchType('exfil')">Exfil</button>
+            </div>
+
             <!-- Konfigurator -->
             <div id="editSection" class="glass-panel p-5 relative border-l-2 border-l-transparent shrink-0">
                 <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-tr-[0.5rem] rounded-bl-full pointer-events-none"></div>
-                
+
                 <h2 class="font-tactical text-lg text-emerald-400 mb-5 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     <span id="editorTitle">Nachricht erstellen</span>
+                    <span id="editorTypeLabel" class="ml-auto text-[10px] font-mono text-emerald-500/70 normal-case">Map / Loot</span>
                 </h2>
-                
+
                 <div class="space-y-4">
                     <div>
                         <label class="block font-mono text-[10px] uppercase text-zinc-500 mb-1.5">Kategorie / Map</label>
@@ -253,7 +283,6 @@
                         <p class="text-[9px] font-mono text-zinc-500 mt-1 uppercase italic">Platzhalter: {user}, {itemName}, {mapName}</p>
                     </div>
 
-                    <!-- LIVE PREVIEW AREA -->
                     <div class="pt-2">
                         <div class="preview-box">
                             <span class="preview-label">Live Preview (Ingame Style)</span>
@@ -269,25 +298,26 @@
                             <span id="submitText">Nachricht hinzufügen</span>
                         </button>
                     </div>
-                    
+
                     <div id="cancelEdit" class="hidden">
                         <button onclick="resetEditor()" class="tarkov-btn tarkov-btn-secondary w-full py-2 text-xs">Abbrechen</button>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Quick Info -->
             <div class="glass-panel p-4 bg-emerald-900/5 border-emerald-500/20">
                 <h3 class="font-tactical text-sm text-emerald-500 mb-2 font-bold tracking-widest uppercase">System Hinweis</h3>
                 <p class="text-xs font-mono text-zinc-400 leading-relaxed">
-                    Importiere eine <span class="text-zinc-200">.json</span> Datei (death_messages oder exfil_messages), um die vorhandenen Texte zu bearbeiten.
+                    Jede Änderung wird sofort live an den Bot gesendet — kein manueller Sync-Schritt mehr nötig.
+                    JSON-Import/-Export bezieht sich immer auf den aktuell gewählten Nachrichtentyp (<span id="quickInfoType" class="text-zinc-200">Map / Loot</span>).
                 </p>
             </div>
         </div>
 
         <!-- RECHTE SEITE: Ansicht & Code -->
         <div class="lg:col-span-8 xl:col-span-8 glass-panel flex flex-col h-full overflow-hidden">
-            
+
             <!-- Toolbar -->
             <div class="bg-[#050505]/80 p-3 lg:p-4 border-b border-zinc-800 flex flex-wrap gap-3 justify-between items-center relative z-20">
                 <div class="flex gap-2 items-center">
@@ -297,7 +327,7 @@
                         Lade JSON
                     </button>
                 </div>
-                
+
                 <div class="flex gap-2 lg:gap-3 items-center">
                     <button onclick="copyJson()" class="text-zinc-400 hover:text-emerald-400 transition-colors text-xs font-mono uppercase flex items-center gap-1.5 px-2 border-r border-zinc-700 pr-4">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
@@ -306,10 +336,6 @@
                     <button onclick="downloadJson()" class="tarkov-btn tarkov-btn-primary text-xs ml-2">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Speichern
-                    </button>
-                    <button onclick="syncMessagesToBot()" class="tarkov-btn text-xs ml-2" style="border-color:rgba(16,185,129,0.5);color:#10b981;background:rgba(16,185,129,0.1);">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                        Sync zu Bot
                     </button>
                 </div>
             </div>
@@ -320,7 +346,7 @@
                     <button class="tab-btn active" onclick="switchTab('visual')">Nachrichten Datenbank</button>
                     <button class="tab-btn" onclick="switchTab('code')">Raw JSON Code</button>
                 </div>
-                
+
                 <div id="quickStats" class="hidden md:flex gap-4 lg:gap-6 text-[10px] font-mono uppercase text-zinc-500 pb-2.5 items-center">
                     <div>Total Msgs: <span id="statTotalMsgs" class="text-zinc-200">0</span></div>
                     <div class="w-px h-3 bg-zinc-800"></div>
@@ -330,48 +356,47 @@
 
             <!-- Tab Content: Visuell -->
             <div id="tabVisual" class="p-6 overflow-y-auto flex-grow h-0 relative custom-scroll">
-                
-                <!-- Filter Bar -->
+
                 <div class="flex flex-col lg:flex-row items-stretch lg:items-center mb-6 gap-3 bg-[#050505] p-3 rounded border border-zinc-800 sticky top-0 z-10 shadow-lg">
                     <div class="relative flex-grow min-w-0">
                         <svg class="w-4 h-4 absolute left-3 top-2.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         <input type="text" id="filterInput" placeholder="Texte filtern..." class="tarkov-input pl-9 py-2 text-xs font-mono bg-transparent border border-zinc-800 lg:border-none lg:shadow-none focus:bg-zinc-900" oninput="renderMessages()">
                     </div>
-                    
+
                     <div class="h-6 w-px bg-zinc-800 mx-1 hidden lg:block shrink-0"></div>
-                    
+
                     <select id="mapFilter" class="tarkov-input w-full lg:w-auto text-xs font-mono py-2 bg-[#09090b] border border-zinc-800" onchange="renderMessages()">
                         <option value="">[ ALLE KATEGORIEN ]</option>
                         <option value="Default">Default</option>
                     </select>
                 </div>
 
-                <!-- Message List Grid -->
-                <div id="messageList" class="flex flex-col gap-4">
-                    <!-- Groups will be generated here -->
-                </div>
+                <div id="messageList" class="flex flex-col gap-4"></div>
             </div>
 
             <!-- Tab Content: Code -->
             <div id="tabCode" class="p-0 overflow-hidden flex-grow hidden h-0 flex-col bg-[#050505]">
                 <div class="bg-amber-500/10 border-b border-amber-500/20 p-2 text-[11px] font-mono text-amber-500/80 text-center flex justify-center items-center gap-2 uppercase tracking-wide">
                     <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Direkte Manipulation des Quellcodes. Vorsicht vor Syntax-Fehlern.
+                    Direkte Manipulation des Quellcodes für den aktuellen Typ. Wird beim Tippen live an den Bot gesendet.
                 </div>
                 <textarea id="jsonOutput" class="w-full h-full bg-transparent text-emerald-400 font-mono text-[13px] p-6 outline-none resize-none leading-relaxed custom-scroll" oninput="debounceRender()"></textarea>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast">SYS: OK</div>
 
     <script>
-        let currentMessages = { "Default": [] };
-        let editingRef = null; // { map, index }
-        let renderTimeout;
+        const TYPE_LABELS = { exfil: 'Exfil', death: 'Tod', map: 'Map / Loot' };
 
-        // --- PREVIEW LOGIC ---
+        let allMessages    = { exfil: {}, death: {}, map: {} };
+        let currentType    = 'map';
+        let currentMessages = allMessages[currentType];
+        let editingRef      = null;
+        let renderTimeout;
+        let saveTimeout;
+
         function updatePreview() {
             const rawText = document.getElementById('editMessage').value;
             const currentMap = document.getElementById('editMap').value;
@@ -383,7 +408,6 @@
                 return;
             }
 
-            // Beispieldaten für die Ersetzung
             const sampleData = {
                 "{user}": "<span class='text-emerald-400 font-bold'>GunnyOne</span>",
                 "{itemName}": "<span class='text-amber-400 font-bold'>LedX Skin Transilluminator</span>",
@@ -399,9 +423,9 @@
             previewEl.className = "text-sm font-medium text-zinc-200";
         }
 
-        window.onload = () => {
-            loadFromLocal();
+        window.onload = async () => {
             initFilters();
+            await loadFromServer();
             updatePreview();
         };
 
@@ -416,33 +440,60 @@
             });
         }
 
-        // --- APP LOGIC ---
-        function saveToLocal() {
-            localStorage.setItem('tarkov_loot_game_messages', JSON.stringify(currentMessages));
-            document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
-            updateStats();
+        // --- SERVER SYNC ---
+        async function loadFromServer() {
+            try {
+                const data = await LootGameAPI.messages.getAll();
+                allMessages = {
+                    exfil: data.exfil || {},
+                    death: data.death || {},
+                    map:   data.map   || {}
+                };
+                currentMessages = allMessages[currentType];
+                document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
+                renderMessages();
+                setSaveStatus('synced');
+            } catch (e) {
+                showToast("LADEN FEHLGESCHLAGEN: " + e.message, true);
+                setSaveStatus('error');
+            }
         }
 
-        function loadFromLocal() {
-            const saved = localStorage.getItem('tarkov_loot_game_messages');
-            if (saved) {
-                try {
-                    currentMessages = JSON.parse(saved);
-                    document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
-                } catch(e) {}
+        function setSaveStatus(state) {
+            const dot   = document.getElementById('saveDot');
+            const label = document.getElementById('saveLabel');
+            if (state === 'saving') { dot.className = 'save-dot saving'; label.textContent = 'SAVING...'; }
+            else if (state === 'error') { dot.className = 'save-dot'; dot.style.background = '#ef4444'; label.textContent = 'SYNC ERROR'; }
+            else { dot.className = 'save-dot'; dot.style.background = ''; label.textContent = 'SYNCED'; }
+        }
+
+        async function persistCurrentType() {
+            setSaveStatus('saving');
+            try {
+                await LootGameAPI.messages.setType(currentType, currentMessages);
+                document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
+                setSaveStatus('synced');
+            } catch (e) {
+                setSaveStatus('error');
+                showToast("SPEICHERN FEHLGESCHLAGEN: " + e.message, true);
             }
+        }
+
+        function switchType(type) {
+            currentType = type;
+            currentMessages = allMessages[type];
+
+            document.querySelectorAll('.type-tab').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+            document.getElementById('editorTypeLabel').textContent = TYPE_LABELS[type];
+            document.getElementById('quickInfoType').textContent = TYPE_LABELS[type];
+            document.getElementById('jsonOutput').value = JSON.stringify(currentMessages, null, 2);
+
+            resetEditor();
             renderMessages();
         }
 
-        function updateStats() {
-            let total = 0;
-            let maps = Object.keys(currentMessages).length;
-            Object.values(currentMessages).forEach(arr => total += arr.length);
-            document.getElementById('statTotalMsgs').textContent = total;
-            document.getElementById('statActiveMaps').textContent = maps;
-        }
-
-        function saveMessage() {
+        // --- APP LOGIC ---
+        async function saveMessage() {
             const map = document.getElementById('editMap').value;
             const text = document.getElementById('editMessage').value.trim();
 
@@ -461,19 +512,20 @@
             if (!currentMessages[map]) currentMessages[map] = [];
             currentMessages[map].push(text);
 
+            const wasEditing = !!editingRef;
             resetEditor();
-            saveToLocal();
             renderMessages();
-            showToast(editingRef ? "NACHRICHT AKTUALISIERT" : "NACHRICHT GESPEICHERT");
+            await persistCurrentType();
+            showToast(wasEditing ? "NACHRICHT AKTUALISIERT" : "NACHRICHT GESPEICHERT");
         }
 
         function startEdit(map, index) {
             editingRef = { map, index };
             const text = currentMessages[map][index];
-            
+
             document.getElementById('editMap').value = map;
             document.getElementById('editMessage').value = text;
-            
+
             document.getElementById('editorTitle').textContent = "Nachricht bearbeiten";
             document.getElementById('submitText').textContent = "Änderung speichern";
             document.getElementById('submitBtn').classList.replace('tarkov-btn-primary', 'bg-blue-600');
@@ -497,14 +549,14 @@
             renderMessages();
         }
 
-        function deleteMsg(map, index) {
+        async function deleteMsg(map, index) {
             if (!confirm("Nachricht wirklich dauerhaft löschen?")) return;
             currentMessages[map].splice(index, 1);
             if (currentMessages[map].length === 0 && map !== "Default") {
                 delete currentMessages[map];
             }
-            saveToLocal();
             renderMessages();
+            await persistCurrentType();
             showToast("NACHRICHT GELÖSCHT");
         }
 
@@ -530,7 +582,7 @@
 
                 const group = document.createElement('div');
                 group.className = 'mb-4';
-                
+
                 group.innerHTML = `
                     <h3 class="font-tactical text-xs text-zinc-500 mb-2 px-1 tracking-widest font-bold">// CATEGORY: ${mapName}</h3>
                     <div class="flex flex-col gap-2">
@@ -559,6 +611,14 @@
                 container.innerHTML = '<div class="text-center py-20 text-zinc-600 font-mono text-sm uppercase tracking-widest">Keine Nachrichten gefunden</div>';
             }
             updateStats();
+        }
+
+        function updateStats() {
+            let total = 0;
+            let maps = Object.keys(currentMessages).length;
+            Object.values(currentMessages).forEach(arr => total += arr.length);
+            document.getElementById('statTotalMsgs').textContent = total;
+            document.getElementById('statActiveMaps').textContent = maps;
         }
 
         // --- UTILS ---
@@ -592,29 +652,29 @@
             renderTimeout = setTimeout(() => {
                 try {
                     const val = document.getElementById('jsonOutput').value;
-                    currentMessages = JSON.parse(val);
-                    localStorage.setItem('tarkov_loot_game_messages', val);
+                    const parsed = JSON.parse(val);
+                    allMessages[currentType] = parsed;
+                    currentMessages = allMessages[currentType];
                     renderMessages();
+                    clearTimeout(saveTimeout);
+                    saveTimeout = setTimeout(persistCurrentType, 600);
                 } catch(e) {}
             }, 500);
         }
 
         function importFile(file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const content = e.target.result;
-                    const parsed = JSON.parse(content); 
-                    if (Array.isArray(parsed)) {
-                        currentMessages = { "Default": parsed };
-                    } else {
-                        currentMessages = parsed;
-                    }
-                    saveToLocal();
+                    const parsed = JSON.parse(content);
+                    allMessages[currentType] = Array.isArray(parsed) ? { "Default": parsed } : parsed;
+                    currentMessages = allMessages[currentType];
                     renderMessages();
-                    showToast("CONFIG IMPORTED");
-                } catch (error) { 
-                    showToast("IMPORT FAILED: INVALID JSON", true); 
+                    await persistCurrentType();
+                    showToast("CONFIG IMPORTED & SYNCED");
+                } catch (error) {
+                    showToast("IMPORT FAILED: INVALID JSON", true);
                 }
             };
             reader.readAsText(file);
@@ -627,33 +687,6 @@
             event.target.value = '';
         }
 
-        async function syncMessagesToBot() {
-            if (!LootGameAPI.isLoggedIn()) {
-                alert('Nicht eingeloggt');
-                return;
-            }
-
-            const choice  = confirm('Welchen Typ senden?\nOK = Map-Nachrichten (Loot-Ergebnis)\nAbbrechen = Tod-Nachrichten');
-            const msgType = choice ? 'map' : 'death';
-
-            try {
-                const token = LootGameAPI.getToken();
-                const res   = await fetch('/api/messages/' + msgType, {
-                    method:  'PUT',
-                    headers: { 'Content-Type': 'application/json', 'x-session-token': token },
-                    body:    JSON.stringify(currentMessages)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert('✓ ' + (choice ? 'Map' : 'Tod') + '-Nachrichten an Bot gesendet!');
-                } else {
-                    alert('Fehler: ' + (data.error || 'Unbekannt'));
-                }
-            } catch (err) {
-                alert('Fehler: ' + err.message);
-            }
-        }
-
         function downloadJson() {
             try {
                 const prettyJson = JSON.stringify(currentMessages, null, 2);
@@ -661,7 +694,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = "messages.json";
+                a.download = currentType + "_messages.json";
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);

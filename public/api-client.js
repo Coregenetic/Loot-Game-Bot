@@ -91,10 +91,14 @@ const LootGameAPI = (() => {
         setXPBoost:   (m, mins)   => put('/api/events/xpboost',    { multiplier: m, durationMinutes: mins }),
         clear:        (type)      => del('/api/events/' + type)
     };
+    const messages = {
+        getAll: ()           => get('/api/messages'),
+        setType: (type, obj) => put('/api/messages/' + type, obj)
+    };
 
     return {
         getToken, getUsername, isLoggedIn, logout, checkConnection, changePassword,
-        config, items, players, events
+        config, items, players, events, messages
     };
 })();
 
