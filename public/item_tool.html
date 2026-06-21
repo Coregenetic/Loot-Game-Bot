@@ -13,80 +13,83 @@
 
     <style>
         :root {
-            --bg-color: #050505;
-            --panel-bg: rgba(9, 9, 11, 0.75);
-            --border-color: #27272a;
-            --accent-glow: rgba(16, 185, 129, 0.15);
+            --bg-color: #05080c;
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --border-color: #1e293b;
+            --accent-glow: rgba(16, 185, 129, 0.1);
         }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: #e4e4e7; 
-            font-family: 'Inter', sans-serif; 
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(5, 150, 105, 0.15) 0%, transparent 40%),
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 24px 24px, 24px 24px;
-            background-attachment: fixed;
+        body {
+            background-color: var(--bg-color);
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
         }
-        
+
+        .bg-grid {
+            position: fixed; inset: 0; z-index: -1;
+            background-image:
+                linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+        }
+
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .font-tactical { font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+        .font-tactical { font-family: 'Inter', sans-serif; font-weight: 600; }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
 
-        .tarkov-input { 
-            background-color: #09090b; border: 1px solid #3f3f46; color: #f4f4f5; 
-            padding: 0.6rem 0.8rem; border-radius: 0.25rem; transition: all 0.2s ease; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); width: 100%; box-sizing: border-box;
+        .tarkov-input {
+            background-color: rgba(15, 23, 42, 0.5); border: 1px solid #334155; color: #f1f5f9;
+            padding: 0.6rem 0.8rem; border-radius: 0.75rem; transition: all 0.15s ease;
+            width: 100%; box-sizing: border-box;
         }
-        .tarkov-input:focus { 
-            outline: none; border-color: #10b981; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 12px rgba(16, 185, 129, 0.2); 
-            background-color: #000000;
+        .tarkov-input:focus {
+            outline: none; border-color: #10b981;
+            box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.4);
+            background-color: rgba(2, 6, 23, 0.6);
         }
-        
+
         select.tarkov-input {
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1em; padding-right: 2.25rem;
         }
-        
-        .tarkov-btn { 
-            padding: 0.6rem 1rem; border-radius: 0.25rem; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+
+        .tarkov-btn {
+            padding: 0.6rem 1rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease;
             display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-            text-transform: uppercase; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.05em;
+            font-family: 'Inter', sans-serif;
         }
-        .tarkov-btn-primary { background: #059669; color: white; border: 1px solid #10b981; box-shadow: 0 0 10px rgba(5, 150, 105, 0.2); }
-        .tarkov-btn-primary:hover { background: #047857; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); border-color: #34d399; }
-        .tarkov-btn-secondary { background-color: #18181b; color: #a1a1aa; border: 1px solid #3f3f46; }
-        .tarkov-btn-secondary:hover { background-color: #27272a; color: #f4f4f5; border-color: #52525b; box-shadow: 0 0 8px rgba(255,255,255,0.05); }
-        
-        .map-toggle { 
-            background-color: #09090b; border: 1px solid #3f3f46; color: #71717a; padding: 0.3rem 0.6rem; border-radius: 0.2rem; 
-            font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; cursor: pointer; transition: all 0.2s; user-select: none; 
+        .tarkov-btn-primary { background: #10b981; color: #022c22; border: 1px solid #10b981; }
+        .tarkov-btn-primary:hover { background: #34d399; }
+        .tarkov-btn-secondary { background-color: rgba(30, 41, 59, 0.5); color: #cbd5e1; border: 1px solid #334155; }
+        .tarkov-btn-secondary:hover { background-color: #1e293b; color: #f1f5f9; border-color: #475569; }
+
+        .map-toggle {
+            background-color: rgba(15, 23, 42, 0.5); border: 1px solid #334155; color: #64748b; padding: 0.3rem 0.6rem; border-radius: 0.5rem;
+            font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; cursor: pointer; transition: all 0.15s; user-select: none;
         }
-        .map-toggle:hover { background-color: #18181b; color: #d4d4d8; border-color: #52525b; }
-        .map-toggle.active { 
-            background-color: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #10b981; 
-            text-shadow: 0 0 5px rgba(16, 185, 129, 0.4); box-shadow: inset 0 0 5px rgba(16, 185, 129, 0.2); font-weight: 600;
+        .map-toggle:hover { background-color: #1e293b; color: #cbd5e1; border-color: #475569; }
+        .map-toggle.active {
+            background-color: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #10b981; font-weight: 600;
         }
 
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8); border-radius: 0.4rem; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 1rem; }
 
-        .tab-btn { border-bottom: 2px solid transparent; padding-bottom: 0.6rem; color: #52525b; transition: all 0.2s; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em; }
-        .tab-btn:hover { color: #a1a1aa; }
-        .tab-btn.active { border-color: #10b981; color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        .tab-btn { border-bottom: 2px solid transparent; padding-bottom: 0.6rem; color: #64748b; transition: all 0.15s; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.04em; }
+        .tab-btn:hover { color: #cbd5e1; }
+        .tab-btn.active { border-color: #10b981; color: #10b981; }
 
         #dropOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #10b981; transition: all 0.2s; }
         #dropOverlay.hidden { display: none; opacity: 0; pointer-events: none; }
 
         :root {
-            --rarity-common: #71717a;
+            --rarity-common: #64748b;
             --rarity-uncommon: #10b981;
             --rarity-rare: #3b82f6;
             --rarity-epic: #a855f7;
@@ -100,34 +103,39 @@
         .card-legendary { --item-color: var(--rarity-legendary); }
 
         .tier-badge-common { color: var(--rarity-common); }
-        .tier-badge-uncommon { color: var(--rarity-uncommon); text-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
-        .tier-badge-rare { color: var(--rarity-rare); text-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
-        .tier-badge-epic { color: var(--rarity-epic); text-shadow: 0 0 5px rgba(168, 85, 247, 0.4); }
-        .tier-badge-legendary { color: var(--rarity-legendary); text-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+        .tier-badge-uncommon { color: var(--rarity-uncommon); }
+        .tier-badge-rare { color: var(--rarity-rare); }
+        .tier-badge-epic { color: var(--rarity-epic); }
+        .tier-badge-legendary { color: var(--rarity-legendary); }
     </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden text-slate-300 selection:bg-emerald-500/30">
+<div class="bg-grid"></div>
 
     <!-- Drag & Drop Dropzone -->
     <div id="dropOverlay" class="hidden">
         <svg class="w-24 h-24 text-emerald-500 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-        <h2 class="font-tactical text-3xl md:text-4xl font-bold text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">UPLOAD DATENBANK</h2>
-        <p class="text-zinc-400 mt-3 font-mono text-sm uppercase tracking-wider">Warte auf items.json Datei...</p>
+        <h2 class="font-tactical text-3xl md:text-4xl font-bold text-emerald-400">UPLOAD DATENBANK</h2>
+        <p class="text-slate-400 mt-3 font-mono text-sm uppercase tracking-wider">Warte auf items.json Datei...</p>
     </div>
 
     <!-- HEADER NAVIGATION -->
-    <header class="glass-panel shrink-0 z-20 flex flex-wrap items-center justify-between px-5 py-3 border-b-2 border-emerald-500/50 shadow-md">
-        <div class="flex items-center gap-4">
-            <div class="font-bold text-slate-100 tracking-wider text-sm flex items-center gap-3">
-                <div class="w-2 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                ITEM MANAGER
+    <header class="border-b border-slate-800/60 shrink-0 z-20 flex flex-wrap items-center justify-between px-4 md:px-6 py-3">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <div>
+                <h1 class="text-sm font-semibold text-white uppercase tracking-wide">Item Manager</h1>
+                <p class="text-[10px] font-mono text-slate-500">Tarkov.dev Datenbank-Sync</p>
             </div>
         </div>
-        
-        <div class="flex items-center gap-4">
+
+        <div class="flex items-center gap-3">
             <div class="text-[10px] font-mono text-slate-500 hidden sm:block">by <span class="text-emerald-500">COREGENETIC</span></div>
-            <a href="index.html" class="text-[10px] font-mono px-3 py-1.5 rounded border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 hover:bg-slate-800/50 transition-colors">
-                &larr; GAME CENTER
+            <a href="admin.html" class="text-xs font-mono text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 hover:border-emerald-500/40">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Admin Panel
             </a>
         </div>
     </header>
@@ -142,7 +150,7 @@
             <div class="glass-panel p-4 relative shrink-0">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-tr-[0.4rem] rounded-bl-full pointer-events-none"></div>
                 
-                <h2 class="font-tactical font-semibold text-lg text-zinc-300 mb-3 flex items-center gap-2">
+                <h2 class="font-tactical font-semibold text-lg text-slate-300 mb-3 flex items-center gap-2">
                     <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     Tarkov.dev Datenbank
                 </h2>
@@ -172,40 +180,40 @@
                 
                 <div class="space-y-3.5">
                     <div>
-                        <label class="block font-mono text-[10px] font-semibold uppercase text-zinc-400 mb-1.5">Anzeigename [DEUTSCH]</label>
-                        <input type="text" id="editName" class="tarkov-input text-sm py-2 font-semibold text-zinc-100" placeholder="z.B. Grafikkarte" oninput="checkIfEdit()">
+                        <label class="block font-mono text-[10px] font-semibold uppercase text-slate-400 mb-1.5">Anzeigename [DEUTSCH]</label>
+                        <input type="text" id="editName" class="tarkov-input text-sm py-2 font-semibold text-slate-100" placeholder="z.B. Grafikkarte" oninput="checkIfEdit()">
                     </div>
                     
                     <div>
                         <div class="flex justify-between items-end mb-1.5">
-                            <label class="block font-mono text-[10px] font-semibold uppercase text-zinc-400">Map Filter</label>
+                            <label class="block font-mono text-[10px] font-semibold uppercase text-slate-400">Map Filter</label>
                             <div class="text-[10px] font-mono font-semibold uppercase text-emerald-500 cursor-pointer hover:text-emerald-400 transition" onclick="selectAllMaps(true)">[ Alle Markieren ]</div>
                         </div>
-                        <div id="mapButtons" class="flex flex-wrap gap-2 bg-[#050505] p-3 rounded border border-zinc-800/80 shadow-inner"></div>
+                        <div id="mapButtons" class="flex flex-wrap gap-2 bg-[#05080c] p-3 rounded border border-slate-800/80 shadow-inner"></div>
                     </div>
 
                     <div>
-                        <label class="block font-mono text-[10px] font-semibold uppercase text-zinc-400 mb-1.5">Beschreibung [Optional]</label>
-                        <input type="text" id="editText" class="tarkov-input text-sm py-2 text-zinc-300" placeholder="Ein kurzer Text...">
+                        <label class="block font-mono text-[10px] font-semibold uppercase text-slate-400 mb-1.5">Beschreibung [Optional]</label>
+                        <input type="text" id="editText" class="tarkov-input text-sm py-2 text-slate-300" placeholder="Ein kurzer Text...">
                     </div>
 
                     <div>
-                        <label class="block font-mono text-[10px] font-semibold uppercase text-zinc-400 mb-1.5">Icon URL [Optional]</label>
-                        <input type="text" id="editIcon" class="tarkov-input text-xs py-2 text-zinc-400" placeholder="https://...">
+                        <label class="block font-mono text-[10px] font-semibold uppercase text-slate-400 mb-1.5">Icon URL [Optional]</label>
+                        <input type="text" id="editIcon" class="tarkov-input text-xs py-2 text-slate-400" placeholder="https://...">
                     </div>
 
                     <div>
-                        <label class="block font-mono text-[10px] font-semibold uppercase text-zinc-400 mb-1.5">Wert [Auto-Format]</label>
+                        <label class="block font-mono text-[10px] font-semibold uppercase text-slate-400 mb-1.5">Wert [Auto-Format]</label>
                         <input type="text" id="editValue" class="tarkov-input text-sm py-2 font-bold font-mono text-amber-400 tracking-wide" placeholder="z.B. 1.5M Rubel" oninput="updateTierPreview()">
-                        <div id="tierPreview" class="text-[11px] font-mono mt-1.5 text-zinc-500 font-semibold uppercase">Tier: <span class="text-zinc-600">-</span></div>
+                        <div id="tierPreview" class="text-[11px] font-mono mt-1.5 text-slate-500 font-semibold uppercase">Tier: <span class="text-slate-600">-</span></div>
                     </div>
 
                     <!-- Kappa Checkbox -->
-                    <div class="flex items-center gap-3 px-3 py-2.5 rounded border border-zinc-800 bg-[#09090b] cursor-pointer hover:border-amber-500/40 transition-all" onclick="document.getElementById('editKappa').click()">
+                    <div class="flex items-center gap-3 px-3 py-2.5 rounded border border-slate-800 bg-[#0a0f16] cursor-pointer hover:border-amber-500/40 transition-all" onclick="document.getElementById('editKappa').click()">
                         <input type="checkbox" id="editKappa" class="w-4 h-4 accent-amber-500 cursor-pointer" onclick="event.stopPropagation()">
                         <div class="flex flex-col">
                             <span class="font-tactical text-sm font-bold text-amber-400 tracking-wider">KAPPA CONTAINER ITEM</span>
-                            <span class="font-mono text-[10px] text-zinc-500 uppercase tracking-wide">Dieses Item wird für den Kappa Container benötigt</span>
+                            <span class="font-mono text-[10px] text-slate-500 uppercase tracking-wide">Dieses Item wird für den Kappa Container benötigt</span>
                         </div>
                         <div class="ml-auto">
                             <svg class="w-5 h-5 text-amber-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -226,7 +234,7 @@
         <div class="lg:w-8/12 xl:w-2/3 glass-panel flex flex-col min-h-0 h-full overflow-hidden">
             
             <!-- Toolbar -->
-            <div class="bg-[#050505]/80 p-2.5 lg:p-3 border-b border-zinc-800 flex flex-wrap gap-2 justify-between items-center relative z-20 shrink-0">
+            <div class="bg-[#05080c]/80 p-2.5 lg:p-3 border-b border-slate-800 flex flex-wrap gap-2 justify-between items-center relative z-20 shrink-0">
                 <div class="flex gap-2 items-center">
                     <input type="file" id="fileUpload" accept=".json" class="hidden" onchange="importJsonEvent(event)">
                     <button onclick="document.getElementById('fileUpload').click()" class="tarkov-btn tarkov-btn-secondary text-xs px-3 py-1.5">
@@ -240,11 +248,11 @@
                 </div>
                 
                 <div class="flex gap-2 lg:gap-3 items-center">
-                    <button onclick="exportCsv()" class="text-zinc-400 hover:text-blue-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2">
+                    <button onclick="exportCsv()" class="text-slate-400 hover:text-blue-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         CSV Export
                     </button>
-                    <button onclick="copyJson()" class="text-zinc-400 hover:text-emerald-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2 border-r border-zinc-700 pr-3">
+                    <button onclick="copyJson()" class="text-slate-400 hover:text-emerald-400 transition-colors text-[11px] font-mono font-semibold uppercase flex items-center gap-1.5 px-2 border-r border-slate-700 pr-3">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                         Code Kopieren
                     </button>
@@ -260,18 +268,18 @@
             </div>
 
             <!-- Tabs & Stats -->
-            <div class="flex justify-between items-end px-5 pt-4 border-b border-zinc-800 bg-[#09090b]/50 shrink-0">
+            <div class="flex justify-between items-end px-5 pt-4 border-b border-slate-800 bg-[#0a0f16]/50 shrink-0">
                 <div class="flex gap-6">
                     <button class="tab-btn active text-base" onclick="switchTab('visual')">Inventar Datenbank</button>
                     <button class="tab-btn text-base" onclick="switchTab('code')">Raw JSON Code</button>
                 </div>
                 
                 <!-- Tactical HUD Dashboard -->
-                <div id="quickStats" class="hidden xl:flex gap-4 lg:gap-6 text-xs font-mono uppercase text-zinc-500 pb-2 items-center">
-                    <div>Items: <span id="statTotalItems" class="text-zinc-100 font-semibold text-sm">0</span></div>
-                    <div class="w-px h-4 bg-zinc-700"></div>
+                <div id="quickStats" class="hidden xl:flex gap-4 lg:gap-6 text-xs font-mono uppercase text-slate-500 pb-2 items-center">
+                    <div>Items: <span id="statTotalItems" class="text-slate-100 font-semibold text-sm">0</span></div>
+                    <div class="w-px h-4 bg-slate-700"></div>
                     <div>Pool Value: <span id="statTotalValue" class="text-emerald-400 font-semibold text-sm tracking-wide">0 ₽</span></div>
-                    <div class="w-px h-4 bg-zinc-700"></div>
+                    <div class="w-px h-4 bg-slate-700"></div>
                     <div>Peak Item: <span id="statTopItem" class="text-amber-400 font-semibold text-sm truncate max-w-[120px] inline-block align-bottom">-</span></div>
                 </div>
             </div>
@@ -280,32 +288,32 @@
             <div id="tabVisual" class="p-5 flex-1 min-h-0 overflow-y-auto relative custom-scroll flex flex-col">
                 
                 <!-- Filter & Sort Bar -->
-                <div class="flex flex-col xl:flex-row items-stretch xl:items-center mb-5 gap-3 bg-[#050505] p-2.5 rounded border border-zinc-800 sticky top-0 z-10 shadow-lg shrink-0">
+                <div class="flex flex-col xl:flex-row items-stretch xl:items-center mb-5 gap-3 bg-[#05080c] p-2.5 rounded border border-slate-800 sticky top-0 z-10 shadow-lg shrink-0">
                     <div class="relative flex-grow min-w-0">
-                        <svg class="w-4 h-4 absolute left-3 top-2.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        <input type="text" id="filterInput" placeholder="Datenbank durchsuchen..." class="tarkov-input pl-9 py-2 text-xs font-mono bg-transparent border-zinc-800 focus:bg-[#09090b]" oninput="renderVisualList()">
+                        <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="filterInput" placeholder="Datenbank durchsuchen..." class="tarkov-input pl-9 py-2 text-xs font-mono bg-transparent border-slate-800 focus:bg-[#0a0f16]" oninput="renderVisualList()">
                     </div>
                     
-                    <div class="h-6 w-px bg-zinc-800 mx-1 hidden xl:block shrink-0"></div>
+                    <div class="h-6 w-px bg-slate-800 mx-1 hidden xl:block shrink-0"></div>
                     
                     <div class="flex flex-col sm:flex-row gap-2.5 shrink-0">
-                        <select id="mapFilter" class="tarkov-input w-full sm:w-auto text-xs font-mono font-semibold py-2 bg-[#09090b] border border-zinc-800" onchange="renderVisualList()">
+                        <select id="mapFilter" class="tarkov-input w-full sm:w-auto text-xs font-mono font-semibold py-2 bg-[#0a0f16] border border-slate-800" onchange="renderVisualList()">
                             <option value="">[ ALLE MAPS ]</option>
                         </select>
 
-                        <select id="sortFilter" class="tarkov-input w-full sm:w-auto text-xs font-mono font-semibold py-2 bg-[#09090b] border border-zinc-800" onchange="renderVisualList()">
+                        <select id="sortFilter" class="tarkov-input w-full sm:w-auto text-xs font-mono font-semibold py-2 bg-[#0a0f16] border border-slate-800" onchange="renderVisualList()">
                             <option value="name_asc">Name: A-Z</option>
                             <option value="name_desc">Name: Z-A</option>
                             <option value="price_desc" selected>Price: High to Low</option>
                             <option value="price_asc">Price: Low to High</option>
                         </select>
 
-                        <button id="kappaFilterBtn" onclick="toggleKappaFilter()" class="tarkov-btn text-xs font-mono font-bold uppercase px-4 py-2 flex-shrink-0 border border-zinc-800 bg-[#09090b] text-zinc-500 hover:border-amber-500/50 hover:text-amber-400 transition-all whitespace-nowrap tracking-wide flex items-center gap-2">
+                        <button id="kappaFilterBtn" onclick="toggleKappaFilter()" class="tarkov-btn text-xs font-mono font-bold uppercase px-4 py-2 flex-shrink-0 border border-slate-800 bg-[#0a0f16] text-slate-500 hover:border-amber-500/50 hover:text-amber-400 transition-all whitespace-nowrap tracking-wide flex items-center gap-2">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             KAPPA
                         </button>
 
-                        <span id="itemCount" class="bg-zinc-900 text-emerald-500 border border-emerald-500/30 text-xs font-mono font-bold uppercase px-4 py-2 rounded flex-shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.1)] flex items-center justify-center whitespace-nowrap tracking-wide">
+                        <span id="itemCount" class="bg-slate-900 text-emerald-500 border border-emerald-500/30 text-xs font-mono font-bold uppercase px-4 py-2 rounded flex-shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.1)] flex items-center justify-center whitespace-nowrap tracking-wide">
                             0 Matches
                         </span>
                     </div>
@@ -316,7 +324,7 @@
             </div>
 
             <!-- Tab Content: Code -->
-            <div id="tabCode" class="p-0 overflow-hidden flex-1 min-h-0 hidden flex-col bg-[#050505]">
+            <div id="tabCode" class="p-0 overflow-hidden flex-1 min-h-0 hidden flex-col bg-[#05080c]">
                 <div class="bg-amber-500/10 border-b border-amber-500/20 p-2 text-[10px] font-mono font-semibold text-amber-500 text-center flex justify-center items-center gap-1.5 uppercase tracking-wide shadow-inner shrink-0">
                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Achtung: Direkte Manipulation des Quellcodes. JSON Syntax-Fehler führen zum Systemausfall.
@@ -332,12 +340,12 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-[999] flex flex-col gap-2 pointer-events-none"></div>
 
     <div id="confirm-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center opacity-0 invisible transition-all duration-300">
-        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl p-6 w-full max-w-sm scale-95 transition-transform duration-300" id="confirm-modal-content">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-sm scale-95 transition-transform duration-300" id="confirm-modal-content">
             <h3 class="text-lg font-bold text-white mb-2" id="confirm-title">Bestätigen</h3>
-            <p class="text-sm text-zinc-400 mb-6" id="confirm-msg">Möchtest du diese Aktion wirklich ausführen?</p>
+            <p class="text-sm text-slate-400 mb-6" id="confirm-msg">Möchtest du diese Aktion wirklich ausführen?</p>
             
             <div class="flex justify-end gap-3">
-                <button onclick="closeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors">Abbrechen</button>
+                <button onclick="closeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">Abbrechen</button>
                 <button onclick="executeConfirm()" class="px-4 py-2 rounded-xl text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors shadow-[0_0_15px_rgba(239,68,68,0.3)]">Löschen</button>
             </div>
         </div>
@@ -416,10 +424,10 @@
             kappaFilterActive = !kappaFilterActive;
             const btn = document.getElementById('kappaFilterBtn');
             if (kappaFilterActive) {
-                btn.classList.remove('border-zinc-800', 'text-zinc-500');
+                btn.classList.remove('border-slate-800', 'text-slate-500');
                 btn.classList.add('border-amber-500/60', 'text-amber-400', 'bg-amber-500/10', 'shadow-[0_0_10px_rgba(245,158,11,0.15)]');
             } else {
-                btn.classList.add('border-zinc-800', 'text-zinc-500');
+                btn.classList.add('border-slate-800', 'text-slate-500');
                 btn.classList.remove('border-amber-500/60', 'text-amber-400', 'bg-amber-500/10', 'shadow-[0_0_10px_rgba(245,158,11,0.15)]');
             }
             renderVisualList();
@@ -592,21 +600,21 @@
                 const items = data.data.items.filter(item => item.basePrice > 0).slice(0, 10);
 
                 if (items.length === 0) {
-                    document.getElementById('searchResults').innerHTML = '<p class="text-zinc-500 text-xs font-mono uppercase p-3 bg-[#050505] rounded border border-zinc-800">No trading items found.</p>';
+                    document.getElementById('searchResults').innerHTML = '<p class="text-slate-500 text-xs font-mono uppercase p-3 bg-[#05080c] rounded border border-slate-800">No trading items found.</p>';
                 } else {
                     items.forEach(item => {
                         const div = document.createElement('div');
-                        div.className = 'bg-[#09090b] border border-zinc-800/80 rounded p-2.5 hover:bg-zinc-900 hover:border-emerald-500/50 cursor-pointer transition-all duration-200 flex items-center gap-3 group shrink-0';
+                        div.className = 'bg-[#0a0f16] border border-slate-800/80 rounded p-2.5 hover:bg-slate-900 hover:border-emerald-500/50 cursor-pointer transition-all duration-200 flex items-center gap-3 group shrink-0';
                         div.onclick = () => selectApiItem(item);
                         div.innerHTML = `
-                            <div class="bg-[#050505] rounded p-1.5 border border-zinc-800 group-hover:border-emerald-500/30 transition-colors shrink-0">
+                            <div class="bg-[#05080c] rounded p-1.5 border border-slate-800 group-hover:border-emerald-500/30 transition-colors shrink-0">
                                 <img src="${item.iconLink}" alt="icon" class="w-8 h-8 object-contain filter drop-shadow-sm" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGI1NTYzIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTEyIDh2NG0wIDR2LjAxTTIxIDEyYTIgMiAwIDExLTE4IDBhMiAyIDAgMDExOCAwem0wIDBhOSA5IDAgMTEtMTggMGE5IDkgMCAwMTE4IDB6Ii8+PC9zdmc+'">
                             </div>
                             <div class="overflow-hidden flex-grow">
-                                <h3 class="font-bold text-sm text-zinc-200 truncate group-hover:text-emerald-400 transition-colors" title="${item.name}">${item.name}</h3>
-                                <p class="text-zinc-400 font-mono font-medium text-[10px] mt-0.5 uppercase tracking-wide">${item.basePrice.toLocaleString('de-DE')} ₽</p>
+                                <h3 class="font-bold text-sm text-slate-200 truncate group-hover:text-emerald-400 transition-colors" title="${item.name}">${item.name}</h3>
+                                <p class="text-slate-400 font-mono font-medium text-[10px] mt-0.5 uppercase tracking-wide">${item.basePrice.toLocaleString('de-DE')} ₽</p>
                             </div>
-                            <div class="text-zinc-700 group-hover:text-emerald-500 pr-2 shrink-0">
+                            <div class="text-slate-700 group-hover:text-emerald-500 pr-2 shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             </div>
                         `;
@@ -665,7 +673,7 @@
             const preview = document.getElementById('tierPreview');
             
             if(!valStr) {
-                preview.innerHTML = `Tier: <span class="text-zinc-600">-</span>`;
+                preview.innerHTML = `Tier: <span class="text-slate-600">-</span>`;
                 return;
             }
             preview.innerHTML = `Tier: <span class="${tier.textClass} font-bold tracking-wide">${tier.name}</span>`;
@@ -806,7 +814,7 @@
                 document.getElementById('editValue').value = '';
                 document.getElementById('editIcon').value = '';
                 document.getElementById('editKappa').checked = false;
-                document.getElementById('tierPreview').innerHTML = `Tier: <span class="text-zinc-600">-</span>`;
+                document.getElementById('tierPreview').innerHTML = `Tier: <span class="text-slate-600">-</span>`;
                 selectAllMaps(false);
                 checkIfEdit();
                 
@@ -892,8 +900,8 @@
                 if(keys.length === 0) {
                     counter.textContent = `0 Matches`;
                     container.innerHTML = `
-                        <div class="col-span-full flex flex-col items-center justify-center text-zinc-500 py-20 bg-[#050505] rounded border border-zinc-800/50 border-dashed">
-                            <svg class="w-12 h-12 mb-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                        <div class="col-span-full flex flex-col items-center justify-center text-slate-500 py-20 bg-[#05080c] rounded border border-slate-800/50 border-dashed">
+                            <svg class="w-12 h-12 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
                             <span class="font-tactical text-2xl tracking-widest font-bold">DATENBANK LEER</span>
                         </div>`;
                     return;
@@ -935,11 +943,11 @@
                     const displayText = (item.text || 'KEINE BESCHREIBUNG').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
                     const div = document.createElement('div');
-                    div.className = `${tier.class} cursor-pointer bg-[#09090b] border border-zinc-800 rounded p-4 relative group transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-full hover:shadow-[0_0_15px_var(--item-color)] overflow-hidden`;
+                    div.className = `${tier.class} cursor-pointer bg-[#0a0f16] border border-slate-800 rounded p-4 relative group transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between h-full hover:shadow-[0_0_15px_var(--item-color)] overflow-hidden`;
                     div.onclick = () => editExistingItem(key);
 
                     let mapsHtml = '';
-                    const badgeBase = "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wide bg-[#050505] border border-zinc-700 text-zinc-400";
+                    const badgeBase = "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wide bg-[#05080c] border border-slate-700 text-slate-400";
                     
                     if (Array.isArray(item.map)) {
                         mapsHtml = item.map.map(m => `<span class="${badgeBase}">${m}</span>`).join('');
@@ -948,7 +956,7 @@
                     }
 
                     const kappaBadge = item.isKappa
-                        ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-wide bg-amber-500/10 border border-amber-500/40 text-amber-400" style="text-shadow: 0 0 6px rgba(245,158,11,0.4)">
+                        ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tracking-wide bg-amber-500/10 border border-amber-500/40 text-amber-400">
                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                KAPPA
                            </span>`
@@ -962,24 +970,24 @@
                         <div>
                             <div class="flex justify-between items-start mb-3 pl-1">
                                 <div class="flex items-center gap-3 pr-16">
-                                    <div class="bg-[#050505] rounded p-1.5 border border-zinc-800 shrink-0">
+                                    <div class="bg-[#05080c] rounded p-1.5 border border-slate-800 shrink-0">
                                         <img src="${imgUrl}" class="w-10 h-10 object-contain drop-shadow-sm">
                                     </div>
-                                    <h4 class="font-tactical text-base xl:text-lg font-bold text-zinc-100 leading-tight group-hover:text-emerald-400 transition-colors line-clamp-2" title="${displayKey}">${displayKey}</h4>
+                                    <h4 class="font-tactical text-base xl:text-lg font-bold text-slate-100 leading-tight group-hover:text-emerald-400 transition-colors line-clamp-2" title="${displayKey}">${displayKey}</h4>
                                 </div>
                                 
-                                <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-[#050505] p-1 rounded border border-zinc-800 z-10 shadow-md">
-                                    <button onclick="duplicateItem('${safeKey}'); event.stopPropagation();" class="text-zinc-500 hover:text-blue-400 transition-colors p-1.5" title="Duplizieren">
+                                <div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all bg-[#05080c] p-1 rounded border border-slate-800 z-10 shadow-md">
+                                    <button onclick="duplicateItem('${safeKey}'); event.stopPropagation();" class="text-slate-500 hover:text-blue-400 transition-colors p-1.5" title="Duplizieren">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                                     </button>
-                                    <button onclick="deleteItem('${safeKey}'); event.stopPropagation();" class="text-zinc-500 hover:text-red-400 transition-colors p-1.5" title="Löschen">
+                                    <button onclick="deleteItem('${safeKey}'); event.stopPropagation();" class="text-slate-500 hover:text-red-400 transition-colors p-1.5" title="Löschen">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </div>
                             </div>
-                            <p class="text-[11px] font-mono text-zinc-400 mb-3 pl-1 line-clamp-2" title="${displayText}">> ${displayText}</p>
+                            <p class="text-[11px] font-mono text-slate-400 mb-3 pl-1 line-clamp-2" title="${displayText}">> ${displayText}</p>
                         </div>
-                        <div class="flex justify-between items-end mt-auto pt-3 border-t border-zinc-800/80 pl-1">
+                        <div class="flex justify-between items-end mt-auto pt-3 border-t border-slate-800/80 pl-1">
                             <div class="flex flex-wrap gap-1.5 max-w-[60%]">
                                 ${mapsHtml}
                                 ${kappaBadge}
