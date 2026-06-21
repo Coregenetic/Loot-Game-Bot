@@ -6,7 +6,7 @@ function getAllMessages() {
     if (cached) return cached;
 
     const rows = all(`SELECT type, map, text FROM messages ORDER BY type, map, id`);
-    const result = { exfil: {}, death: {}, map: {} };
+    const result = { death: {}, map: {} };
     for (const row of rows) {
         if (!result[row.type]) result[row.type] = {};
         if (!result[row.type][row.map]) result[row.type][row.map] = [];
