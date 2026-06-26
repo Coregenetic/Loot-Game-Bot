@@ -469,6 +469,31 @@ router.get('/audit', requireSuperadmin, (req, res) => {
     }
 });
 
+// ─── EventSub-Shadow (Bot-Badge-Migration, Phase 1) — manuelles Testen ───────
+router.get('/eventsub-shadow/status', requirePermission('server:manage'), (req, res) => {
+    const shadow = global.eventSubShadow;
+    res.json({
+        enabled: !!shadow,
+        ready:   shadow ? shadow.isReady() : false
+    });
+});
+
+router.post('/eventsub-shadow/test-send', requirePermission('server:manage'), async (req, res) => {
+    try {
+        const shadow = global.eventSubShadow;
+        if (!shadow) return res.status(503).json({ error: 'EventSub-Shadow ist nicht aktiviert (ENABLE_EVENTSUB_SHADOW)' });
+
+        const { message } = req.body;
+        if (!message) return res.status(400).json({ error: 'message erforderlich' });
+
+        await shadow.sendChatMessage(message);
+        logAudit(req.session.username, 'eventsub_shadow_test_send', { message });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Stats ────────────────────────────────────────────────────────────────────
 router.get('/stats', (req, res) => {
     try {
