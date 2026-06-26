@@ -71,6 +71,16 @@ async function main() {
     logger.bot('BOOT', `Bot verbunden — läuft in #${channels}`);
     logger.info('BOOT', 'Bereit für Commands.');
 
+    // ─── EventSub-Shadow (Phase 1 der Bot-Badge-Migration) ────────────────────
+    // Läuft komplett parallel zum tmi.js-Bot oben, sendet NICHTS automatisch,
+    // beobachtet nur. Standardmäßig AUS — kein Risiko für den Live-Betrieb.
+    if (process.env.ENABLE_EVENTSUB_SHADOW === 'true') {
+        logger.info('BOOT', 'EventSub-Shadow aktiviert — starte parallele Beobachtungs-Verbindung...');
+        const eventSubShadow = require('./bot-eventsub');
+        eventSubShadow.start(); // kein Callback in Phase 1 = nur loggen, keine Commands verarbeiten
+        global.eventSubShadow = eventSubShadow; // für manuelles Testen über die API
+    }
+
     // Automatisches Backup alle 6 Stunden
     setInterval(() => {
         try {
