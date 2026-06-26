@@ -255,6 +255,18 @@ async function initDashboardUsers() {
             keys_json  TEXT NOT NULL,
             created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
+
+        -- Komplett getrennt von dashboard_sessions! Das hier sind Zuschauer, die
+        -- sich per Twitch-Login identifizieren, um IHRE EIGENEN Spieler-Daten zu
+        -- sehen (Stash/Kappa/Inventar) — niemals Admin-Rechte, niemals verknüpft
+        -- mit dashboard_users.
+        CREATE TABLE IF NOT EXISTS player_sessions (
+            token_hash    TEXT PRIMARY KEY,
+            username      TEXT NOT NULL,
+            twitch_user_id TEXT NOT NULL,
+            expires_at    INTEGER NOT NULL,
+            created_at    INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
     `);
 
     // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte

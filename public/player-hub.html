@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Hub — Loot-Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="player-api.js"></script>
+<style>
+  body { background-color: #05080c; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  .glass-card { background: rgba(15,23,42,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  }
+</style>
+</head>
+<body class="min-h-screen pb-10">
+<div class="bg-grid"></div>
+
+<header class="border-b border-slate-800/60 px-4 md:px-6 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-2">
+    <div style="width:7px;height:16px;background:#10b981;border-radius:2px;"></div>
+    <span class="text-xs font-semibold tracking-wide text-white uppercase">Player Hub</span>
+  </div>
+  <button onclick="PlayerAPI.logout()" class="text-xs font-mono text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1.5">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    Abmelden
+  </button>
+</header>
+
+<main class="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
+
+  <div id="loadingState" class="text-center py-20 text-slate-500 text-sm font-mono">Lade deine Daten...</div>
+  <div id="errorState" class="hidden text-center py-20">
+    <p class="text-rose-400 text-sm" id="errorMsg"></p>
+  </div>
+
+  <div id="hubContent" class="hidden space-y-4">
+
+    <div class="flex items-end justify-between gap-3 pb-4 border-b border-slate-800/60">
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-lg font-semibold text-emerald-400" style="font-family:'JetBrains Mono',monospace;" id="avatarInitials">—</div>
+          <div class="absolute -bottom-1.5 -right-1.5 bg-emerald-500 text-emerald-950 text-[9px] font-bold px-1.5 py-0.5 rounded-md border-2 border-[#05080c]" style="font-family:'JetBrains Mono',monospace;" id="levelBadge">—</div>
+        </div>
+        <div>
+          <div class="text-lg font-semibold text-white" id="usernameLabel">—</div>
+          <div class="w-40 h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" id="xpBar" style="width:0%"></div></div>
+          <div class="text-[10px] text-slate-500 mt-1 tabular-nums" style="font-family:'JetBrains Mono',monospace;" id="xpLabel">— XP</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+        <div class="text-[10px] text-slate-500 uppercase tracking-wide">Stash-Wert</div>
+        <div class="text-2xl font-semibold text-amber-400 tabular-nums mt-1" style="font-family:'JetBrains Mono',monospace;" id="stashValue">—</div>
+        <div class="text-[10px] text-slate-500 mt-1.5 tabular-nums" id="rankLabel">—</div>
+      </div>
+
+      <div id="raidCard" class="rounded-2xl p-4 border transition-colors">
+        <div id="raidLabel" class="text-[10px] uppercase tracking-wide flex items-center gap-1.5">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Raid-Status
+        </div>
+        <div id="raidMain" class="text-2xl font-semibold mt-1 flex items-center gap-2 tabular-nums" style="font-family:'JetBrains Mono',monospace;">
+          <i class="ti" id="raidIconWrap"></i>
+          <span id="raidTimeLabel">—</span>
+        </div>
+        <div id="raidSub" class="text-[10px] mt-1.5">—</div>
+      </div>
+    </div>
+
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex justify-around items-center">
+      <div class="text-center">
+        <div class="text-xl font-semibold text-white tabular-nums" style="font-family:'JetBrains Mono',monospace;" id="survivalRate">—</div>
+        <div class="text-[9px] text-slate-500 uppercase mt-1">Survival</div>
+      </div>
+      <div class="w-px h-8 bg-slate-800"></div>
+      <div class="text-center">
+        <div class="text-xl font-semibold text-white tabular-nums" style="font-family:'JetBrains Mono',monospace;" id="raidsTotal">—</div>
+        <div class="text-[9px] text-slate-500 uppercase mt-1">Raids</div>
+      </div>
+      <div class="w-px h-8 bg-slate-800"></div>
+      <div class="text-center">
+        <div class="text-xl font-semibold text-white tabular-nums" style="font-family:'JetBrains Mono',monospace;" id="raidsSurvived">—</div>
+        <div class="text-[9px] text-slate-500 uppercase mt-1">Überlebt</div>
+      </div>
+    </div>
+
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+      <div class="flex justify-between items-center mb-2.5">
+        <div class="text-[11px] text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Kappa-Fortschritt
+        </div>
+        <span class="text-xs font-semibold text-purple-400 tabular-nums" style="font-family:'JetBrains Mono',monospace;" id="kappaFraction">—</span>
+      </div>
+      <div class="flex gap-1 h-3.5" id="kappaBar"></div>
+      <div class="text-[10px] text-slate-500 mt-2.5" id="kappaMissing">—</div>
+    </div>
+
+    <a href="player-inventory.html" class="block glass-card border border-slate-700/50 rounded-2xl p-4 flex items-center justify-between hover:border-emerald-500/40 transition-colors">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        <span class="text-sm text-slate-200">Mein Inventar ansehen</span>
+      </div>
+      <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    </a>
+
+    <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-800/60 text-[11px] text-slate-400 uppercase tracking-wide">Letzte Raids</div>
+      <div id="raidHistory"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  let cooldownInterval = null;
+
+  function formatVal(v) {
+    if (!v) return '0 ₽';
+    if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
+    if (v >= 1e6) return (v/1e6).toFixed(2) + 'M ₽';
+    if (v >= 1e3) return (v/1e3).toFixed(0) + 'K ₽';
+    return v + ' ₽';
+  }
+
+  function updateRaidCard(remaining) {
+    const card = document.getElementById('raidCard');
+    const label = document.getElementById('raidLabel');
+    const main = document.getElementById('raidMain');
+    const sub = document.getElementById('raidSub');
+    const timeLabel = document.getElementById('raidTimeLabel');
+    const iconWrap = document.getElementById('raidIconWrap');
+
+    if (remaining > 0) {
+      card.style.background = 'rgba(244,63,94,0.06)';
+      card.style.borderColor = 'rgba(244,63,94,0.25)';
+      label.style.color = '#f43f5e';
+      main.style.color = '#f43f5e';
+      sub.textContent = 'Dein Raid läuft noch.';
+      sub.style.color = '#64748b';
+      const m = String(Math.floor(remaining/60)).padStart(2,'0');
+      const s = String(remaining%60).padStart(2,'0');
+      timeLabel.textContent = m+':'+s;
+      iconWrap.className = 'ti ti-clock';
+    } else {
+      card.style.background = 'rgba(16,185,129,0.06)';
+      card.style.borderColor = 'rgba(16,185,129,0.25)';
+      label.style.color = '#10b981';
+      main.style.color = '#10b981';
+      sub.textContent = 'Du kannst looten.';
+      sub.style.color = '#64748b';
+      timeLabel.textContent = 'Bereit';
+      iconWrap.className = 'ti ti-check';
+    }
+  }
+
+  function startCooldownCountdown(remaining) {
+    if (cooldownInterval) clearInterval(cooldownInterval);
+    let r = remaining;
+    updateRaidCard(r);
+    if (r <= 0) return;
+    cooldownInterval = setInterval(() => {
+      r--;
+      updateRaidCard(r);
+      if (r <= 0) clearInterval(cooldownInterval);
+    }, 1000);
+  }
+
+  async function loadHub() {
+    try {
+      const stats = await PlayerAPI.myStats();
+
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('hubContent').classList.remove('hidden');
+
+      document.getElementById('avatarInitials').textContent = stats.username.slice(0,2).toUpperCase();
+      document.getElementById('levelBadge').textContent = stats.level;
+      document.getElementById('usernameLabel').textContent = stats.username;
+
+      const xpForNext = stats.level * 10000; // grobe Anzeige, da keine exakte Kurve hier verfügbar
+      const xpPct = Math.min(100, Math.round((stats.xp % xpForNext) / xpForNext * 100));
+      document.getElementById('xpBar').style.width = xpPct + '%';
+      document.getElementById('xpLabel').textContent = stats.xp.toLocaleString('de-DE') + ' XP';
+
+      document.getElementById('stashValue').textContent = formatVal(stats.stashValue);
+      document.getElementById('rankLabel').textContent = 'Platz ' + stats.rank + ' von ' + stats.totalPlayers;
+
+      document.getElementById('survivalRate').textContent = stats.survivalRate + '%';
+      document.getElementById('raidsTotal').textContent = stats.raidsTotal.toLocaleString('de-DE');
+      document.getElementById('raidsSurvived').textContent = stats.raidsSurvived.toLocaleString('de-DE');
+
+      document.getElementById('kappaFraction').textContent = stats.kappa.found + ' / ' + stats.kappa.total;
+      const kappaBar = document.getElementById('kappaBar');
+      const segments = 10;
+      const filled = stats.kappa.total > 0 ? Math.round((stats.kappa.found / stats.kappa.total) * segments) : 0;
+      kappaBar.innerHTML = Array.from({length: segments}, (_, i) =>
+        '<div style="flex:1;border-radius:2px;background:' + (i < filled ? '#a78bfa' : '#1e293b') + ';"></div>'
+      ).join('');
+      const remainingMissing = stats.kappa.total - stats.kappa.found - stats.kappa.missing.length;
+      document.getElementById('kappaMissing').textContent = stats.kappa.missing.length
+        ? 'Fehlt noch: ' + stats.kappa.missing.join(', ') + (remainingMissing > 0 ? ' +' + remainingMissing + ' weitere' : '')
+        : (stats.kappa.total > 0 ? 'Du hast den Kappa-Container komplett!' : 'Noch keine Kappa-Items konfiguriert.');
+
+      const historyEl = document.getElementById('raidHistory');
+      if (!stats.recentRaids.length) {
+        historyEl.innerHTML = '<p class="text-xs font-mono text-slate-600 p-4">Noch keine Raids gespielt.</p>';
+      } else {
+        historyEl.innerHTML = stats.recentRaids.map(function(r) {
+          const date = new Date(r.ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+          const survived = r.survived;
+          return '<div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800/40 last:border-0">' +
+              '<div class="flex items-center gap-2.5">' +
+                '<div class="w-7 h-7 rounded-lg flex items-center justify-center ' + (survived ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/25 text-rose-400') + '">' +
+                  '<i class="ti ' + (survived ? 'ti-check' : 'ti-skull') + '" style="font-size:13px;"></i>' +
+                '</div>' +
+                '<div>' +
+                  '<div class="text-xs text-slate-200">' + (r.map || 'Unbekannt') + '</div>' +
+                  '<div class="text-[10px] text-slate-500" style="font-family:\'JetBrains Mono\',monospace;">' + date + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<span class="text-xs tabular-nums ' + (survived ? 'text-emerald-400' : 'text-rose-400') + '" style="font-family:\'JetBrains Mono\',monospace;">' +
+                (survived ? '+' + formatVal(r.itemValue) : 'Gestorben') +
+              '</span>' +
+            '</div>';
+        }).join('');
+      }
+
+      startCooldownCountdown(stats.cooldownRemaining);
+    } catch (err) {
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('errorState').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = err.message;
+    }
+  }
+
+  if (!PlayerAPI.isLoggedIn()) {
+    window.location.href = '/player-login.html';
+  } else {
+    loadHub();
+  }
+</script>
+</body>
+</html>
