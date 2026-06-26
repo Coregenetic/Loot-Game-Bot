@@ -247,6 +247,13 @@
     }
   }
 
+  // Token aus der URL übernehmen, falls wir gerade frisch vom Twitch-Login zurückkommen
+  if (window.location.hash.startsWith('#token=')) {
+    const token = window.location.hash.slice('#token='.length);
+    PlayerAPI.setToken(token);
+    history.replaceState(null, '', window.location.pathname); // Token aus der sichtbaren URL entfernen
+  }
+
   if (!PlayerAPI.isLoggedIn()) {
     window.location.href = '/player-login.html';
   } else {
