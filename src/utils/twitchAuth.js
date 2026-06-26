@@ -50,4 +50,56 @@ function getClientId() {
     return CLIENT_ID;
 }
 
-module.exports = { isConfigured, getAppAccessToken, getClientId };
+// ─── User Access Token (für die EventSub-Subscription-Erstellung) ────────────
+// WebSocket-EventSub-Subscriptions MÜSSEN mit einem User Access Token erstellt
+// werden — ein App Access Token wird dafür von Twitch abgelehnt ("invalid
+// transport and auth combination"). Senden von Nachrichten läuft weiterhin
+// über den App-Token (anderer Endpunkt, andere Regel).
+let cachedUserToken     = null;
+let userTokenExpiresAt  = 0;
+let currentRefreshToken = process.env.TWITCH_BOT_REFRESH_TOKEN;
+
+async function getUserAccessToken() {
+    if (!CLIENT_ID || !CLIENT_SECRET || !currentRefreshToken) {
+        throw new Error('TWITCH_BOT_REFRESH_TOKEN nicht gesetzt');
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    if (cachedUserToken && userTokenExpiresAt - now > 300) {
+        return cachedUserToken;
+    }
+
+    const res = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: currentRefreshToken,
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET
+        })
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`User-Token-Refresh fehlgeschlagen (${res.status}): ${text}`);
+    }
+
+    const data = await res.json();
+    cachedUserToken    = data.access_token;
+    userTokenExpiresAt = now + data.expires_in;
+
+    // Twitch rotiert den Refresh-Token bei jedem Refresh — der alte wird danach
+    // ungültig. Läuft der Prozess neu hoch BEVOR das Fly-Secret aktualisiert
+    // wurde, schlägt der nächste Refresh fehl (wird geloggt, aber nicht fatal
+    // für den restlichen Bot — dieses Modul ist ja bewusst isoliert).
+    if (data.refresh_token && data.refresh_token !== currentRefreshToken) {
+        currentRefreshToken = data.refresh_token;
+        console.warn('[TWITCH-AUTH] Refresh-Token hat sich geändert! Bitte TWITCH_BOT_REFRESH_TOKEN als Fly-Secret aktualisieren:');
+        console.warn('[TWITCH-AUTH] Neuer Refresh-Token: ' + data.refresh_token);
+    }
+
+    return cachedUserToken;
+}
+
+module.exports = { isConfigured, getAppAccessToken, getUserAccessToken, getClientId };

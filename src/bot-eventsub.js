@@ -11,7 +11,7 @@
 
 const WebSocket = require('ws');
 const logger = require('./utils/logger');
-const { getAppAccessToken, getClientId, isConfigured } = require('./utils/twitchAuth');
+const { getAppAccessToken, getUserAccessToken, getClientId, isConfigured } = require('./utils/twitchAuth');
 
 const EVENTSUB_WS_URL = 'wss://eventsub.wss.twitch.tv/ws';
 const HELIX_BASE       = 'https://api.twitch.tv/helix';
@@ -29,7 +29,7 @@ function isReady() {
 }
 
 async function createChatMessageSubscription() {
-    const token = await getAppAccessToken();
+    const token = await getUserAccessToken(); // WICHTIG: App-Token wird hier von Twitch abgelehnt
     const res = await fetch(`${HELIX_BASE}/eventsub/subscriptions`, {
         method: 'POST',
         headers: {
