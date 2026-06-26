@@ -109,9 +109,43 @@ function handleWebSocketMessage(raw) {
         case 'notification':
             if (data.metadata.subscription_type === 'channel.chat.message') {
                 const event = data.payload.event;
-                logger.info('EVENTSUB-SHADOW', `<${event.chatter_user_login}> ${event.message.text}`);
+
+                // Eigene Nachrichten des Bots selbst ignorieren (sonst Endlos-Risiko,
+                // genau wie tmi.js' "self"-Check)
+                if (event.chatter_user_id === BOT_USER_ID) break;
+
+                // Twitch hängt manchmal unsichtbare Anti-Duplikat-Zeichen an —
+                // für saubere Command-Erkennung entfernen
+                const cleanText = (event.message.text || '')
+                    .replace(/[\u0300-\u036f\u200b-\u200f\ufeff]/g, '')
+                    .trim();
+
+                logger.info('EVENTSUB-SHADOW', `<${event.chatter_user_login}> ${cleanText}`);
+
                 if (onMessageCallback) {
                     try { onMessageCallback(event); } catch (err) { logger.error('EVENTSUB-SHADOW', 'Callback-Fehler: ' + err.message); }
+                }
+
+                // Nur aktiv Commands verarbeiten, wenn EventSub die gewählte Quelle ist
+                const { processCommand, touchOnlineStatus, COMMAND_SOURCE } = require('./bot');
+                if (COMMAND_SOURCE === 'eventsub') {
+                    const channel = '#' + event.broadcaster_user_login;
+                    touchOnlineStatus(event.chatter_user_login, channel);
+
+                    const clientAdapter = {
+                        say: async (_ch, msg) => {
+                            try { await sendChatMessage(msg); }
+                            catch (err) { logger.error('EVENTSUB-SHADOW', 'Senden fehlgeschlagen: ' + err.message); }
+                        }
+                    };
+
+                    processCommand({
+                        client: clientAdapter,
+                        channel,
+                        username: event.chatter_user_login,
+                        message: cleanText,
+                        userstate: { username: event.chatter_user_login }
+                    }).catch(err => logger.error('EVENTSUB-SHADOW', 'processCommand-Fehler: ' + err.message));
                 }
             }
             break;

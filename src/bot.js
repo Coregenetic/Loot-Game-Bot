@@ -1,6 +1,12 @@
 const tmi    = require('tmi.js');
 const logger = require('./utils/logger');
 
+// Bestimmt, welche Verbindung tatsächlich Commands verarbeitet & antwortet.
+// 'tmi' (Default) = klassische IRC-Verbindung wie bisher. 'eventsub' = neue
+// Helix/EventSub-Verbindung (Phase 2 der Bot-Badge-Migration). Die jeweils
+// andere Verbindung bleibt verbunden, ist aber für Commands stumm.
+const COMMAND_SOURCE = (process.env.COMMAND_SOURCE || 'tmi').toLowerCase();
+
 const commands       = new Map();
 const activeChannels = new Set();
 const disabledCmds   = new Set();
@@ -77,6 +83,55 @@ function getCommandStatus() {
     );
 }
 
+// ─── Gemeinsame Command-Verarbeitung ───────────────────────────────────────────
+// Wird von BEIDEN Verbindungstypen genutzt (tmi.js und EventSub) — die Logik
+// existiert nur einmal, damit es nie zu Abweichungen zwischen den beiden
+// Pfaden kommen kann. `client` muss nur eine .say(channel, message)-Methode
+// haben — tmi.js' echter Client erfüllt das nativ, der EventSub-Pfad nutzt
+// einen kleinen Adapter (siehe bot-eventsub.js).
+async function processCommand({ client, channel, username, message, userstate }) {
+    const ch = channel.replace('#', '').toLowerCase();
+    if (!activeChannels.has(ch)) return;
+    if (!message.startsWith('!')) return;
+
+    // Wartungsmodus — antwortet mit Meldung
+    if (maintenanceMode) {
+        client.say(channel, `🔧 @${username}, das Loot-Game ist gerade im Wartungsmodus. Wir sind gleich zurück!`);
+        return;
+    }
+
+    // Turnier-Modus — komplett still
+    if (tournamentMode) return;
+
+    const parts   = message.trim().split(/\s+/);
+    const cmdName = parts[0].toLowerCase();
+
+    if (disabledCmds.has(cmdName)) return;
+
+    const handler = commands.get(cmdName);
+    if (!handler) return;
+
+    logger.cmd('CMD', `${username} → ${cmdName} in ${channel}`);
+
+    // Analytics — alle Commands außer !loot (der loggt sich selbst mit mehr Details)
+    if (cmdName !== '!loot') {
+        const { logCommand } = require('./utils/analytics');
+        logCommand(cmdName, username, channel);
+    }
+
+    try {
+        await handler({ client, channel, user: username, userstate: userstate || { username }, args: parts.slice(1) });
+    } catch (err) {
+        logger.error('CMD', `Fehler bei ${cmdName} von ${username}: ${err.message}`);
+    }
+}
+
+function touchOnlineStatus(username, channel) {
+    const ch = channel.replace('#', '').toLowerCase();
+    if (!activeChannels.has(ch)) return;
+    try { require('./db/players').touchLastSeen(username); } catch (_) {}
+}
+
 function loadCommands() {
     const commandFiles = [
         './commands/loot',
@@ -110,50 +165,18 @@ function createBot() {
     client.on('message', async (channel, userstate, message, self) => {
         if (self) return;
 
+        // Wenn EventSub die aktive Quelle ist, bleibt tmi.js verbunden aber
+        // komplett passiv — keine doppelte Verarbeitung, keine doppelten Antworten.
+        if (COMMAND_SOURCE !== 'tmi') return;
+
         const ch = channel.replace('#', '').toLowerCase();
 
         // Online-Status: bei JEDER Nachricht in einem aktiven Channel aktualisieren,
         // nicht nur bei Commands. Legt keine neuen Spieler an — nur ein Update für
         // bereits bekannte Spieler (Zuschauer ohne Profil bleiben unberührt).
-        if (activeChannels.has(ch)) {
-            try { require('./db/players').touchLastSeen(userstate.username); } catch (_) {}
-        }
+        touchOnlineStatus(userstate.username, channel);
 
-        if (!message.startsWith('!')) return;
-        if (!activeChannels.has(ch)) return;
-
-        // Wartungsmodus — antwortet mit Meldung
-        if (maintenanceMode) {
-            if (message.startsWith('!')) {
-                client.say(channel, `🔧 @${userstate.username}, das Loot-Game ist gerade im Wartungsmodus. Wir sind gleich zurück!`);
-            }
-            return;
-        }
-
-        // Turnier-Modus — komplett still
-        if (tournamentMode) return;
-
-        const parts   = message.trim().split(/\s+/);
-        const cmdName = parts[0].toLowerCase();
-
-        if (disabledCmds.has(cmdName)) return;
-
-        const handler = commands.get(cmdName);
-        if (!handler) return;
-
-        logger.cmd('CMD', `${userstate.username} → ${cmdName} in ${channel}`);
-
-        // Analytics — alle Commands außer !loot (der loggt sich selbst mit mehr Details)
-        if (cmdName !== '!loot') {
-            const { logCommand } = require('./utils/analytics');
-            logCommand(cmdName, userstate.username, channel);
-        }
-
-        try {
-            await handler({ client, channel, user: userstate.username, userstate, args: parts.slice(1) });
-        } catch (err) {
-            logger.error('CMD', `Fehler bei ${cmdName} von ${userstate.username}: ${err.message}`);
-        }
+        await processCommand({ client, channel, username: userstate.username, message, userstate });
     });
 
     client.on('connected', (addr, port) => {
@@ -169,4 +192,4 @@ function createBot() {
     return { connect: () => client.connect(), client, setChannelActive, getChannelStatus, setCommandActive, getCommandStatus, setMaintenance: (active) => setMaintenance(active, client), getMaintenanceMode, setTournament: (active) => setTournament(active, client), getTournamentMode };
 }
 
-module.exports = { createBot };
+module.exports = { createBot, processCommand, touchOnlineStatus, COMMAND_SOURCE };
