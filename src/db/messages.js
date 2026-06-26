@@ -19,10 +19,10 @@ function getAllMessages() {
 function getMessages(type, map) {
     const all_msgs = getAllMessages();
     const byType   = all_msgs[type] || {};
-    const mapMsgs  = byType[map]      || [];
-    const defMsgs  = byType['Default'] || [];
-    const combined = [...mapMsgs, ...defMsgs];
-    return combined.length ? combined : null;
+    const mapMsgs  = byType[map] || [];
+    if (mapMsgs.length) return mapMsgs; // Map hat eigene Nachrichten -> Default wird NICHT mehr mit reingemischt
+    const defMsgs = byType['Default'] || [];
+    return defMsgs.length ? defMsgs : null;
 }
 
 function getRandomMessage(type, map) {
