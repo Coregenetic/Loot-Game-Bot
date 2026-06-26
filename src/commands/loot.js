@@ -1,11 +1,8 @@
-const { getOrCreatePlayer, updatePlayer, addOrUpdateInventoryItem,
-        setCooldown, getRemainingCooldown, getStashValue } = require('../db/players');
-const { getGeneral, getActiveEvents, getLeveling, getConfig, setConfig } = require('../db/config');
-const { generateLoot, calculateXPGain,
-        formatInfiltrationMsg, formatLootMsg, formatDeathMsg } = require('../engine/loot');
-const { calcLevelFromXP, getRankName, formatDuration } = require('../utils/format');
-const { logCommand } = require('../utils/analytics');
-const logger = require('../utils/logger');
+const { getOrCreatePlayer, setCooldown, getRemainingCooldown } = require('../db/players');
+const { getGeneral, getActiveEvents, getLeveling } = require('../db/config');
+const { run } = require('../db/schema');
+const { generateLoot, calculateXPGain, formatInfiltrationMsg } = require('../engine/loot');
+const { calcLevelFromXP, formatDuration } = require('../utils/format');
 
 const COMMAND = '!loot';
 
@@ -39,108 +36,51 @@ async function handler({ client, channel, user }) {
     const maxExfil  = general.MaxExfilSeconds || 15;
     const exfilTime = Math.floor(Math.random() * (maxExfil - minExfil + 1)) + minExfil;
 
+    // ─── Das komplette Ergebnis steht JETZT fest, nicht erst nach der Exfil-Zeit ───
+    // Dadurch überlebt der Raid einen Bot-Neustart in der Zwischenzeit problemlos —
+    // die eigentliche Auflösung (Nachricht senden, Stats anwenden) übernimmt der
+    // periodische Resolver in engine/raidResolver.js anhand der DB.
+    const survivalChance = general.SurvivalChance ?? 0.75;
+    const survived = Math.random() <= survivalChance;
+
+    let lootPayload = [];
+    let xpGain = 0;
+    let oldLevel = player.level || 1;
+    let newLevel = oldLevel;
+
+    if (survived) {
+        lootPayload = loot.map(({ item }) => ({
+            displayName: item.text || item.name,
+            value: item.value || 0,
+            key: item.name
+        }));
+
+        const events     = getActiveEvents();
+        const now         = Math.floor(Date.now() / 1000);
+        const leveling    = getLeveling();
+        let xpMultiplier  = 1;
+        if (events.XPBoost?.Multiplier > 1 && events.XPBoost?.ExpiresAt > now) {
+            xpMultiplier = events.XPBoost.Multiplier;
+        }
+
+        const totalItemValue = loot.reduce((sum, { item }) => sum + (item.value || 0), 0);
+        xpGain   = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
+        newLevel = calcLevelFromXP((player.xp || 0) + xpGain, leveling);
+    }
+
     // Cooldown = Exfil-Zeit → Spieler ist "im Raid"
     setCooldown(player.id, 'loot', exfilTime + 1);
 
     // Infiltrations-Nachricht
     client.say(channel, formatInfiltrationMsg(user, map));
 
-    // Nach Exfil-Zeit: Ergebnis
-    setTimeout(async () => {
-        try {
-            const survivalChance = general.SurvivalChance || 0.75;
-            const survived = Math.random() <= survivalChance;
-
-            const raidsTotal    = (player.raids_total    || 0) + 1;
-            const raidsSurvived = (player.raids_survived || 0) + (survived ? 1 : 0);
-            const raidsDied     = (player.raids_died     || 0) + (survived ? 0 : 1);
-
-            if (!survived) {
-                updatePlayer(user, { raids_total: raidsTotal, raids_died: raidsDied });
-                setCooldown(player.id, 'loot', 0);
-                logCommand('!loot', user, channel, { map, survived: false });
-                client.say(channel, formatDeathMsg(user, map));
-                return;
-            }
-
-            // Items ins Inventar
-            for (const { item } of loot) {
-                const itemName = item.text || item.name;
-                addOrUpdateInventoryItem(player.id, itemName, 1, item.value || 0, item.name);
-            }
-
-            // Neuer Top-Looter? -> Push-Benachrichtigung an alle Dashboard-User
-            try {
-                const newStashValue = getStashValue(player.id);
-                const record = getConfig('TopLooterRecord') || { username: null, value: 0 };
-                if (newStashValue > record.value && record.username?.toLowerCase() !== user.toLowerCase()) {
-                    setConfig('TopLooterRecord', { username: user, value: newStashValue });
-                    const { sendPushToAll } = require('../utils/push');
-                    sendPushToAll({
-                        title: '🏆 Neuer Top-Looter!',
-                        body: `${user} ist jetzt #1 mit ${newStashValue.toLocaleString('de-DE')} ₽ Stash-Wert.`,
-                        url: '/admin.html'
-                    }).catch(() => {});
-                } else if (newStashValue > record.value) {
-                    setConfig('TopLooterRecord', { username: user, value: newStashValue });
-                }
-            } catch (err) {
-                logger.error?.('Top-Looter-Push-Check fehlgeschlagen: ' + err.message);
-            }
-
-            // XP berechnen
-            const events     = getActiveEvents();
-            const now        = Math.floor(Date.now() / 1000);
-            const leveling   = getLeveling();
-            let xpMultiplier = 1;
-
-            if (events.XPBoost?.Multiplier > 1 && events.XPBoost?.ExpiresAt > now) {
-                xpMultiplier = events.XPBoost.Multiplier;
-            }
-
-            const totalItemValue = loot.reduce((sum, { item }) => sum + (item.value || 0), 0);
-            const xpGain  = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
-            const newXP   = (player.xp || 0) + xpGain;
-            const oldLevel = player.level || 1;
-            const newLevel = calcLevelFromXP(newXP, leveling);
-
-            updatePlayer(user, {
-                xp:             Math.max(0, newXP),
-                level:          Math.max(1, newLevel),
-                raids_total:    raidsTotal,
-                raids_survived: raidsSurvived,
-                raids_died:     raidsDied
-            });
-
-            // Cooldown löschen — sofort wieder looten möglich
-            setCooldown(player.id, 'loot', 0);
-
-            // Analytics
-            const mainItem = loot[0]?.item;
-            logCommand('!loot', user, channel, {
-                map,
-                survived:  true,
-                itemName:  mainItem?.text || mainItem?.name,
-                itemValue: mainItem?.value || 0,
-                xpGain
-            });
-
-            // Loot-Nachricht + XP
-            let lootMsg = formatLootMsg(user, loot, player.has_kappa === 1);
-            if (newLevel > oldLevel) {
-                const rankName = getRankName(newLevel, leveling.Ranks);
-                lootMsg += ` 🎉 LEVEL UP! @${user} ist nun Level ${newLevel} — ${rankName}!`;
-            } else {
-                lootMsg += ` ✨ (+${xpGain} XP)`;
-            }
-            client.say(channel, lootMsg);
-
-        } catch (err) {
-            logger.error('LOOT', `Fehler im Exfil-Timer für ${user}: ${err.message}`);
-            setCooldown(player.id, 'loot', 0);
-            client.say(channel, `❌ @${user}, beim Exfil ist etwas schiefgelaufen!`);
-        }
-    }, exfilTime * 1000);
+    // Ergebnis in der DB hinterlegen, statt in einem setTimeout zu "verstecken"
+    const resolveAt = Math.floor(Date.now() / 1000) + exfilTime;
+    run(
+        `INSERT INTO pending_raids (player_id, username, channel, map, survived, loot_json, xp_gain, old_level, new_level, has_kappa, resolve_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [player.id, user, channel, map, survived ? 1 : 0, JSON.stringify(lootPayload), xpGain, oldLevel, newLevel, player.has_kappa === 1 ? 1 : 0, resolveAt]
+    );
 }
 
 module.exports = { command: COMMAND, handler };

@@ -81,6 +81,29 @@ async function main() {
         global.eventSubShadow = eventSubShadow; // für manuelles Testen über die API
     }
 
+    // ─── Raid-Resolver (DB-basiert, überlebt Neustarts) ───────────────────────
+    // Sendefunktion wählt bei JEDEM Tick die aktuell aktive Verbindung (tmi.js
+    // oder EventSub) — falls COMMAND_SOURCE sich zwischendurch ändert, greift
+    // das sofort auch hier, ohne Sonderbehandlung nötig.
+    const { resolvePendingRaids } = require('./engine/raidResolver');
+    const { COMMAND_SOURCE } = require('./bot');
+
+    async function raidSayFn(channel, message) {
+        if (COMMAND_SOURCE === 'eventsub' && global.eventSubShadow?.isReady()) {
+            await global.eventSubShadow.sendChatMessage(message);
+        } else {
+            await bot.client.say(channel, message);
+        }
+    }
+
+    async function raidResolveTick() {
+        try { await resolvePendingRaids(raidSayFn); }
+        catch (err) { logger.error('RAID-RESOLVER', 'Tick fehlgeschlagen: ' + err.message); }
+    }
+
+    await raidResolveTick(); // sofort einmal beim Start — holt überfällige Raids vom letzten Neustart nach
+    setInterval(raidResolveTick, 5000);
+
     // Automatisches Backup alle 6 Stunden
     setInterval(() => {
         try {

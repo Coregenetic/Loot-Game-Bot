@@ -66,7 +66,7 @@ function generateLoot(hasKappa = false) {
     const item = selectItem(map);
     if (!item) return null;
 
-    let doubleLootChance = general.DoubleLootChance || 0.03;
+    let doubleLootChance = general.DoubleLootChance ?? 0.03;
 
     // Event Override
     if (events.DoubleLootOverride && events.DoubleLootOverride.Chance > 0 &&
@@ -76,7 +76,7 @@ function generateLoot(hasKappa = false) {
 
     // Kappa Bonus
     if (hasKappa) {
-        doubleLootChance += (general.KappaDoubleLootBonus || 0.10);
+        doubleLootChance += (general.KappaDoubleLootBonus ?? 0.10);
     }
 
     const loot = [{ item, map }];

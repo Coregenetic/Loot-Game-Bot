@@ -126,6 +126,29 @@ async function initSchema() {
             FOREIGN KEY(player_id) REFERENCES players(id) ON DELETE CASCADE
         );
 
+        -- Ersetzt den früheren in-memory setTimeout für die Raid-Auflösung.
+        -- Das Ergebnis (Survived/Loot/XP) steht schon beim !loot-Aufruf fest,
+        -- wird aber erst hier "scharf geschaltet" wenn resolve_at erreicht ist.
+        -- Überlebt Bot-Neustarts: ein periodischer Check holt überfällige Raids
+        -- nach, statt dass sie beim Neustart einfach spurlos verschwinden.
+        CREATE TABLE IF NOT EXISTS pending_raids (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id   INTEGER NOT NULL,
+            username    TEXT    NOT NULL,
+            channel     TEXT    NOT NULL,
+            map         TEXT,
+            survived    INTEGER NOT NULL,
+            loot_json   TEXT,
+            xp_gain     INTEGER NOT NULL DEFAULT 0,
+            new_level   INTEGER,
+            old_level   INTEGER,
+            has_kappa   INTEGER NOT NULL DEFAULT 0,
+            resolve_at  INTEGER NOT NULL,
+            created_at  INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+            FOREIGN KEY(player_id) REFERENCES players(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_pending_raids_resolve ON pending_raids(resolve_at);
+
         CREATE TABLE IF NOT EXISTS events (
             type        TEXT    PRIMARY KEY,
             data        TEXT    NOT NULL DEFAULT '{}',
