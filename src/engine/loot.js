@@ -9,8 +9,8 @@ const MAP_EMOJIS = {
     'Factory':       '🔧',
     'Ground Zero':   '💥',
     'Interchange':   '🏬',
-    'Icebreaker':    '🧊',
-    'Lighthouse':    '🔦',
+    'Icebreaker':    '🚢',
+    'Lighthouse':    '🗼',
     'Reserve':       '🪖',
     'Shoreline':     '🌊',
     'Streets':       '🌆',
@@ -108,7 +108,7 @@ function formatInfiltrationMsg(user, map) {
 }
 
 function formatLootMsg(user, loot, hasKappa = false) {
-    const kappaTag = hasKappa ? ' 🧳' : '';
+    const kappaTag = hasKappa ? ' 💼' : '';
     const map      = loot[0].map;
     const emoji    = getMapEmoji(map);
 
