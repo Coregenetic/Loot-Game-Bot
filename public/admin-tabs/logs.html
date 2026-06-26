@@ -1,12 +1,16 @@
 <div class="h-full flex flex-col">
   <div class="glass-card border border-slate-700/50 rounded-t-2xl p-4 flex flex-wrap items-center justify-between gap-4 shrink-0">
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2 items-center">
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ALL" onclick="setFilter('ALL')">ALL</button>
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-CMD" onclick="setFilter('CMD')">CMD</button>
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-BOT" onclick="setFilter('BOT')">BOT</button>
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-ERROR" onclick="setFilter('ERROR')">ERROR</button>
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-API" onclick="setFilter('API')">API</button>
       <button class="filter-btn text-[10px] font-mono px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 transition-colors" id="filter-INFO" onclick="setFilter('INFO')">INFO</button>
+      <div class="w-px h-5 bg-slate-700 mx-1"></div>
+      <select id="categoryFilter" onchange="setCategoryFilter(this.value)" class="text-[10px] font-mono px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-400 outline-none focus:border-emerald-500">
+        <option value="ALL">Alle Quellen</option>
+      </select>
     </div>
 
     <div class="flex items-center gap-4">
