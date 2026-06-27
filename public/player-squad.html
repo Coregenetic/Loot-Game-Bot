@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squad — Loot-Game Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="player-api.js"></script>
+<style>
+  body { background-color: #05080c; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+  .glass-card { background: rgba(15,23,42,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+</style>
+</head>
+<body class="min-h-screen pb-10">
+
+<header class="border-b border-slate-800/60 px-4 md:px-6 py-3 flex items-center justify-between">
+  <a href="player-hub.html" class="text-xs font-mono text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    Player Hub
+  </a>
+  <span class="text-xs font-semibold tracking-wide text-white uppercase">Squad</span>
+</header>
+
+<main class="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
+
+  <div id="loadingState" class="text-center py-20 text-slate-500 text-sm font-mono">Lade...</div>
+  <div id="errorState" class="hidden text-center py-20"><p class="text-rose-400 text-sm" id="errorMsg"></p></div>
+
+  <div id="content" class="hidden space-y-4">
+
+    <!-- OFFENE EINLADUNGEN -->
+    <div id="invitesCard" class="hidden glass-card border border-amber-500/30 rounded-2xl p-4" style="background:rgba(245,158,11,0.06);">
+      <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wide mb-3">Offene Einladungen</div>
+      <div id="invitesList" class="space-y-2"></div>
+    </div>
+
+    <!-- KEIN SQUAD: ERSTELLEN -->
+    <div id="noSquadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl p-5">
+      <h3 class="text-sm font-semibold text-white mb-1">Du bist in keinem Squad</h3>
+      <p class="text-xs text-slate-500 mb-4">Erstelle ein eigenes Squad und lade bis zu 4 Mitspieler ein — ihr geht dann gemeinsam in den Raid, mit geteiltem Risiko.</p>
+      <div class="flex gap-2">
+        <input id="newSquadName" type="text" placeholder="Squad-Name" maxlength="40" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+        <button onclick="createSquad()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold text-sm hover:bg-emerald-400 transition-colors whitespace-nowrap">Erstellen</button>
+      </div>
+    </div>
+
+    <!-- SQUAD VORHANDEN -->
+    <div id="squadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-800/60 flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold text-white" id="squadName">—</div>
+          <div class="text-[10px] font-mono text-slate-500" id="squadMemberCount">—</div>
+        </div>
+        <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
+      </div>
+      <div id="memberList" class="divide-y divide-slate-800/40"></div>
+
+      <div id="inviteBox" class="hidden p-4 border-t border-slate-800/60">
+        <div class="relative">
+          <input id="inviteSearch" type="text" placeholder="Spieler suchen zum Einladen..." autocomplete="off" oninput="searchPlayers(this.value)" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
+          <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-56 overflow-y-auto shadow-xl"></div>
+        </div>
+        <div id="inviteMsg" class="text-xs font-mono mt-2 min-h-[14px]"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  let mySquad = null;
+  let myUsername = null;
+
+  function showMsg(elId, msg, ok) {
+    const el = document.getElementById(elId);
+    el.textContent = msg;
+    el.className = 'text-xs font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+  }
+
+  async function loadAll() {
+    try {
+      const me = await PlayerAPI.me();
+      myUsername = me.username;
+
+      const [invitesData, squadData] = await Promise.all([PlayerAPI.squad.invites(), PlayerAPI.squad.my()]);
+
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+
+      if (invitesData.invites.length) {
+        document.getElementById('invitesCard').classList.remove('hidden');
+        document.getElementById('invitesList').innerHTML = invitesData.invites.map(inv => `
+          <div class="flex items-center justify-between bg-slate-950/40 rounded-xl px-3 py-2.5">
+            <div>
+              <div class="text-sm text-white">${inv.name}</div>
+              <div class="text-[10px] font-mono text-slate-500">von ${inv.leader_username}</div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="respondInvite(${inv.squad_id}, true)" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono transition-colors">Annehmen</button>
+              <button onclick="respondInvite(${inv.squad_id}, false)" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white text-xs font-mono transition-colors">Ablehnen</button>
+            </div>
+          </div>`).join('');
+      } else {
+        document.getElementById('invitesCard').classList.add('hidden');
+      }
+
+      mySquad = squadData.squad;
+      if (!mySquad) {
+        document.getElementById('noSquadCard').classList.remove('hidden');
+        document.getElementById('squadCard').classList.add('hidden');
+      } else {
+        document.getElementById('noSquadCard').classList.add('hidden');
+        renderSquad();
+      }
+    } catch (err) {
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('errorState').classList.remove('hidden');
+      document.getElementById('errorMsg').textContent = err.message;
+    }
+  }
+
+  function renderSquad() {
+    const card = document.getElementById('squadCard');
+    card.classList.remove('hidden');
+
+    const isLeader = mySquad.leaderUsername.toLowerCase() === myUsername.toLowerCase();
+    const accepted = mySquad.members.filter(m => m.status === 'accepted');
+    const pending = mySquad.members.filter(m => m.status === 'pending');
+
+    document.getElementById('squadName').textContent = mySquad.name;
+    document.getElementById('squadMemberCount').textContent = accepted.length + '/5 Mitglieder' + (pending.length ? ' · ' + pending.length + ' offen' : '');
+
+    document.getElementById('memberList').innerHTML = mySquad.members.map(m => {
+      const memberIsLeader = m.username.toLowerCase() === mySquad.leaderUsername.toLowerCase();
+      const isPending = m.status === 'pending';
+      return `
+        <div class="flex items-center justify-between px-5 py-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300" style="font-family:'JetBrains Mono',monospace;">${m.username.slice(0,2).toUpperCase()}</div>
+            <div>
+              <div class="text-sm ${isPending ? 'text-slate-500' : 'text-slate-200'}">${m.username}${memberIsLeader ? ' 👑' : ''}</div>
+              ${isPending ? '<div class="text-[10px] font-mono text-amber-500">Einladung ausstehend</div>' : ''}
+            </div>
+          </div>
+          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="text-[10px] font-mono text-slate-500 hover:text-rose-400 transition-colors">Entfernen</button>` : ''}
+        </div>`;
+    }).join('');
+
+    const inviteBox = document.getElementById('inviteBox');
+    if (isLeader && accepted.length + pending.length < 5) {
+      inviteBox.classList.remove('hidden');
+    } else {
+      inviteBox.classList.add('hidden');
+    }
+  }
+
+  async function createSquad() {
+    const name = document.getElementById('newSquadName').value.trim();
+    if (!name) return;
+    try {
+      await PlayerAPI.squad.create(name);
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function respondInvite(squadId, accept) {
+    try {
+      await PlayerAPI.squad.respond(squadId, accept);
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function leaveSquad() {
+    if (!confirm('Squad wirklich verlassen?')) return;
+    try {
+      await PlayerAPI.squad.leave();
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function kickMember(username) {
+    if (!confirm(username + ' wirklich aus dem Squad entfernen?')) return;
+    try {
+      await PlayerAPI.squad.kick(username);
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  let searchTimeout;
+  function searchPlayers(q) {
+    clearTimeout(searchTimeout);
+    const dropdown = document.getElementById('inviteDropdown');
+    if (q.trim().length < 2) { dropdown.classList.add('hidden'); return; }
+    searchTimeout = setTimeout(async () => {
+      try {
+        const data = await PlayerAPI.squad.search(q.trim());
+        if (!data.players.length) { dropdown.classList.add('hidden'); return; }
+        dropdown.innerHTML = data.players.map(p => `
+          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 flex items-center justify-between">
+            <span>${p.displayName}</span>
+            <span class="text-[10px] font-mono text-slate-500">Lvl ${p.level}</span>
+          </div>`).join('');
+        dropdown.classList.remove('hidden');
+      } catch (_) {}
+    }, 300);
+  }
+
+  async function invitePlayer(username) {
+    document.getElementById('inviteDropdown').classList.add('hidden');
+    document.getElementById('inviteSearch').value = '';
+    try {
+      await PlayerAPI.squad.invite(username);
+      showMsg('inviteMsg', '✓ Einladung an ' + username + ' geschickt (im Chat sichtbar)', true);
+      await loadAll();
+    } catch (err) {
+      showMsg('inviteMsg', '✗ ' + err.message, false);
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#inviteBox')) document.getElementById('inviteDropdown')?.classList.add('hidden');
+  });
+
+  if (!PlayerAPI.isLoggedIn()) {
+    window.location.href = '/player-login.html';
+  } else {
+    loadAll();
+  }
+</script>
+</body>
+</html>
