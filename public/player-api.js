@@ -1,8 +1,3 @@
-/**
- * Eigener, schlanker API-Client für die Spieler-Seiten (Player Hub/Inventar).
- * Komplett getrennt vom Dashboard-Client (api-client.js) — eigener
- * localStorage-Key, eigener Header, keine Berührung mit Admin-Sessions.
- */
 const PlayerAPI = (() => {
     const TOKEN_KEY = 'lootgame_player_token';
 
@@ -48,6 +43,16 @@ const PlayerAPI = (() => {
         me:           () => call('/api/player-auth/me'),
         myStats:      () => call('/api/player-auth/my-stats'),
         myInventory:  () => call('/api/player-auth/my-inventory'),
-        leaderboard:  (limit) => call('/api/player-auth/leaderboard' + (limit ? '?limit=' + limit : ''))
+        leaderboard:  (limit) => call('/api/player-auth/leaderboard' + (limit ? '?limit=' + limit : '')),
+        squad: {
+            my:      () => call('/api/squad/my'),
+            invites: () => call('/api/squad/invites'),
+            create:  (name) => call('/api/squad/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }),
+            search:  (q) => call('/api/squad/search?q=' + encodeURIComponent(q)),
+            invite:  (username) => call('/api/squad/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
+            respond: (squadId, accept) => call('/api/squad/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ squadId, accept }) }),
+            kick:    (username) => call('/api/squad/kick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
+            leave:   () => call('/api/squad/leave', { method: 'POST' })
+        }
     };
 })();

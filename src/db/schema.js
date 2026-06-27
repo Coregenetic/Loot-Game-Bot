@@ -291,6 +291,26 @@ async function initDashboardUsers() {
             expires_at    INTEGER NOT NULL,
             created_at    INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
+
+        CREATE TABLE IF NOT EXISTS squads (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            name            TEXT NOT NULL,
+            leader_username TEXT NOT NULL,
+            created_at      INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+
+        -- status: 'pending' (eingeladen, noch nicht bestätigt) oder 'accepted'.
+        -- Ein Spieler kann mehrere 'pending' Einladungen gleichzeitig haben,
+        -- aber nur EINE 'accepted' Mitgliedschaft — wird applikationsseitig
+        -- geprüft, kein harter DB-Constraint nötig.
+        CREATE TABLE IF NOT EXISTS squad_members (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            squad_id     INTEGER NOT NULL REFERENCES squads(id) ON DELETE CASCADE,
+            username     TEXT NOT NULL,
+            status       TEXT NOT NULL DEFAULT 'pending',
+            invited_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+            responded_at INTEGER
+        );
     `);
 
     // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte
