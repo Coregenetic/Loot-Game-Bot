@@ -167,10 +167,14 @@ function createServer() {
 function startServer() {
     const app  = createServer();
     const port = process.env.PORT || 3000;
-    app.listen(port, '0.0.0.0', () => {
+    const httpServer = app.listen(port, '0.0.0.0', () => {
         logger.info('API', `Server läuft auf http://0.0.0.0:${port}`);
     });
-    return { httpServer: app };
+
+    const wsHub = require('../utils/wsHub');
+    wsHub.attach(httpServer);
+
+    return { httpServer, app };
 }
 
 module.exports = { createServer, startServer };

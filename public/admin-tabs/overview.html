@@ -65,6 +65,23 @@
       </div>
       <div id="quickActionMsg" class="hidden mt-3"></div>
     </div>
+
+    <div class="animate-reveal glass border border-slate-800/60 rounded-2xl p-5 relative overflow-hidden" style="animation-delay: 280ms;">
+      <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-300 opacity-60"></div>
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Live-Feed
+        </div>
+        <span id="liveFeedStatus" class="text-[9px] font-mono text-slate-600">verbinde...</span>
+      </div>
+      <div id="liveFeedList" class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+        <p class="text-xs font-mono text-slate-600">Warte auf Aktivität...</p>
+      </div>
+    </div>
   </div>
 
   <!-- VERWALTUNG -->

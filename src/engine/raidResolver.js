@@ -46,6 +46,9 @@ async function resolveOne(raid, sayFn) {
         updatePlayerRaidCounts(username, true);
         logCommand('!loot', username, channel, { map, survived: false });
         await sayFn(channel, formatDeathMsg(username, map));
+        try {
+            require('../utils/wsHub').broadcast({ type: 'raid_result', username, survived: false, map });
+        } catch (_) {}
         return;
     }
 
@@ -102,6 +105,14 @@ async function resolveOne(raid, sayFn) {
     }
 
     await sayFn(channel, lootMsg);
+
+    try {
+        require('../utils/wsHub').broadcast({
+            type: 'raid_result', username, survived: true, map,
+            value: mainItem?.value || 0, itemName: mainItem?.displayName || null,
+            leveledUp: new_level > old_level, newLevel: new_level
+        });
+    } catch (_) {}
 }
 
 function updatePlayerRaidCounts(username, died) {

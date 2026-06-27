@@ -85,6 +85,7 @@ router.post('/tournament', requirePermission('server:manage'), (req, res) => {
     if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
     bot.setTournament(active);
     logAudit(req.session.username, 'tournament_toggle', { active });
+    require('../../utils/wsHub').broadcast({ type: 'bot_status', kind: 'tournament', active });
     res.json({ success: true, active });
 });
 
@@ -101,6 +102,7 @@ router.post('/maintenance', requirePermission('server:manage'), (req, res) => {
     if (!bot) return res.status(503).json({ error: 'Bot nicht bereit' });
     bot.setMaintenance(active);
     logAudit(req.session.username, 'maintenance_toggle', { active });
+    require('../../utils/wsHub').broadcast({ type: 'bot_status', kind: 'maintenance', active });
     res.json({ success: true, active });
 });
 
@@ -264,6 +266,7 @@ router.post('/commands/:cmd', requirePermission('server:manage'), (req, res) => 
         bot.setCommandActive(cmd, active);
 
         logAudit(req.session.username, 'command_toggle', { cmd, active });
+        require('../../utils/wsHub').broadcast({ type: 'bot_status', kind: 'command', cmd, active });
         res.json({ success: true, cmd, active });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -292,6 +295,7 @@ router.post('/channels/:channel', requirePermission('server:manage'), (req, res)
         bot.setChannelActive(channel, active);
 
         logAudit(req.session.username, 'channel_toggle', { channel, active });
+        require('../../utils/wsHub').broadcast({ type: 'bot_status', kind: 'channel', channel, active });
         res.json({ success: true, channel, active });
     } catch (err) {
         res.status(500).json({ error: err.message });
