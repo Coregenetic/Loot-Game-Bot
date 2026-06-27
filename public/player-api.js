@@ -47,6 +47,7 @@ const PlayerAPI = (() => {
         getToken, setToken, clearToken, isLoggedIn, logout,
         me:           () => call('/api/player-auth/me'),
         myStats:      () => call('/api/player-auth/my-stats'),
-        myInventory:  () => call('/api/player-auth/my-inventory')
+        myInventory:  () => call('/api/player-auth/my-inventory'),
+        leaderboard:  (limit) => call('/api/player-auth/leaderboard' + (limit ? '?limit=' + limit : ''))
     };
 })();

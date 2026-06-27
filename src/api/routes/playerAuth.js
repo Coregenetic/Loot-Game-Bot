@@ -225,4 +225,40 @@ router.get('/my-inventory', playerSessionAuth, (req, res) => {
     }
 });
 
+// ─── 7. Leaderboard (mit eigener Position, auch außerhalb der Top-Liste) ─────
+router.get('/leaderboard', playerSessionAuth, (req, res) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+
+        const allPlayers = all(`
+            SELECT p.id, p.username, p.display_name, p.avatar_url, p.level,
+                   COALESCE(SUM(i.count * i.value), 0) AS stash_value
+            FROM players p LEFT JOIN inventory i ON i.player_id = p.id
+            GROUP BY p.id
+        `);
+        const sorted = allPlayers
+            .sort((a, b) => b.stash_value - a.stash_value)
+            .map((p, idx) => ({
+                rank: idx + 1,
+                username: p.username,
+                displayName: p.display_name || p.username,
+                avatarUrl: p.avatar_url || null,
+                level: p.level || 1,
+                stashValue: p.stash_value
+            }));
+
+        const top = sorted.slice(0, limit);
+        const myEntry = sorted.find(p => p.username.toLowerCase() === req.playerUsername.toLowerCase());
+
+        res.json({
+            top,
+            totalPlayers: sorted.length,
+            me: myEntry || null,
+            meInTop: myEntry ? top.some(p => p.username === myEntry.username) : false
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = { router, playerSessionAuth };
