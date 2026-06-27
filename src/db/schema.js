@@ -143,6 +143,7 @@ async function initSchema() {
             new_level   INTEGER,
             old_level   INTEGER,
             has_kappa   INTEGER NOT NULL DEFAULT 0,
+            squad_window_id INTEGER,
             resolve_at  INTEGER NOT NULL,
             created_at  INTEGER NOT NULL DEFAULT (strftime('%s','now')),
             FOREIGN KEY(player_id) REFERENCES players(id) ON DELETE CASCADE
@@ -213,6 +214,19 @@ async function initSchema() {
         }
     } catch (err) {
         console.error('[DB] Migration-Fehler (display_name):', err.message);
+    }
+
+    // Migration: squad_window_id Spalte nachrüsten (verknüpft pending_raids, die zu
+    // einem gemeinsamen Squad-Raid gehören, damit der Resolver eine Sammel-Nachricht senden kann)
+    try {
+        const cols = db.exec(`PRAGMA table_info(pending_raids)`);
+        const hasSquadWindow = cols.length > 0 && cols[0].values.some(row => row[1] === 'squad_window_id');
+        if (!hasSquadWindow) {
+            db.run(`ALTER TABLE pending_raids ADD COLUMN squad_window_id INTEGER`);
+            console.log('[DB] Migration: squad_window_id Spalte zur pending_raids Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (squad_window_id):', err.message);
     }
 
     // Migration: category Spalte nachrüsten (für Item-Filter im Admin Panel)
@@ -310,6 +324,25 @@ async function initDashboardUsers() {
             status       TEXT NOT NULL DEFAULT 'pending',
             invited_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
             responded_at INTEGER
+        );
+
+        -- Das 15-Sekunden-Fenster: öffnet wenn das erste Squad-Mitglied !loot
+        -- triggert, jedes weitere Mitglied das in der Zeit auch triggert, geht
+        -- mit in den GEMEINSAMEN Raid (ein Würfelwurf für die ganze Gruppe).
+        CREATE TABLE IF NOT EXISTS squad_raid_windows (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            squad_id   INTEGER NOT NULL REFERENCES squads(id) ON DELETE CASCADE,
+            channel    TEXT NOT NULL,
+            opens_at   INTEGER NOT NULL,
+            closes_at  INTEGER NOT NULL,
+            resolved   INTEGER NOT NULL DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS squad_raid_participants (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            window_id INTEGER NOT NULL REFERENCES squad_raid_windows(id) ON DELETE CASCADE,
+            player_id INTEGER NOT NULL,
+            username  TEXT NOT NULL
         );
     `);
 

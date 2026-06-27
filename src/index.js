@@ -37,6 +37,7 @@ async function main() {
     logger.info('BOOT', 'Datenbank bereit.');
 
     // Zusätzlicher Check: DB existierte, aber Items-Tabelle ist komplett leer
+    // (z.B. bei beschädigter/zurückgesetzter DB) — dann ebenfalls Backup laden
     if (!dbMissing) {
         try {
             const items = all(`SELECT COUNT(*) as count FROM items`);
@@ -71,6 +72,8 @@ async function main() {
     logger.info('BOOT', 'Bereit für Commands.');
 
     // ─── EventSub-Shadow (Phase 1 der Bot-Badge-Migration) ────────────────────
+    // Läuft komplett parallel zum tmi.js-Bot oben, sendet NICHTS automatisch,
+    // beobachtet nur. Standardmäßig AUS — kein Risiko für den Live-Betrieb.
     if (process.env.ENABLE_EVENTSUB_SHADOW === 'true') {
         logger.info('BOOT', 'EventSub-Shadow aktiviert — starte parallele Beobachtungs-Verbindung...');
         const eventSubShadow = require('./bot-eventsub');
@@ -79,12 +82,18 @@ async function main() {
     }
 
     // ─── Raid-Resolver (DB-basiert, überlebt Neustarts) ───────────────────────
+    // Sendefunktion wählt bei JEDEM Tick die aktuell aktive Verbindung (tmi.js
+    // oder EventSub) — falls COMMAND_SOURCE sich zwischendurch ändert, greift
+    // das sofort auch hier, ohne Sonderbehandlung nötig.
     const { resolvePendingRaids } = require('./engine/raidResolver');
     const { sendChatMessage } = require('./utils/chatSender');
+    const { resolveSquadWindows } = require('./engine/squadRaid');
 
     async function raidResolveTick() {
         try { await resolvePendingRaids(sendChatMessage); }
         catch (err) { logger.error('RAID-RESOLVER', 'Tick fehlgeschlagen: ' + err.message); }
+        try { await resolveSquadWindows(sendChatMessage); }
+        catch (err) { logger.error('SQUAD-RAID', 'Tick fehlgeschlagen: ' + err.message); }
     }
 
     await raidResolveTick(); // sofort einmal beim Start — holt überfällige Raids vom letzten Neustart nach

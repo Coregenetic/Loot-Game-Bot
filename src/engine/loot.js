@@ -57,12 +57,12 @@ function selectItem(mapName) {
 }
 
 // ─── Loot generieren ─────────────────────────────────────────────────────────
-function generateLoot(hasKappa = false) {
+function generateLoot(hasKappa = false, forcedMap = null) {
     const general = getGeneral();
     const events  = getActiveEvents();
     const now     = Math.floor(Date.now() / 1000);
 
-    const map  = selectMap();
+    const map  = forcedMap || selectMap();
     const item = selectItem(map);
     if (!item) return null;
 
@@ -108,7 +108,7 @@ function formatInfiltrationMsg(user, map) {
 }
 
 function formatLootMsg(user, loot, hasKappa = false) {
-    const kappaTag = hasKappa ? ' 💼' : '';
+    const kappaTag = hasKappa ? ' 🧳' : '';
     const map      = loot[0].map;
     const emoji    = getMapEmoji(map);
 
@@ -155,8 +155,45 @@ function formatDeathMsg(user, map) {
     return `${emoji} 💀 @${user} ${fallbacks[Math.floor(Math.random() * fallbacks.length)]}`;
 }
 
+// ─── Pro-Spieler-Ergebnis berechnen (genutzt von Solo- UND Squad-Raids) ──────
+// Bei Squad-Raids ist 'survived' schon von außen vorgegeben (ein gemeinsamer
+// Wurf für die ganze Gruppe) — hier wird nur noch der individuelle Loot/XP
+// pro Mitglied gewürfelt, falls überlebt.
+function computePlayerOutcome(player, survived, forcedMap = null) {
+    const oldLevel = player.level || 1;
+    if (!survived) {
+        return { lootPayload: [], xpGain: 0, oldLevel, newLevel: oldLevel, map: forcedMap };
+    }
+
+    const loot = generateLoot(player.has_kappa === 1, forcedMap);
+    if (!loot) {
+        return { lootPayload: [], xpGain: 0, oldLevel, newLevel: oldLevel, map: forcedMap };
+    }
+
+    const map = forcedMap || loot[0].map;
+    const lootPayload = loot.map(({ item }) => ({
+        displayName: item.text || item.name,
+        value: item.value || 0,
+        key: item.name
+    }));
+
+    const events    = getActiveEvents();
+    const now       = Math.floor(Date.now() / 1000);
+    const leveling  = getLeveling();
+    let xpMultiplier = 1;
+    if (events.XPBoost?.Multiplier > 1 && events.XPBoost?.ExpiresAt > now) {
+        xpMultiplier = events.XPBoost.Multiplier;
+    }
+
+    const totalItemValue = loot.reduce((sum, { item }) => sum + (item.value || 0), 0);
+    const xpGain   = Math.floor(calculateXPGain(totalItemValue, player.prestige) * xpMultiplier);
+    const newLevel = calcLevelFromXP((player.xp || 0) + xpGain, leveling);
+
+    return { lootPayload, xpGain, oldLevel, newLevel, map };
+}
+
 module.exports = {
-    generateLoot, selectMap, calculateXPGain,
+    generateLoot, selectMap, calculateXPGain, computePlayerOutcome,
     formatInfiltrationMsg, formatLootMsg, formatDeathMsg,
     getMapEmoji
 };
