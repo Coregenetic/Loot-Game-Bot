@@ -1,5 +1,6 @@
 node_modules/
 .env
+secret_ttv.txt
 data/lootgame.db
 data/legacy_profiles/
 data/legacy_items/
