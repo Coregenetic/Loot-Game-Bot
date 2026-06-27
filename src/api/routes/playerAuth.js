@@ -225,6 +225,14 @@ router.get('/my-inventory', playerSessionAuth, (req, res) => {
     }
 });
 
+function calcTier(rank, total) {
+    if (total <= 0) return null;
+    const pct = ((rank - 1) / total) * 100;
+    const thresholds = [1, 5, 10, 25, 50, 75, 100];
+    const snapped = thresholds.find(t => pct <= t) || 100;
+    return 'Top ' + snapped + '%';
+}
+
 // ─── 7. Leaderboard (mit eigener Position, auch außerhalb der Top-Liste) ─────
 router.get('/leaderboard', playerSessionAuth, (req, res) => {
     try {
@@ -248,13 +256,23 @@ router.get('/leaderboard', playerSessionAuth, (req, res) => {
             }));
 
         const top = sorted.slice(0, limit);
-        const myEntry = sorted.find(p => p.username.toLowerCase() === req.playerUsername.toLowerCase());
+        const myIndex = sorted.findIndex(p => p.username.toLowerCase() === req.playerUsername.toLowerCase());
+        const myEntry = myIndex >= 0 ? { ...sorted[myIndex], tier: calcTier(sorted[myIndex].rank, sorted.length) } : null;
+
+        // 2 Plätze über und unter der eigenen Position ("In deiner Nähe")
+        let nearby = [];
+        if (myIndex >= 0) {
+            const start = Math.max(0, myIndex - 2);
+            const end = Math.min(sorted.length, myIndex + 3);
+            nearby = sorted.slice(start, end);
+        }
 
         res.json({
             top,
             totalPlayers: sorted.length,
-            me: myEntry || null,
-            meInTop: myEntry ? top.some(p => p.username === myEntry.username) : false
+            me: myEntry,
+            meInTop: myEntry ? top.some(p => p.username === myEntry.username) : false,
+            nearby
         });
     } catch (err) {
         res.status(500).json({ error: err.message });

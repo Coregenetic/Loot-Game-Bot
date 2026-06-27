@@ -41,11 +41,48 @@
       </div>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-semibold text-white truncate" id="myNameLabel">—</div>
-        <div class="text-[10px] font-mono text-emerald-500/70 uppercase">Deine Position</div>
+        <div class="text-[10px] font-mono text-emerald-500/70 uppercase" id="myTierLabel">Deine Position</div>
       </div>
       <div class="text-right shrink-0">
         <div class="text-sm font-semibold text-amber-400 font-mono" id="myStashLabel">—</div>
       </div>
+    </div>
+
+    <!-- PODIUM (Top 3) -->
+    <div id="podiumWrap" class="grid grid-cols-3 gap-2 items-end px-2">
+      <div class="flex flex-col items-center" id="podium-2">
+        <div class="relative mb-2">
+          <div class="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-400 overflow-hidden flex items-center justify-center text-sm font-bold text-slate-300" id="p2avatar" style="font-family:'JetBrains Mono',monospace;">—</div>
+          <div class="absolute -top-2 -right-1 text-lg">🥈</div>
+        </div>
+        <div class="text-xs font-semibold text-slate-200 truncate max-w-[90px] text-center" id="p2name">—</div>
+        <div class="text-[10px] font-mono text-amber-400" id="p2stash">—</div>
+        <div class="w-full h-16 bg-gradient-to-t from-slate-700/40 to-slate-700/10 rounded-t-lg mt-2 border-t border-slate-600"></div>
+      </div>
+      <div class="flex flex-col items-center" id="podium-1">
+        <div class="relative mb-2">
+          <div class="w-[72px] h-[72px] rounded-full bg-amber-500/10 border-2 border-amber-400 overflow-hidden flex items-center justify-center text-base font-bold text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)]" id="p1avatar" style="font-family:'JetBrains Mono',monospace;">—</div>
+          <div class="absolute -top-3 -right-1 text-2xl">👑</div>
+        </div>
+        <div class="text-sm font-bold text-white truncate max-w-[100px] text-center" id="p1name">—</div>
+        <div class="text-xs font-mono text-amber-400 font-semibold" id="p1stash">—</div>
+        <div class="w-full h-24 bg-gradient-to-t from-amber-500/15 to-amber-500/5 rounded-t-lg mt-2 border-t border-amber-500/40"></div>
+      </div>
+      <div class="flex flex-col items-center" id="podium-3">
+        <div class="relative mb-2">
+          <div class="w-14 h-14 rounded-full bg-slate-800 border-2 border-orange-700 overflow-hidden flex items-center justify-center text-sm font-bold text-orange-400" id="p3avatar" style="font-family:'JetBrains Mono',monospace;">—</div>
+          <div class="absolute -top-2 -right-1 text-lg">🥉</div>
+        </div>
+        <div class="text-xs font-semibold text-slate-200 truncate max-w-[90px] text-center" id="p3name">—</div>
+        <div class="text-[10px] font-mono text-amber-400" id="p3stash">—</div>
+        <div class="w-full h-10 bg-gradient-to-t from-orange-700/25 to-orange-700/5 rounded-t-lg mt-2 border-t border-orange-700/50"></div>
+      </div>
+    </div>
+
+    <!-- IN DEINER NÄHE -->
+    <div id="nearbyCard" class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-800/60 text-[11px] font-mono text-slate-400 uppercase tracking-wide">In deiner Nähe</div>
+      <div id="nearbyList"></div>
     </div>
 
     <!-- TOP LISTE -->
@@ -68,7 +105,24 @@
     return v + ' ₽';
   }
 
-  const RANK_MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  function fillAvatarOrInitials(elId, player) {
+    const el = document.getElementById(elId);
+    if (player.avatarUrl) {
+      el.innerHTML = `<img src="${player.avatarUrl}" alt="" class="w-full h-full object-cover" onerror="this.parentElement.textContent='${player.displayName.slice(0,2).toUpperCase()}'">`;
+    } else {
+      el.textContent = player.displayName.slice(0,2).toUpperCase();
+    }
+  }
+
+  function nearbyRowHTML(p, myUsername) {
+    const isMe = p.username === myUsername;
+    return `
+      <div class="flex items-center gap-3 px-4 py-2 border-b border-slate-800/40 last:border-0 ${isMe ? 'bg-emerald-500/5' : ''}">
+        <div class="w-7 text-center text-xs font-mono ${isMe ? 'text-emerald-400 font-bold' : 'text-slate-500'} shrink-0">#${p.rank}</div>
+        <div class="text-sm ${isMe ? 'text-emerald-400 font-semibold' : 'text-slate-300'} flex-1 truncate">${p.displayName}${isMe ? ' (Du)' : ''}</div>
+        <div class="text-xs font-mono text-amber-400 shrink-0">${formatVal(p.stashValue)}</div>
+      </div>`;
+  }
 
   async function loadLeaderboard() {
     try {
@@ -82,6 +136,7 @@
         document.getElementById('myRankLabel').textContent = '#' + data.me.rank;
         document.getElementById('myNameLabel').textContent = data.me.displayName;
         document.getElementById('myStashLabel').textContent = formatVal(data.me.stashValue);
+        document.getElementById('myTierLabel').textContent = data.me.tier || 'Deine Position';
         document.getElementById('myAvatarInitials').textContent = data.me.displayName.slice(0,2).toUpperCase();
         if (data.me.avatarUrl) {
           const img = document.getElementById('myAvatarImg');
@@ -93,13 +148,37 @@
         document.getElementById('myPositionCard').classList.add('hidden');
       }
 
+      // Podium für die Top 3
+      const podiumData = { 1: data.top[0], 2: data.top[1], 3: data.top[2] };
+      if (podiumData[1] && podiumData[2] && podiumData[3]) {
+        document.getElementById('podiumWrap').classList.remove('hidden');
+        [1,2,3].forEach(rank => {
+          const p = podiumData[rank];
+          fillAvatarOrInitials('p' + rank + 'avatar', p);
+          document.getElementById('p' + rank + 'name').textContent = p.displayName;
+          document.getElementById('p' + rank + 'stash').textContent = formatVal(p.stashValue);
+        });
+      } else {
+        document.getElementById('podiumWrap').classList.add('hidden');
+      }
+
+      // In deiner Nähe
+      const nearbyCard = document.getElementById('nearbyCard');
+      if (data.nearby && data.nearby.length > 1) {
+        nearbyCard.classList.remove('hidden');
+        document.getElementById('nearbyList').innerHTML = data.nearby.map(p => nearbyRowHTML(p, data.me?.username)).join('');
+      } else {
+        nearbyCard.classList.add('hidden');
+      }
+
+      // Restliche Top-Liste (ab Platz 4, da 1-3 schon im Podium stehen)
       const listEl = document.getElementById('lbList');
-      listEl.innerHTML = data.top.map(p => {
+      const rest = data.top.slice(3);
+      listEl.innerHTML = rest.map(p => {
         const isMe = data.me && p.username === data.me.username;
-        const medal = RANK_MEDAL[p.rank] || ('#' + p.rank);
         return `
           <div class="flex items-center gap-3 px-4 py-2.5 border-b border-slate-800/40 last:border-0 ${isMe ? 'bg-emerald-500/5' : ''}">
-            <div class="w-8 text-center text-sm font-mono ${p.rank <= 3 ? 'text-base' : 'text-slate-500'} shrink-0">${medal}</div>
+            <div class="w-8 text-center text-sm font-mono text-slate-500 shrink-0">#${p.rank}</div>
             <div class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 overflow-hidden relative shrink-0" style="font-family:'JetBrains Mono',monospace;">
               ${p.avatarUrl
                 ? `<img src="${p.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
