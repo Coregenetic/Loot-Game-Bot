@@ -6,10 +6,7 @@ const logger = require('../utils/logger');
 
 const SQUAD_WINDOW_SECONDS = 15;
 
-// ─── Wird aus commands/loot.js aufgerufen, BEVOR der normale Solo-Pfad greift ──
-// Gibt true zurück, wenn der Aufruf über den Squad-Pfad behandelt wurde
-// (Spieler wartet jetzt im Fenster) — false, wenn ganz normal solo weitergemacht
-// werden soll (kein Squad).
+
 async function tryJoinSquadWindow(player, username, channel, sayFn) {
     const membership = get(
         `SELECT sm.squad_id, s.name FROM squad_members sm
