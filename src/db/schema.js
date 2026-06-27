@@ -191,6 +191,18 @@ async function initSchema() {
         console.error('[DB] Migration-Fehler (last_seen):', err.message);
     }
 
+    // Migration: avatar_url Spalte nachrüsten (Twitch-Profilbild, gesetzt beim Player-Hub-Login)
+    try {
+        const cols = db.exec(`PRAGMA table_info(players)`);
+        const hasAvatar = cols.length > 0 && cols[0].values.some(row => row[1] === 'avatar_url');
+        if (!hasAvatar) {
+            db.run(`ALTER TABLE players ADD COLUMN avatar_url TEXT`);
+            console.log('[DB] Migration: avatar_url Spalte zur players Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (avatar_url):', err.message);
+    }
+
     // Migration: category Spalte nachrüsten (für Item-Filter im Admin Panel)
     try {
         const cols = db.exec(`PRAGMA table_info(items)`);

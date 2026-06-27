@@ -51,7 +51,10 @@
     <div class="flex items-end justify-between gap-3 pb-4 border-b border-slate-800/60">
       <div class="flex items-center gap-4">
         <div class="relative">
-          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-lg font-semibold text-emerald-400" style="font-family:'JetBrains Mono',monospace;" id="avatarInitials">—</div>
+          <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-lg font-semibold text-emerald-400 overflow-hidden relative" style="font-family:'JetBrains Mono',monospace;">
+            <span id="avatarInitials">—</span>
+            <img id="avatarImg" class="hidden absolute inset-0 w-full h-full object-cover" alt="" onerror="this.classList.add('hidden'); document.getElementById('avatarInitials').classList.remove('hidden');">
+          </div>
           <div class="absolute -bottom-1.5 -right-1.5 bg-emerald-500 text-emerald-950 text-[9px] font-bold px-1.5 py-0.5 rounded-md border-2 border-[#05080c]" style="font-family:'JetBrains Mono',monospace;" id="levelBadge">—</div>
         </div>
         <div>
@@ -188,6 +191,12 @@
       document.getElementById('hubContent').classList.remove('hidden');
 
       document.getElementById('avatarInitials').textContent = stats.username.slice(0,2).toUpperCase();
+      if (stats.avatarUrl) {
+        const img = document.getElementById('avatarImg');
+        img.src = stats.avatarUrl;
+        img.classList.remove('hidden');
+        document.getElementById('avatarInitials').classList.add('hidden');
+      }
       document.getElementById('levelBadge').textContent = stats.level;
       document.getElementById('usernameLabel').textContent = stats.username;
 

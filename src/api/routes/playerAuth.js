@@ -96,6 +96,17 @@ router.get('/callback', async (req, res) => {
             [hashToken(sessionToken), twitchUser.login, twitchUser.id, expiresAt]
         );
 
+        // Twitch-Profilbild übernehmen — gleicher API-Call wie eben, keine extra Anfrage nötig
+        if (twitchUser.profile_image_url) {
+            try {
+                const { getOrCreatePlayer, updatePlayer } = require('../../db/players');
+                await getOrCreatePlayer(twitchUser.login); // legt den Spieler an, falls noch nie zuvor gelootet
+                updatePlayer(twitchUser.login, { avatar_url: twitchUser.profile_image_url });
+            } catch (err) {
+                console.error('[PLAYER-AUTH] Konnte Avatar nicht speichern:', err.message);
+            }
+        }
+
         res.redirect(`/player-hub.html#token=${sessionToken}`);
     } catch (err) {
         console.error('[PLAYER-AUTH] Callback-Fehler:', err.message);
@@ -172,6 +183,7 @@ router.get('/my-stats', playerSessionAuth, (req, res) => {
 
         res.json({
             username: player.username,
+            avatarUrl: player.avatar_url || null,
             level: player.level || 1,
             xp: player.xp || 0,
             prestige: player.prestige || 0,
