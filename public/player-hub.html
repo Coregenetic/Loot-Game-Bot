@@ -190,7 +190,7 @@
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('hubContent').classList.remove('hidden');
 
-      document.getElementById('avatarInitials').textContent = stats.username.slice(0,2).toUpperCase();
+      document.getElementById('avatarInitials').textContent = stats.displayName.slice(0,2).toUpperCase();
       if (stats.avatarUrl) {
         const img = document.getElementById('avatarImg');
         img.src = stats.avatarUrl;
@@ -198,7 +198,7 @@
         document.getElementById('avatarInitials').classList.add('hidden');
       }
       document.getElementById('levelBadge').textContent = stats.level;
-      document.getElementById('usernameLabel').textContent = stats.username;
+      document.getElementById('usernameLabel').textContent = stats.displayName;
 
       const xpForNext = stats.level * 10000; // grobe Anzeige, da keine exakte Kurve hier verfügbar
       const xpPct = Math.min(100, Math.round((stats.xp % xpForNext) / xpForNext * 100));

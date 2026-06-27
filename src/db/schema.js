@@ -203,6 +203,18 @@ async function initSchema() {
         console.error('[DB] Migration-Fehler (avatar_url):', err.message);
     }
 
+    // Migration: display_name Spalte nachrüsten (Twitch-Anzeigename, eigene Groß-/Kleinschreibung)
+    try {
+        const cols = db.exec(`PRAGMA table_info(players)`);
+        const hasDisplayName = cols.length > 0 && cols[0].values.some(row => row[1] === 'display_name');
+        if (!hasDisplayName) {
+            db.run(`ALTER TABLE players ADD COLUMN display_name TEXT`);
+            console.log('[DB] Migration: display_name Spalte zur players Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (display_name):', err.message);
+    }
+
     // Migration: category Spalte nachrüsten (für Item-Filter im Admin Panel)
     try {
         const cols = db.exec(`PRAGMA table_info(items)`);

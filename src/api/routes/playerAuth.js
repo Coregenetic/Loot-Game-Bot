@@ -96,14 +96,17 @@ router.get('/callback', async (req, res) => {
             [hashToken(sessionToken), twitchUser.login, twitchUser.id, expiresAt]
         );
 
-        // Twitch-Profilbild übernehmen — gleicher API-Call wie eben, keine extra Anfrage nötig
-        if (twitchUser.profile_image_url) {
+        // Twitch-Profilbild + Anzeigename übernehmen — gleicher API-Call wie eben, keine extra Anfrage nötig
+        if (twitchUser.profile_image_url || twitchUser.display_name) {
             try {
                 const { getOrCreatePlayer, updatePlayer } = require('../../db/players');
                 await getOrCreatePlayer(twitchUser.login); // legt den Spieler an, falls noch nie zuvor gelootet
-                updatePlayer(twitchUser.login, { avatar_url: twitchUser.profile_image_url });
+                updatePlayer(twitchUser.login, {
+                    avatar_url: twitchUser.profile_image_url || null,
+                    display_name: twitchUser.display_name || null
+                });
             } catch (err) {
-                console.error('[PLAYER-AUTH] Konnte Avatar nicht speichern:', err.message);
+                console.error('[PLAYER-AUTH] Konnte Avatar/Anzeigename nicht speichern:', err.message);
             }
         }
 
@@ -183,6 +186,7 @@ router.get('/my-stats', playerSessionAuth, (req, res) => {
 
         res.json({
             username: player.username,
+            displayName: player.display_name || player.username,
             avatarUrl: player.avatar_url || null,
             level: player.level || 1,
             xp: player.xp || 0,
