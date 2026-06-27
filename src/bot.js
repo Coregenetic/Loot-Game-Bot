@@ -140,7 +140,7 @@ function loadCommands() {
         './commands/leaderboard',
         './commands/prestige',
         './commands/kappa',
-        './commands/gameconfig'
+        './commands/stats'
     ];
     for (const file of commandFiles) {
         const cmd = require(file);
