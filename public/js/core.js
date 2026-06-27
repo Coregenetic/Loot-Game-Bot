@@ -97,6 +97,19 @@ async function loadCurrentUser() {
 }
 
 // ─── Live-Updates (eigener WebSocket-Kanal, NICHT die Twitch-EventSub-Verbindung) ───
+function doLogout() {
+  showConfirm('Abmelden?', 'Du wirst aus dem Dashboard ausgeloggt.', () => {
+    LootGameAPI.logout(); // leitet bereits selbst auf /login.html weiter
+  });
+}
+
+function toggleMobileMore() {
+  const sheet = document.getElementById('mobileMoreSheet');
+  if (!sheet) return;
+  sheet.classList.toggle('hidden');
+  if (!sheet.classList.contains('hidden')) applyPermissionVisibility();
+}
+
 function applyPermissionVisibility() {
   document.querySelectorAll('[data-permission]').forEach(el => {
     const need = el.dataset.permission;
@@ -115,7 +128,18 @@ async function pingHealth() {
     const u = Math.floor(d.uptime);
     const h = Math.floor(u/3600), m = Math.floor((u%3600)/60), s = u%60;
     document.getElementById('uptimeVal').textContent = h + 'h ' + m + 'm ' + s + 's';
-  } catch {}
+
+    const dot = document.getElementById('botDot');
+    const label = document.getElementById('botStatusLabel');
+    if (dot) dot.style.background = d.botConnected ? '#10b981' : '#f43f5e';
+    if (dot) dot.style.boxShadow = d.botConnected ? '0 0 6px #10b981' : '0 0 6px #f43f5e';
+    if (label) label.textContent = d.botConnected ? 'BOT ONLINE' : 'BOT OFFLINE';
+  } catch {
+    const dot = document.getElementById('botDot');
+    const label = document.getElementById('botStatusLabel');
+    if (dot) { dot.style.background = '#f43f5e'; dot.style.boxShadow = '0 0 6px #f43f5e'; }
+    if (label) label.textContent = 'SERVER OFFLINE';
+  }
 }
 setInterval(pingHealth, 10000);
 pingHealth();

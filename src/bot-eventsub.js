@@ -186,4 +186,8 @@ function stop() {
     sessionId = null;
 }
 
-module.exports = { start, stop, sendChatMessage, isReady };
+function isConnected() {
+    return !!(ws && ws.readyState === WebSocket.OPEN);
+}
+
+module.exports = { start, stop, sendChatMessage, isReady, isConnected };

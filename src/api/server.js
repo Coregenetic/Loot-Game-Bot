@@ -51,7 +51,16 @@ function createServer() {
 
     // Public Routes
     app.get('/health', (req, res) => {
-        res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+        let botConnected = false;
+        try {
+            const { COMMAND_SOURCE } = require('../bot');
+            if (COMMAND_SOURCE === 'eventsub') {
+                botConnected = !!global.eventSubShadow?.isConnected();
+            } else {
+                botConnected = global.botInstance?.client?.readyState() === 'OPEN';
+            }
+        } catch (_) {}
+        res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now(), botConnected });
     });
 
     app.use('/api/auth', authRoutes);
