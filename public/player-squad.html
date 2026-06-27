@@ -136,12 +136,15 @@
     document.getElementById('memberList').innerHTML = mySquad.members.map(m => {
       const memberIsLeader = m.username.toLowerCase() === mySquad.leaderUsername.toLowerCase();
       const isPending = m.status === 'pending';
+      const avatarInner = m.avatarUrl
+        ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+        : m.displayName.slice(0,2).toUpperCase();
       return `
         <div class="flex items-center justify-between px-5 py-3">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300" style="font-family:'JetBrains Mono',monospace;">${m.username.slice(0,2).toUpperCase()}</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 overflow-hidden relative ${isPending ? 'opacity-50' : ''}" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
             <div>
-              <div class="text-sm ${isPending ? 'text-slate-500' : 'text-slate-200'}">${m.username}${memberIsLeader ? ' 👑' : ''}</div>
+              <div class="text-sm ${isPending ? 'text-slate-500' : 'text-slate-200'}">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
               ${isPending ? '<div class="text-[10px] font-mono text-amber-500">Einladung ausstehend</div>' : ''}
             </div>
           </div>
@@ -198,11 +201,17 @@
       try {
         const data = await PlayerAPI.squad.search(q.trim());
         if (!data.players.length) { dropdown.classList.add('hidden'); return; }
-        dropdown.innerHTML = data.players.map(p => `
-          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 flex items-center justify-between">
-            <span>${p.displayName}</span>
+        dropdown.innerHTML = data.players.map(p => {
+          const avatarInner = p.avatarUrl
+            ? `<img src="${p.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+            : p.displayName.slice(0,2).toUpperCase();
+          return `
+          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-semibold text-slate-300 overflow-hidden relative shrink-0" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
+            <span class="flex-1">${p.displayName}</span>
             <span class="text-[10px] font-mono text-slate-500">Lvl ${p.level}</span>
-          </div>`).join('');
+          </div>`;
+        }).join('');
         dropdown.classList.remove('hidden');
       } catch (_) {}
     }, 300);

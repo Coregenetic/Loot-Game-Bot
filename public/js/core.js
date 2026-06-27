@@ -73,6 +73,7 @@ const TAB_PERMISSIONS = {
   cooldowns: 'cooldowns:manage',
   players:   'players:view',
   events:    'events:manage',
+  squads:    'players:manage',
   server:    'server:manage',
   users:     'superadmin' // Spezialfall, kein Permission-Key
 };
@@ -162,6 +163,7 @@ const tabTitles = {
   'cooldowns': 'Cooldown Management',
   'players': 'Spieler-Verwaltung',
   'events': 'Live Event Control',
+  'squads': 'Squad-Verwaltung',
   'users': 'User Management',
   'server': 'Server Diagnostics'
 };
@@ -199,6 +201,7 @@ async function navigateTo(tab) {
   if (tab === 'cooldowns')  loadCooldowns();
   if (tab === 'players')    loadPlayers();
   if (tab === 'events')     loadEvents();
+  if (tab === 'squads')     loadSquads();
   if (tab === 'users')      loadUsers();
   if (tab === 'server')     checkServerAccess();
 }

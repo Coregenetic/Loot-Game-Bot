@@ -346,6 +346,19 @@ async function initDashboardUsers() {
         );
     `);
 
+    // Migration: config_overrides Spalte nachrüsten (Admin kann pro Squad z.B.
+    // bessere Loot-Werte oder kürzere Raid-Zeit einstellen, ohne Code-Änderung)
+    try {
+        const cols = db.exec(`PRAGMA table_info(squads)`);
+        const hasOverrides = cols.length > 0 && cols[0].values.some(row => row[1] === 'config_overrides');
+        if (!hasOverrides) {
+            db.run(`ALTER TABLE squads ADD COLUMN config_overrides TEXT`);
+            console.log('[DB] Migration: config_overrides Spalte zur squads Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (config_overrides):', err.message);
+    }
+
     // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte
     const userCols = db.exec(`PRAGMA table_info(dashboard_users)`);
     const userColNames = userCols.length > 0 ? userCols[0].values.map(r => r[1]) : [];

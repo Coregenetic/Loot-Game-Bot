@@ -1,3 +1,8 @@
+/**
+ * Squad-Raid-Mechanik (Schritt 2) — das 15-Sekunden-Fenster und die
+ * gemeinsame Auflösung. Die Verwaltung (Squad erstellen/einladen/etc.) lebt
+ * in src/api/routes/playerSquad.js, hier geht's nur um den eigentlichen Raid.
+ */
 const { run, get, all } = require('../db/schema');
 const { getPlayer, setCooldown } = require('../db/players');
 const { getGeneral } = require('../db/config');
@@ -6,7 +11,10 @@ const logger = require('../utils/logger');
 
 const SQUAD_WINDOW_SECONDS = 15;
 
-
+// ─── Wird aus commands/loot.js aufgerufen, BEVOR der normale Solo-Pfad greift ──
+// Gibt true zurück, wenn der Aufruf über den Squad-Pfad behandelt wurde
+// (Spieler wartet jetzt im Fenster) — false, wenn ganz normal solo weitergemacht
+// werden soll (kein Squad).
 async function tryJoinSquadWindow(player, username, channel, sayFn) {
     const membership = get(
         `SELECT sm.squad_id, s.name FROM squad_members sm
@@ -78,7 +86,15 @@ async function resolveOneWindow(window, sayFn) {
     const participants = all(`SELECT * FROM squad_raid_participants WHERE window_id = ?`, [window.id]);
     if (!participants.length) return;
 
-    const general   = getGeneral();
+    // Per-Squad-Overrides (Admin Panel) auf die globale Config legen — fehlt
+    // ein Feld, gilt einfach der globale Wert. ValueMultiplier ist kein
+    // normales Config-Feld, wird separat behandelt (skaliert den Loot-Wert).
+    const squadRow = get(`SELECT config_overrides FROM squads WHERE id = ?`, [window.squad_id]);
+    let overrides = {};
+    try { overrides = squadRow?.config_overrides ? JSON.parse(squadRow.config_overrides) : {}; } catch { overrides = {}; }
+    const valueMultiplier = overrides.ValueMultiplier ?? 1;
+
+    const general   = { ...getGeneral(), ...overrides };
     const minExfil  = general.MinExfilSeconds || 5;
     const maxExfil  = general.MaxExfilSeconds || 15;
     const exfilTime = Math.floor(Math.random() * (maxExfil - minExfil + 1)) + minExfil;
@@ -95,7 +111,7 @@ async function resolveOneWindow(window, sayFn) {
 
         setCooldown(player.id, 'loot', exfilTime + 1);
 
-        const { lootPayload, xpGain, oldLevel, newLevel } = computePlayerOutcome(player, survived, map);
+        const { lootPayload, xpGain, oldLevel, newLevel } = computePlayerOutcome(player, survived, map, general, valueMultiplier);
 
         run(
             `INSERT INTO pending_raids (player_id, username, channel, map, survived, loot_json, xp_gain, old_level, new_level, has_kappa, squad_window_id, resolve_at)

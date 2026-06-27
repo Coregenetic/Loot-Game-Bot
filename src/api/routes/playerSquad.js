@@ -1,3 +1,8 @@
+/**
+ * Squad-Verwaltung — eigene Routen, nutzt aber dieselbe playerSessionAuth
+ * Middleware wie der Rest des Player Hubs. Reine Verwaltung hier (Schritt 1);
+ * die eigentliche "gemeinsam in den Raid"-Mechanik kommt erst in Schritt 2.
+ */
 const express = require('express');
 const router  = express.Router();
 const { run, get, all } = require('../../db/schema');
@@ -15,9 +20,20 @@ function getMySquad(username) {
     if (!membership) return null;
 
     const members = all(
-        `SELECT username, status, invited_at FROM squad_members WHERE squad_id = ? ORDER BY invited_at ASC`,
+        `SELECT sm.username, sm.status, sm.invited_at, p.display_name, p.avatar_url, p.level
+         FROM squad_members sm
+         LEFT JOIN players p ON lower(p.username) = lower(sm.username)
+         WHERE sm.squad_id = ? ORDER BY sm.invited_at ASC`,
         [membership.squad_id]
-    );
+    ).map(m => ({
+        username: m.username,
+        displayName: m.display_name || m.username,
+        avatarUrl: m.avatar_url || null,
+        level: m.level || 1,
+        status: m.status,
+        invited_at: m.invited_at
+    }));
+
     return {
         id: membership.squad_id,
         name: membership.name,
@@ -133,6 +149,7 @@ router.post('/respond', playerSessionAuth, (req, res) => {
         }
 
         // Annehmen heißt: jede vorherige eigene Mitgliedschaft wird automatisch verlassen
+        // (ein Spieler kann ja nur in einem Squad gleichzeitig aktiv sein).
         const currentSquad = getMySquad(req.playerUsername);
         if (currentSquad) {
             leaveOrDissolve(currentSquad, req.playerUsername);
