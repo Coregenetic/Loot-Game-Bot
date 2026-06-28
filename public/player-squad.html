@@ -188,7 +188,7 @@
           <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-48 overflow-y-auto shadow-xl"></div>
           <div id="inviteMsg" class="text-[10px] font-mono mt-1.5 min-h-[12px]"></div>
         </div>` : `
-        <div onclick="openInviteTile()" class="rounded-xl p-3 border border-dashed border-slate-700 flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors">
+        <div onclick="event.stopPropagation(); openInviteTile()" class="rounded-xl p-3 border border-dashed border-slate-700 flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors">
           <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span class="text-xs text-slate-500">Mitspieler einladen</span>
         </div>`);
