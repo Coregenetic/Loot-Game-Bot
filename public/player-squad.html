@@ -18,33 +18,33 @@
 <body class="min-h-screen pb-10">
 
 <header class="border-b border-slate-800/60 px-4 md:px-6 py-3 flex items-center justify-between">
-  <a href="player-hub.html" class="text-xs font-mono text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+  <a href="player-hub.html" class="text-sm font-mono text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
     Player Hub
   </a>
-  <span class="text-xs font-semibold tracking-wide text-white uppercase">Squad</span>
+  <span class="text-sm font-semibold tracking-wide text-white uppercase">Squad</span>
 </header>
 
 <main class="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
 
-  <div id="loadingState" class="text-center py-20 text-slate-500 text-sm font-mono">Lade...</div>
-  <div id="errorState" class="hidden text-center py-20"><p class="text-rose-400 text-sm" id="errorMsg"></p></div>
+  <div id="loadingState" class="text-center py-20 text-slate-500 text-base font-mono">Lade...</div>
+  <div id="errorState" class="hidden text-center py-20"><p class="text-rose-400 text-base" id="errorMsg"></p></div>
 
   <div id="content" class="hidden space-y-4">
 
     <!-- OFFENE EINLADUNGEN -->
     <div id="invitesCard" class="hidden glass-card border border-amber-500/30 rounded-2xl p-4" style="background:rgba(245,158,11,0.06);">
-      <div class="text-[10px] font-mono text-amber-400 uppercase tracking-wide mb-3">Offene Einladungen</div>
+      <div class="text-xs font-mono text-amber-400 uppercase tracking-wide mb-3">Offene Einladungen</div>
       <div id="invitesList" class="space-y-2"></div>
     </div>
 
     <!-- KEIN SQUAD: ERSTELLEN -->
     <div id="noSquadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl p-5">
-      <h3 class="text-sm font-semibold text-white mb-1">Du bist in keinem Squad</h3>
-      <p class="text-xs text-slate-500 mb-4">Erstelle ein eigenes Squad und lade bis zu 4 Mitspieler ein — ihr geht dann gemeinsam in den Raid, mit geteiltem Risiko.</p>
+      <h3 class="text-base font-semibold text-white mb-1">Du bist in keinem Squad</h3>
+      <p class="text-sm text-slate-500 mb-4">Erstelle ein eigenes Squad und lade bis zu 4 Mitspieler ein — ihr geht dann gemeinsam in den Raid, mit geteiltem Risiko.</p>
       <div class="flex gap-2">
-        <input id="newSquadName" type="text" placeholder="Squad-Name" maxlength="40" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
-        <button onclick="createSquad()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold text-sm hover:bg-emerald-400 transition-colors whitespace-nowrap">Erstellen</button>
+        <input id="newSquadName" type="text" placeholder="Squad-Name" maxlength="40" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-base text-white focus:border-emerald-500 outline-none">
+        <button onclick="createSquad()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold text-base hover:bg-emerald-400 transition-colors whitespace-nowrap">Erstellen</button>
       </div>
     </div>
 
@@ -56,22 +56,22 @@
             <div id="squadIconBadge" class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);">🎯</div>
             <div>
               <div class="text-lg font-semibold text-white" id="squadName">—</div>
-              <div class="text-[11px] font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
+              <div class="text-sm font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <button id="customizeBtn" onclick="toggleCustomizePanel()" class="hidden text-xs font-mono text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800">Anpassen</button>
-            <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
+            <button id="customizeBtn" onclick="toggleCustomizePanel()" class="hidden text-sm font-mono text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800">Anpassen</button>
+            <button onclick="leaveSquad()" class="text-sm font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
           </div>
         </div>
 
         <div id="customizePanel" class="hidden mb-3.5 p-3 rounded-xl bg-slate-950/50 border border-slate-800 space-y-2.5">
           <div>
-            <div class="text-[10px] font-mono text-slate-500 uppercase mb-1.5">Icon</div>
+            <div class="text-xs font-mono text-slate-500 uppercase mb-1.5">Icon</div>
             <div id="iconPicker" class="flex gap-1.5 flex-wrap"></div>
           </div>
           <div>
-            <div class="text-[10px] font-mono text-slate-500 uppercase mb-1.5">Farbe</div>
+            <div class="text-xs font-mono text-slate-500 uppercase mb-1.5">Farbe</div>
             <div id="colorPicker" class="flex gap-1.5 flex-wrap"></div>
           </div>
         </div>
@@ -81,33 +81,33 @@
           <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div id="memberProgressBar" class="h-full bg-emerald-500 rounded-full transition-all" style="width:0%"></div>
           </div>
-          <span class="text-[11px] font-mono text-emerald-400 shrink-0" id="memberCountLabel">—</span>
+          <span class="text-sm font-mono text-emerald-400 shrink-0" id="memberCountLabel">—</span>
         </div>
       </div>
 
       <div class="p-5">
-        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-3">Mitglieder</div>
+        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-3">Mitglieder</div>
         <div id="memberGrid" class="grid grid-cols-2 gap-2.5"></div>
       </div>
     </div>
 
     <div class="grid grid-cols-3 gap-3">
       <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[9px] font-mono text-slate-500 uppercase">Gemeinsamer Stash</div>
-        <div class="text-sm font-semibold text-amber-400 font-mono mt-1" id="statCombinedStash">—</div>
+        <div class="text-[11px] font-mono text-slate-500 uppercase">Gemeinsamer Stash</div>
+        <div class="text-base font-semibold text-amber-400 font-mono mt-1" id="statCombinedStash">—</div>
       </div>
       <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[9px] font-mono text-slate-500 uppercase">Raids zusammen</div>
-        <div class="text-sm font-semibold text-white font-mono mt-1" id="statRaidsTogether">—</div>
+        <div class="text-[11px] font-mono text-slate-500 uppercase">Raids zusammen</div>
+        <div class="text-base font-semibold text-white font-mono mt-1" id="statRaidsTogether">—</div>
       </div>
       <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[9px] font-mono text-slate-500 uppercase">Überlebensrate</div>
-        <div class="text-sm font-semibold text-emerald-400 font-mono mt-1" id="statSurvivalRate">—</div>
+        <div class="text-[11px] font-mono text-slate-500 uppercase">Überlebensrate</div>
+        <div class="text-base font-semibold text-emerald-400 font-mono mt-1" id="statSurvivalRate">—</div>
       </div>
     </div>
 
     <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-      <div class="px-5 py-3 border-b border-slate-800/60 text-[10px] font-mono text-slate-500 uppercase tracking-widest">Letzte gemeinsame Raids</div>
+      <div class="px-5 py-3 border-b border-slate-800/60 text-xs font-mono text-slate-500 uppercase tracking-widest">Letzte gemeinsame Raids</div>
       <div id="squadHistoryList" class="divide-y divide-slate-800/40"></div>
     </div>
   </div>
@@ -124,7 +124,7 @@
     const el = document.getElementById(elId);
     if (!el) return;
     el.textContent = msg;
-    el.className = 'text-xs font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+    el.className = 'text-sm font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
   }
 
   function formatVal(v) {
@@ -143,7 +143,7 @@
     const dot = m.online !== undefined
       ? `<span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #05080c;background:${m.online ? '#10b981' : '#475569'};"></span>`
       : '';
-    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-[11px] font-semibold overflow-hidden relative">${inner}${dot}</div>`;
+    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-sm font-semibold overflow-hidden relative">${inner}${dot}</div>`;
   }
 
   async function loadAll() {
@@ -161,12 +161,12 @@
         document.getElementById('invitesList').innerHTML = invitesData.invites.map(inv => `
           <div class="flex items-center justify-between bg-slate-950/40 rounded-xl px-3 py-2.5">
             <div>
-              <div class="text-sm text-white">${inv.name}</div>
-              <div class="text-[10px] font-mono text-slate-500">von ${inv.leader_username}</div>
+              <div class="text-base text-white">${inv.name}</div>
+              <div class="text-xs font-mono text-slate-500">von ${inv.leader_username}</div>
             </div>
             <div class="flex gap-2">
-              <button onclick="respondInvite(${inv.squad_id}, true)" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-mono transition-colors">Annehmen</button>
-              <button onclick="respondInvite(${inv.squad_id}, false)" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white text-xs font-mono transition-colors">Ablehnen</button>
+              <button onclick="respondInvite(${inv.squad_id}, true)" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-sm font-mono transition-colors">Annehmen</button>
+              <button onclick="respondInvite(${inv.squad_id}, false)" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white text-sm font-mono transition-colors">Ablehnen</button>
             </div>
           </div>`).join('');
       } else {
@@ -215,9 +215,9 @@
 
     const stackShown = accepted.slice(0, 3);
     const overflow = accepted.length - stackShown.length;
-    let stackHTML = stackShown.map((m, i) => `<div style="margin-left:${i === 0 ? 0 : -10}px;z-index:${10-i};position:relative;">${avatarCircleHTML(m, 30, MEMBER_COLORS[i % MEMBER_COLORS.length])}</div>`).join('');
+    let stackHTML = stackShown.map((m, i) => `<div style="margin-left:${i === 0 ? 0 : -12}px;z-index:${10-i};position:relative;">${avatarCircleHTML(m, 34, MEMBER_COLORS[i % MEMBER_COLORS.length])}</div>`).join('');
     if (overflow > 0) {
-      stackHTML += `<div style="margin-left:-10px;width:30px;height:30px;" class="rounded-full bg-slate-900 border-2 border-dashed border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-mono">+${overflow}</div>`;
+      stackHTML += `<div style="margin-left:-12px;width:34px;height:34px;" class="rounded-full bg-slate-900 border-2 border-dashed border-slate-700 flex items-center justify-center text-xs text-slate-500 font-mono">+${overflow}</div>`;
     }
     document.getElementById('avatarStack').innerHTML = stackHTML;
 
@@ -227,10 +227,10 @@
       const color = MEMBER_COLORS[i % MEMBER_COLORS.length];
       return `
         <div class="rounded-xl p-3 flex items-center gap-2.5 ${isPending ? 'bg-amber-500/5 border border-dashed border-amber-500/30' : 'bg-slate-900/50'}">
-          ${avatarCircleHTML(m, 36, color, `border:1px solid ${color}66;`)}
+          ${avatarCircleHTML(m, 40, color, `border:1px solid ${color}66;`)}
           <div class="min-w-0">
-            <div class="text-xs ${isPending ? 'text-amber-400' : 'text-slate-200'} truncate">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
-            <div class="text-[10px] font-mono ${isPending ? 'text-amber-600' : 'text-slate-500'}">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
+            <div class="text-sm ${isPending ? 'text-amber-400' : 'text-slate-200'} truncate">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
+            <div class="text-xs font-mono ${isPending ? 'text-amber-600' : 'text-slate-500'}">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
           </div>
           ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="ml-auto text-slate-600 hover:text-rose-400 transition-colors shrink-0" title="Entfernen">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -242,15 +242,15 @@
       memberCards.push(inviteTileActive ? `
         <div class="rounded-xl p-2.5 border border-dashed border-emerald-500/30 bg-emerald-500/5 relative">
           <div class="flex items-center gap-1.5">
-            <input id="inviteSearch" type="text" placeholder="Spieler suchen..." autocomplete="off" oninput="searchPlayers(this.value)" class="flex-1 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:border-emerald-500 outline-none">
+            <input id="inviteSearch" type="text" placeholder="Spieler suchen..." autocomplete="off" oninput="searchPlayers(this.value)" class="flex-1 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white focus:border-emerald-500 outline-none">
             <button onclick="closeInviteTile()" class="text-slate-500 hover:text-white shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
           </div>
           <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-48 overflow-y-auto shadow-xl"></div>
-          <div id="inviteMsg" class="text-[10px] font-mono mt-1.5 min-h-[12px]"></div>
+          <div id="inviteMsg" class="text-xs font-mono mt-1.5 min-h-[12px]"></div>
         </div>` : `
         <div onclick="event.stopPropagation(); openInviteTile()" class="rounded-xl p-3 border border-dashed border-slate-700 flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors">
           <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span class="text-xs text-slate-500">Mitspieler einladen</span>
+          <span class="text-sm text-slate-500">Mitspieler einladen</span>
         </div>`);
     }
 
@@ -309,7 +309,7 @@
       const { history } = await PlayerAPI.squad.history();
       const listEl = document.getElementById('squadHistoryList');
       if (!history.length) {
-        listEl.innerHTML = '<p class="text-xs font-mono text-slate-600 p-4">Noch keine gemeinsamen Raids.</p>';
+        listEl.innerHTML = '<p class="text-sm font-mono text-slate-600 p-4">Noch keine gemeinsamen Raids.</p>';
         return;
       }
       listEl.innerHTML = history.map(h => {
@@ -322,11 +322,11 @@
                 ${h.survived ? '✓' : '💀'}
               </div>
               <div>
-                <div class="text-xs text-slate-200">${h.map || 'Unbekannt'}</div>
-                <div class="text-[10px] font-mono text-slate-500">${names}</div>
+                <div class="text-sm text-slate-200">${h.map || 'Unbekannt'}</div>
+                <div class="text-xs font-mono text-slate-500">${names}</div>
               </div>
             </div>
-            <span class="text-[10px] font-mono text-slate-500">${date}</span>
+            <span class="text-xs font-mono text-slate-500">${date}</span>
           </div>`;
       }).join('');
     } catch (_) {}
@@ -379,10 +379,10 @@
             ? `<img src="${p.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
             : p.displayName.slice(0,2).toUpperCase();
           return `
-          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-sm text-slate-200 flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-semibold text-slate-300 overflow-hidden relative shrink-0" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
+          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-base text-slate-200 flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 overflow-hidden relative shrink-0" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
             <span class="flex-1">${p.displayName}</span>
-            <span class="text-[10px] font-mono text-slate-500">Lvl ${p.level}</span>
+            <span class="text-xs font-mono text-slate-500">Lvl ${p.level}</span>
           </div>`;
         }).join('');
         dropdown.classList.remove('hidden');
