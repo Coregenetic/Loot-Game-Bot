@@ -48,9 +48,10 @@ async function tryJoinSquadWindow(player, username, channel, sayFn) {
     run(`INSERT INTO squad_raid_participants (window_id, player_id, username) VALUES (?, ?, ?)`,
         [window.id, player.id, username]);
 
-    if (isNewWindow) {
-        await sayFn(channel, `⏳ @${username} wartet auf sein Squad "${membership.name}"! Wer mitkommt, hat ${SQUAD_WINDOW_SECONDS} Sekunden Zeit (!loot).`);
-    }
+    // Bewusst KEINE Nachricht beim Öffnen des Fensters — sonst hätte ein Squad-Raid
+    // 3 Chat-Nachrichten (Warten/Start/Ergebnis) statt 2 wie ein Solo-Raid. Das
+    // Fenster läuft im Hintergrund, die erste sichtbare Nachricht kommt erst
+    // beim Auflösen (siehe resolveOneWindow), genau wie bei Solo-Raids.
 
     return true;
 }
