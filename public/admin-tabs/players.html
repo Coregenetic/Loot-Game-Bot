@@ -31,8 +31,9 @@
       <div class="glass-card rounded-2xl border border-slate-700/50 p-5">
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center relative overflow-hidden">
               <span class="text-2xl font-bold text-emerald-400 font-mono" id="pd-avatar">—</span>
+              <img id="pd-avatar-img" class="hidden absolute inset-0 w-full h-full object-cover" alt="" onerror="this.classList.add('hidden'); document.getElementById('pd-avatar').classList.remove('hidden');">
               <span id="pd-status-dot" class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#05080c] bg-slate-600"></span>
             </div>
             <div>

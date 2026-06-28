@@ -46,8 +46,10 @@ function renderPlayerList(q) {
       class="player-row w-full text-left pl-2.5 pr-3 py-2 rounded-lg border border-transparent border-l-4 ${isActive(p) ? 'border-l-emerald-500 bg-emerald-500/10' : 'border-l-transparent'} hover:border-slate-700 hover:bg-slate-800/50 transition-all group">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[11px] font-bold font-mono text-emerald-400 flex-shrink-0">
-            ${p.username.slice(0,2).toUpperCase()}
+          <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[11px] font-bold font-mono text-emerald-400 flex-shrink-0 overflow-hidden relative">
+            ${p.avatar_url
+              ? `<img src="${p.avatar_url}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+              : p.username.slice(0,2).toUpperCase()}
           </div>
           <div class="min-w-0">
             <div class="text-sm font-medium text-slate-200 group-hover:text-white truncate leading-tight">${p.username}</div>
@@ -165,6 +167,15 @@ async function selectPlayer(username) {
 
     // Fill header
     document.getElementById('pd-avatar').textContent = username.slice(0,2).toUpperCase();
+    const avatarImg = document.getElementById('pd-avatar-img');
+    if (p.avatar_url) {
+      avatarImg.src = p.avatar_url;
+      avatarImg.classList.remove('hidden');
+      document.getElementById('pd-avatar').classList.add('hidden');
+    } else {
+      avatarImg.classList.add('hidden');
+      document.getElementById('pd-avatar').classList.remove('hidden');
+    }
     document.getElementById('pd-name').textContent   = username;
 
     // Online-Status + Aktivität

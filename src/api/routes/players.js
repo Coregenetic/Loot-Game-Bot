@@ -12,7 +12,7 @@ const { logAudit } = require('../../db/audit');
 router.get('/', requirePermission('players:view'), (req, res) => {
     try {
         const players = all(`
-            SELECT p.id, p.username, p.level, p.xp, p.prestige, p.has_kappa,
+            SELECT p.id, p.username, p.display_name, p.avatar_url, p.level, p.xp, p.prestige, p.has_kappa,
                    p.raids_total, p.raids_survived, p.raids_died, p.last_seen,
                    COALESCE(SUM(i.count * i.value), 0) AS stash_value,
                    EXISTS(
