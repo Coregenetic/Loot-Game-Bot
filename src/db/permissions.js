@@ -12,6 +12,7 @@ const PERMISSION_KEYS = [
     'players:view',
     'players:manage',
     'events:manage',
+    'squads:manage',
     'server:manage',
     'items:manage'
 ];
@@ -23,6 +24,7 @@ const PERMISSION_LABELS = {
     'players:view':     'Spieler ansehen',
     'players:manage':   'Spieler bearbeiten (CD-Reset, Item geben)',
     'events:manage':    'Live Events',
+    'squads:manage':    'Squad-Verwaltung (Overrides, Auflösen)',
     'server:manage':    'Server Control (Wartung, Turnier, Backup, Channel)',
     'items:manage':     'Item Manager'
 };

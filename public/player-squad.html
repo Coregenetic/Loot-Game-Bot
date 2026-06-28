@@ -50,21 +50,26 @@
 
     <!-- SQUAD VORHANDEN -->
     <div id="squadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-800/60 flex items-center justify-between">
-        <div>
-          <div class="text-sm font-semibold text-white" id="squadName">—</div>
-          <div class="text-[10px] font-mono text-slate-500" id="squadMemberCount">—</div>
+      <div class="px-5 py-4 border-b border-slate-800/60">
+        <div class="flex items-start justify-between mb-3.5">
+          <div>
+            <div class="text-lg font-semibold text-white" id="squadName">—</div>
+            <div class="text-[11px] font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
+          </div>
+          <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 shrink-0">Verlassen</button>
         </div>
-        <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
+        <div class="flex items-center gap-3">
+          <div id="avatarStack" class="flex items-center shrink-0"></div>
+          <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div id="memberProgressBar" class="h-full bg-emerald-500 rounded-full transition-all" style="width:0%"></div>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-400 shrink-0" id="memberCountLabel">—</span>
+        </div>
       </div>
-      <div id="memberList" class="divide-y divide-slate-800/40"></div>
 
-      <div id="inviteBox" class="hidden p-4 border-t border-slate-800/60">
-        <div class="relative">
-          <input id="inviteSearch" type="text" placeholder="Spieler suchen zum Einladen..." autocomplete="off" oninput="searchPlayers(this.value)" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-emerald-500 outline-none">
-          <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-56 overflow-y-auto shadow-xl"></div>
-        </div>
-        <div id="inviteMsg" class="text-xs font-mono mt-2 min-h-[14px]"></div>
+      <div class="p-5">
+        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-3">Mitglieder</div>
+        <div id="memberGrid" class="grid grid-cols-2 gap-2.5"></div>
       </div>
     </div>
   </div>
@@ -73,11 +78,21 @@
 <script>
   let mySquad = null;
   let myUsername = null;
+  let inviteTileActive = false;
 
   function showMsg(elId, msg, ok) {
     const el = document.getElementById(elId);
+    if (!el) return;
     el.textContent = msg;
     el.className = 'text-xs font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+  }
+
+  function avatarCircleHTML(m, size, color, borderStyle) {
+    const inner = m.avatarUrl
+      ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+      : (m.displayName || m.username).slice(0,2).toUpperCase();
+    const border = borderStyle || `border:2px solid #05080c;`;
+    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-[11px] font-semibold overflow-hidden relative">${inner}</div>`;
   }
 
   async function loadAll() {
@@ -113,6 +128,7 @@
         document.getElementById('squadCard').classList.add('hidden');
       } else {
         document.getElementById('noSquadCard').classList.add('hidden');
+        inviteTileActive = false;
         renderSquad();
       }
     } catch (err) {
@@ -122,43 +138,68 @@
     }
   }
 
+  const MEMBER_COLORS = ['#10b981', '#60a5fa', '#f59e0b', '#f472b6', '#a78bfa'];
+
   function renderSquad() {
-    const card = document.getElementById('squadCard');
-    card.classList.remove('hidden');
+    document.getElementById('squadCard').classList.remove('hidden');
 
     const isLeader = mySquad.leaderUsername.toLowerCase() === myUsername.toLowerCase();
     const accepted = mySquad.members.filter(m => m.status === 'accepted');
     const pending = mySquad.members.filter(m => m.status === 'pending');
+    const slotsUsed = accepted.length + pending.length;
 
     document.getElementById('squadName').textContent = mySquad.name;
-    document.getElementById('squadMemberCount').textContent = accepted.length + '/5 Mitglieder' + (pending.length ? ' · ' + pending.length + ' offen' : '');
+    document.getElementById('squadLeaderLabel').textContent = 'Leader: ' + mySquad.leaderUsername;
+    document.getElementById('memberCountLabel').textContent = accepted.length + '/5';
+    document.getElementById('memberProgressBar').style.width = (accepted.length / 5 * 100) + '%';
 
-    document.getElementById('memberList').innerHTML = mySquad.members.map(m => {
+    const stackShown = accepted.slice(0, 3);
+    const overflow = accepted.length - stackShown.length;
+    let stackHTML = stackShown.map((m, i) => `<div style="margin-left:${i === 0 ? 0 : -10}px;z-index:${10-i};position:relative;">${avatarCircleHTML(m, 30, MEMBER_COLORS[i % MEMBER_COLORS.length])}</div>`).join('');
+    if (overflow > 0) {
+      stackHTML += `<div style="margin-left:-10px;width:30px;height:30px;" class="rounded-full bg-slate-900 border-2 border-dashed border-slate-700 flex items-center justify-center text-[10px] text-slate-500 font-mono">+${overflow}</div>`;
+    }
+    document.getElementById('avatarStack').innerHTML = stackHTML;
+
+    const memberCards = mySquad.members.map((m, i) => {
       const memberIsLeader = m.username.toLowerCase() === mySquad.leaderUsername.toLowerCase();
       const isPending = m.status === 'pending';
-      const avatarInner = m.avatarUrl
-        ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
-        : m.displayName.slice(0,2).toUpperCase();
+      const color = MEMBER_COLORS[i % MEMBER_COLORS.length];
       return `
-        <div class="flex items-center justify-between px-5 py-3">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 overflow-hidden relative ${isPending ? 'opacity-50' : ''}" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
-            <div>
-              <div class="text-sm ${isPending ? 'text-slate-500' : 'text-slate-200'}">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
-              ${isPending ? '<div class="text-[10px] font-mono text-amber-500">Einladung ausstehend</div>' : ''}
-            </div>
+        <div class="rounded-xl p-3 flex items-center gap-2.5 ${isPending ? 'bg-amber-500/5 border border-dashed border-amber-500/30' : 'bg-slate-900/50'}">
+          ${avatarCircleHTML(m, 36, color, `border:1px solid ${color}66;`)}
+          <div class="min-w-0">
+            <div class="text-xs ${isPending ? 'text-amber-400' : 'text-slate-200'} truncate">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
+            <div class="text-[10px] font-mono ${isPending ? 'text-amber-600' : 'text-slate-500'}">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
           </div>
-          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="text-[10px] font-mono text-slate-500 hover:text-rose-400 transition-colors">Entfernen</button>` : ''}
+          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="ml-auto text-slate-600 hover:text-rose-400 transition-colors shrink-0" title="Entfernen">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>` : ''}
         </div>`;
-    }).join('');
+    });
 
-    const inviteBox = document.getElementById('inviteBox');
-    if (isLeader && accepted.length + pending.length < 5) {
-      inviteBox.classList.remove('hidden');
-    } else {
-      inviteBox.classList.add('hidden');
+    if (isLeader && slotsUsed < 5) {
+      memberCards.push(inviteTileActive ? `
+        <div class="rounded-xl p-2.5 border border-dashed border-emerald-500/30 bg-emerald-500/5 relative">
+          <div class="flex items-center gap-1.5">
+            <input id="inviteSearch" type="text" placeholder="Spieler suchen..." autocomplete="off" oninput="searchPlayers(this.value)" class="flex-1 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:border-emerald-500 outline-none">
+            <button onclick="closeInviteTile()" class="text-slate-500 hover:text-white shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+          </div>
+          <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-48 overflow-y-auto shadow-xl"></div>
+          <div id="inviteMsg" class="text-[10px] font-mono mt-1.5 min-h-[12px]"></div>
+        </div>` : `
+        <div onclick="openInviteTile()" class="rounded-xl p-3 border border-dashed border-slate-700 flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span class="text-xs text-slate-500">Mitspieler einladen</span>
+        </div>`);
     }
+
+    document.getElementById('memberGrid').innerHTML = memberCards.join('');
+    if (inviteTileActive) setTimeout(() => document.getElementById('inviteSearch')?.focus(), 0);
   }
+
+  function openInviteTile() { inviteTileActive = true; renderSquad(); }
+  function closeInviteTile() { inviteTileActive = false; renderSquad(); }
 
   async function createSquad() {
     const name = document.getElementById('newSquadName').value.trim();
@@ -218,11 +259,9 @@
   }
 
   async function invitePlayer(username) {
-    document.getElementById('inviteDropdown').classList.add('hidden');
-    document.getElementById('inviteSearch').value = '';
     try {
       await PlayerAPI.squad.invite(username);
-      showMsg('inviteMsg', '✓ Einladung an ' + username + ' geschickt (im Chat sichtbar)', true);
+      inviteTileActive = false;
       await loadAll();
     } catch (err) {
       showMsg('inviteMsg', '✗ ' + err.message, false);
@@ -230,7 +269,7 @@
   }
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#inviteBox')) document.getElementById('inviteDropdown')?.classList.add('hidden');
+    if (inviteTileActive && !e.target.closest('#memberGrid')) closeInviteTile();
   });
 
   if (!PlayerAPI.isLoggedIn()) {

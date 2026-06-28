@@ -17,7 +17,7 @@ const OVERRIDABLE_FIELDS = [
     'DoubleLootChance', 'KappaDoubleLootBonus', 'ValueMultiplier'
 ];
 
-router.get('/', requirePermission('players:manage'), (req, res) => {
+router.get('/', requirePermission('squads:manage'), (req, res) => {
     try {
         const squads = all(`SELECT * FROM squads ORDER BY created_at DESC`);
         const result = squads.map(s => {
@@ -48,7 +48,7 @@ router.get('/', requirePermission('players:manage'), (req, res) => {
     }
 });
 
-router.put('/:id/config', requirePermission('players:manage'), (req, res) => {
+router.put('/:id/config', requirePermission('squads:manage'), (req, res) => {
     try {
         const squad = get(`SELECT id FROM squads WHERE id = ?`, [req.params.id]);
         if (!squad) return res.status(404).json({ error: 'Squad nicht gefunden.' });
@@ -70,7 +70,7 @@ router.put('/:id/config', requirePermission('players:manage'), (req, res) => {
     }
 });
 
-router.delete('/:id', requirePermission('players:manage'), (req, res) => {
+router.delete('/:id', requirePermission('squads:manage'), (req, res) => {
     try {
         const squad = get(`SELECT id, name FROM squads WHERE id = ?`, [req.params.id]);
         if (!squad) return res.status(404).json({ error: 'Squad nicht gefunden.' });

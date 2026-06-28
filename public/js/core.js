@@ -73,7 +73,7 @@ const TAB_PERMISSIONS = {
   cooldowns: 'cooldowns:manage',
   players:   'players:view',
   events:    'events:manage',
-  squads:    'players:manage',
+  squads:    'squads:manage',
   server:    'server:manage',
   users:     'superadmin' // Spezialfall, kein Permission-Key
 };
