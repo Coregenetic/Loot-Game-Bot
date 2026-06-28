@@ -7,6 +7,12 @@ const ROLE_BADGE = {
 async function loadUsers() {
   try {
     const users = await fetch('/api/admin/users',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
+
+    document.getElementById('userStatTotal').textContent = users.length;
+    document.getElementById('userStatSuperadmin').textContent = users.filter(u => u.role === 'superadmin').length;
+    document.getElementById('userStatAdmin').textContent = users.filter(u => u.role === 'admin').length;
+    document.getElementById('userStatMod').textContent = users.filter(u => u.role === 'mod').length;
+
     document.getElementById('userList').innerHTML = users.map(u => {
       const badge = ROLE_BADGE[u.role] || ROLE_BADGE.mod;
       const isMe = u.username === currentUser.username;
@@ -120,4 +126,3 @@ async function loadAuditLog() {
     document.getElementById('auditLog').innerHTML = '<p class="text-xs font-mono text-rose-400 p-3">Fehler: ' + err.message + '</p>';
   }
 }
-
