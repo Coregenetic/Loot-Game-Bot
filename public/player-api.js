@@ -1,4 +1,4 @@
-const PlayerAPI = (() => {
+ PlayerAPI = (() => {
     const TOKEN_KEY = 'lootgame_player_token';
 
     function getToken() {
@@ -45,14 +45,18 @@ const PlayerAPI = (() => {
         myInventory:  () => call('/api/player-auth/my-inventory'),
         leaderboard:  (limit) => call('/api/player-auth/leaderboard' + (limit ? '?limit=' + limit : '')),
         squad: {
-            my:      () => call('/api/squad/my'),
-            invites: () => call('/api/squad/invites'),
-            create:  (name) => call('/api/squad/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }),
-            search:  (q) => call('/api/squad/search?q=' + encodeURIComponent(q)),
-            invite:  (username) => call('/api/squad/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
-            respond: (squadId, accept) => call('/api/squad/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ squadId, accept }) }),
-            kick:    (username) => call('/api/squad/kick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
-            leave:   () => call('/api/squad/leave', { method: 'POST' })
+            my:        () => call('/api/squad/my'),
+            invites:   () => call('/api/squad/invites'),
+            create:    (name) => call('/api/squad/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }),
+            search:    (q) => call('/api/squad/search?q=' + encodeURIComponent(q)),
+            invite:    (username) => call('/api/squad/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
+            respond:   (squadId, accept) => call('/api/squad/respond', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ squadId, accept }) }),
+            kick:      (username) => call('/api/squad/kick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) }),
+            leave:     () => call('/api/squad/leave', { method: 'POST' }),
+            stats:     () => call('/api/squad/stats'),
+            history:   () => call('/api/squad/history'),
+            options:   () => call('/api/squad/options'),
+            customize: (icon, color) => call('/api/squad/customize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ icon, color }) })
         }
     };
 })();

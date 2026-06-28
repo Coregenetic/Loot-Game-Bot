@@ -310,6 +310,8 @@ async function initDashboardUsers() {
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             name            TEXT NOT NULL,
             leader_username TEXT NOT NULL,
+            icon            TEXT NOT NULL DEFAULT '🎯',
+            color           TEXT NOT NULL DEFAULT '#10b981',
             created_at      INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
 
@@ -358,6 +360,36 @@ async function initDashboardUsers() {
     } catch (err) {
         console.error('[DB] Migration-Fehler (config_overrides):', err.message);
     }
+
+    // Migration: icon/color Spalten nachrüsten (Squad-Identität, vom Leader wählbar)
+    try {
+        const cols = db.exec(`PRAGMA table_info(squads)`);
+        const colNames = cols.length > 0 ? cols[0].values.map(row => row[1]) : [];
+        if (!colNames.includes('icon')) {
+            db.run(`ALTER TABLE squads ADD COLUMN icon TEXT NOT NULL DEFAULT '🎯'`);
+            console.log('[DB] Migration: icon Spalte zur squads Tabelle hinzugefügt.');
+        }
+        if (!colNames.includes('color')) {
+            db.run(`ALTER TABLE squads ADD COLUMN color TEXT NOT NULL DEFAULT '#10b981'`);
+            console.log('[DB] Migration: color Spalte zur squads Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (icon/color):', err.message);
+    }
+
+    // Historie gemeinsamer Squad-Raids — ein Eintrag pro abgeschlossenem
+    // Gruppen-Raid (NICHT pro Spieler), für die "Letzte gemeinsame Raids"-Liste
+    db.run(`
+        CREATE TABLE IF NOT EXISTS squad_raid_history (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            squad_id     INTEGER NOT NULL REFERENCES squads(id) ON DELETE CASCADE,
+            map          TEXT,
+            survived     INTEGER NOT NULL,
+            participants TEXT NOT NULL,
+            resolved_at  INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_squad_raid_history_squad ON squad_raid_history(squad_id);
+    `);
 
     // Migration: role/lockout-Spalten nachrüsten falls dashboard_users bereits existierte
     const userCols = db.exec(`PRAGMA table_info(dashboard_users)`);

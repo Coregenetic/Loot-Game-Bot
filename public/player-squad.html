@@ -52,12 +52,30 @@
     <div id="squadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-800/60">
         <div class="flex items-start justify-between mb-3.5">
-          <div>
-            <div class="text-lg font-semibold text-white" id="squadName">—</div>
-            <div class="text-[11px] font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
+          <div class="flex items-center gap-3">
+            <div id="squadIconBadge" class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);">🎯</div>
+            <div>
+              <div class="text-lg font-semibold text-white" id="squadName">—</div>
+              <div class="text-[11px] font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
+            </div>
           </div>
-          <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 shrink-0">Verlassen</button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="customizeBtn" onclick="toggleCustomizePanel()" class="hidden text-xs font-mono text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800">Anpassen</button>
+            <button onclick="leaveSquad()" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
+          </div>
         </div>
+
+        <div id="customizePanel" class="hidden mb-3.5 p-3 rounded-xl bg-slate-950/50 border border-slate-800 space-y-2.5">
+          <div>
+            <div class="text-[10px] font-mono text-slate-500 uppercase mb-1.5">Icon</div>
+            <div id="iconPicker" class="flex gap-1.5 flex-wrap"></div>
+          </div>
+          <div>
+            <div class="text-[10px] font-mono text-slate-500 uppercase mb-1.5">Farbe</div>
+            <div id="colorPicker" class="flex gap-1.5 flex-wrap"></div>
+          </div>
+        </div>
+
         <div class="flex items-center gap-3">
           <div id="avatarStack" class="flex items-center shrink-0"></div>
           <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
@@ -72,6 +90,26 @@
         <div id="memberGrid" class="grid grid-cols-2 gap-2.5"></div>
       </div>
     </div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
+        <div class="text-[9px] font-mono text-slate-500 uppercase">Gemeinsamer Stash</div>
+        <div class="text-sm font-semibold text-amber-400 font-mono mt-1" id="statCombinedStash">—</div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
+        <div class="text-[9px] font-mono text-slate-500 uppercase">Raids zusammen</div>
+        <div class="text-sm font-semibold text-white font-mono mt-1" id="statRaidsTogether">—</div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
+        <div class="text-[9px] font-mono text-slate-500 uppercase">Überlebensrate</div>
+        <div class="text-sm font-semibold text-emerald-400 font-mono mt-1" id="statSurvivalRate">—</div>
+      </div>
+    </div>
+
+    <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-800/60 text-[10px] font-mono text-slate-500 uppercase tracking-widest">Letzte gemeinsame Raids</div>
+      <div id="squadHistoryList" class="divide-y divide-slate-800/40"></div>
+    </div>
   </div>
 </main>
 
@@ -79,6 +117,8 @@
   let mySquad = null;
   let myUsername = null;
   let inviteTileActive = false;
+  let customizePanelOpen = false;
+  let squadOptions = null;
 
   function showMsg(elId, msg, ok) {
     const el = document.getElementById(elId);
@@ -87,12 +127,23 @@
     el.className = 'text-xs font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
   }
 
+  function formatVal(v) {
+    if (!v) return '0 ₽';
+    if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
+    if (v >= 1e6) return (v/1e6).toFixed(2) + 'M ₽';
+    if (v >= 1e3) return (v/1e3).toFixed(0) + 'K ₽';
+    return v + ' ₽';
+  }
+
   function avatarCircleHTML(m, size, color, borderStyle) {
     const inner = m.avatarUrl
       ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
       : (m.displayName || m.username).slice(0,2).toUpperCase();
     const border = borderStyle || `border:2px solid #05080c;`;
-    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-[11px] font-semibold overflow-hidden relative">${inner}</div>`;
+    const dot = m.online !== undefined
+      ? `<span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #05080c;background:${m.online ? '#10b981' : '#475569'};"></span>`
+      : '';
+    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-[11px] font-semibold overflow-hidden relative">${inner}${dot}</div>`;
   }
 
   async function loadAll() {
@@ -129,7 +180,9 @@
       } else {
         document.getElementById('noSquadCard').classList.add('hidden');
         inviteTileActive = false;
+        customizePanelOpen = false;
         renderSquad();
+        loadStatsAndHistory();
       }
     } catch (err) {
       document.getElementById('loadingState').classList.add('hidden');
@@ -151,6 +204,13 @@
     document.getElementById('squadName').textContent = mySquad.name;
     document.getElementById('squadLeaderLabel').textContent = 'Leader: ' + mySquad.leaderUsername;
     document.getElementById('memberCountLabel').textContent = accepted.length + '/5';
+
+    const iconBadge = document.getElementById('squadIconBadge');
+    iconBadge.textContent = mySquad.icon || '🎯';
+    iconBadge.style.background = (mySquad.color || '#10b981') + '1a';
+    iconBadge.style.border = '1px solid ' + (mySquad.color || '#10b981') + '40';
+
+    document.getElementById('customizeBtn').classList.toggle('hidden', !isLeader);
     document.getElementById('memberProgressBar').style.width = (accepted.length / 5 * 100) + '%';
 
     const stackShown = accepted.slice(0, 3);
@@ -199,6 +259,78 @@
   }
 
   function openInviteTile() { inviteTileActive = true; renderSquad(); }
+
+  async function toggleCustomizePanel() {
+    customizePanelOpen = !customizePanelOpen;
+    const panel = document.getElementById('customizePanel');
+    panel.classList.toggle('hidden', !customizePanelOpen);
+    if (customizePanelOpen) {
+      if (!squadOptions) squadOptions = await PlayerAPI.squad.options();
+      renderPickers();
+    }
+  }
+
+  function renderPickers() {
+    document.getElementById('iconPicker').innerHTML = squadOptions.icons.map(icon => `
+      <button onclick="selectIcon('${icon}')" class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-all ${mySquad.icon === icon ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-800 border border-slate-700 hover:border-slate-600'}">${icon}</button>
+    `).join('');
+    document.getElementById('colorPicker').innerHTML = squadOptions.colors.map(color => `
+      <button onclick="selectColor('${color}')" style="background:${color};" class="w-7 h-7 rounded-full ${mySquad.color === color ? 'ring-2 ring-offset-2 ring-offset-[#05080c] ring-white' : ''}"></button>
+    `).join('');
+  }
+
+  async function selectIcon(icon) {
+    try {
+      await PlayerAPI.squad.customize(icon, mySquad.color);
+      mySquad.icon = icon;
+      renderSquad();
+      renderPickers();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function selectColor(color) {
+    try {
+      await PlayerAPI.squad.customize(mySquad.icon, color);
+      mySquad.color = color;
+      renderSquad();
+      renderPickers();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function loadStatsAndHistory() {
+    try {
+      const stats = await PlayerAPI.squad.stats();
+      document.getElementById('statCombinedStash').textContent = formatVal(stats.combinedStash);
+      document.getElementById('statRaidsTogether').textContent = stats.raidsTogether;
+      document.getElementById('statSurvivalRate').textContent = stats.raidsTogether > 0 ? stats.survivalRate + '%' : '—';
+    } catch (_) {}
+
+    try {
+      const { history } = await PlayerAPI.squad.history();
+      const listEl = document.getElementById('squadHistoryList');
+      if (!history.length) {
+        listEl.innerHTML = '<p class="text-xs font-mono text-slate-600 p-4">Noch keine gemeinsamen Raids.</p>';
+        return;
+      }
+      listEl.innerHTML = history.map(h => {
+        const date = new Date(h.resolvedAt * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const names = h.participants.join(', ');
+        return `
+          <div class="flex items-center justify-between px-5 py-2.5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center ${h.survived ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/25 text-rose-400'}">
+                ${h.survived ? '✓' : '💀'}
+              </div>
+              <div>
+                <div class="text-xs text-slate-200">${h.map || 'Unbekannt'}</div>
+                <div class="text-[10px] font-mono text-slate-500">${names}</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500">${date}</span>
+          </div>`;
+      }).join('');
+    } catch (_) {}
+  }
   function closeInviteTile() { inviteTileActive = false; renderSquad(); }
 
   async function createSquad() {

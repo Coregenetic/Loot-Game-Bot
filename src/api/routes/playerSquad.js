@@ -12,15 +12,16 @@ const MAX_SQUAD_SIZE = 5; // Leader + 4 Mitglieder, wie im echten Tarkov
 
 function getMySquad(username) {
     const membership = get(
-        `SELECT sm.*, s.name, s.leader_username FROM squad_members sm
+        `SELECT sm.*, s.name, s.leader_username, s.icon, s.color FROM squad_members sm
          JOIN squads s ON s.id = sm.squad_id
          WHERE lower(sm.username) = lower(?) AND sm.status = 'accepted'`,
         [username]
     );
     if (!membership) return null;
 
+    const { isOnline } = require('../../db/players');
     const members = all(
-        `SELECT sm.username, sm.status, sm.invited_at, p.display_name, p.avatar_url, p.level
+        `SELECT sm.username, sm.status, sm.invited_at, p.display_name, p.avatar_url, p.level, p.last_seen
          FROM squad_members sm
          LEFT JOIN players p ON lower(p.username) = lower(sm.username)
          WHERE sm.squad_id = ? ORDER BY sm.invited_at ASC`,
@@ -31,13 +32,16 @@ function getMySquad(username) {
         avatarUrl: m.avatar_url || null,
         level: m.level || 1,
         status: m.status,
-        invited_at: m.invited_at
+        invited_at: m.invited_at,
+        online: isOnline({ last_seen: m.last_seen })
     }));
 
     return {
         id: membership.squad_id,
         name: membership.name,
         leaderUsername: membership.leader_username,
+        icon: membership.icon,
+        color: membership.color,
         members
     };
 }
@@ -208,6 +212,78 @@ router.post('/leave', playerSessionAuth, (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// ─── Squad-Statistiken (gemeinsamer Stash, Raids zusammen, Überlebensrate) ───
+router.get('/stats', playerSessionAuth, (req, res) => {
+    try {
+        const squad = getMySquad(req.playerUsername);
+        if (!squad) return res.status(400).json({ error: 'Du bist in keinem Squad.' });
+
+        const { getPlayer, getStashValue } = require('../../db/players');
+        const accepted = squad.members.filter(m => m.status === 'accepted');
+        const combinedStash = accepted.reduce((sum, m) => {
+            const p = getPlayer(m.username);
+            return sum + (p ? getStashValue(p.id) : 0);
+        }, 0);
+
+        const history = all(`SELECT survived FROM squad_raid_history WHERE squad_id = ?`, [squad.id]);
+        const raidsTogether = history.length;
+        const survivedTogether = history.filter(h => h.survived === 1).length;
+        const survivalRate = raidsTogether > 0 ? Math.round((survivedTogether / raidsTogether) * 100) : 0;
+
+        res.json({ combinedStash, raidsTogether, survivalRate });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Letzte gemeinsame Raids ──────────────────────────────────────────────────
+router.get('/history', playerSessionAuth, (req, res) => {
+    try {
+        const squad = getMySquad(req.playerUsername);
+        if (!squad) return res.status(400).json({ error: 'Du bist in keinem Squad.' });
+
+        const rows = all(
+            `SELECT map, survived, participants, resolved_at FROM squad_raid_history
+             WHERE squad_id = ? ORDER BY resolved_at DESC LIMIT 15`,
+            [squad.id]
+        ).map(r => ({
+            map: r.map,
+            survived: r.survived === 1,
+            participants: JSON.parse(r.participants || '[]'),
+            resolvedAt: r.resolved_at
+        }));
+        res.json({ history: rows });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ─── Squad-Icon/Farbe anpassen (nur Leader) ───────────────────────────────────
+const SQUAD_ICONS = ['🎯', '🔥', '⚔️', '🛡️', '💀', '⭐', '🐺', '🦅', '☠️', '🏆', '⚡', '🎲'];
+const SQUAD_COLORS = ['#10b981', '#60a5fa', '#f59e0b', '#f472b6', '#a78bfa', '#f87171', '#22d3ee', '#94a3b8'];
+
+router.post('/customize', playerSessionAuth, (req, res) => {
+    try {
+        const squad = getMySquad(req.playerUsername);
+        if (!squad) return res.status(400).json({ error: 'Du bist in keinem Squad.' });
+        if (squad.leaderUsername.toLowerCase() !== req.playerUsername.toLowerCase()) {
+            return res.status(403).json({ error: 'Nur der Squad-Leader kann das Squad anpassen.' });
+        }
+        const { icon, color } = req.body;
+        if (!SQUAD_ICONS.includes(icon) || !SQUAD_COLORS.includes(color)) {
+            return res.status(400).json({ error: 'Ungültiges Icon oder Farbe.' });
+        }
+        run(`UPDATE squads SET icon = ?, color = ? WHERE id = ?`, [icon, color, squad.id]);
+        res.json({ success: true, icon, color });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/options', playerSessionAuth, (req, res) => {
+    res.json({ icons: SQUAD_ICONS, colors: SQUAD_COLORS });
 });
 
 module.exports = { router };
