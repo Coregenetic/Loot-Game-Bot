@@ -85,6 +85,7 @@ async function initSchema() {
             raids_total     INTEGER NOT NULL DEFAULT 0,
             raids_survived  INTEGER NOT NULL DEFAULT 0,
             raids_died      INTEGER NOT NULL DEFAULT 0,
+            balance         INTEGER NOT NULL DEFAULT 0,
             created_at      INTEGER NOT NULL DEFAULT (strftime('%s','now')),
             updated_at      INTEGER NOT NULL DEFAULT (strftime('%s','now'))
         );
@@ -214,6 +215,18 @@ async function initSchema() {
         }
     } catch (err) {
         console.error('[DB] Migration-Fehler (display_name):', err.message);
+    }
+
+    // Migration: balance Spalte nachrüsten (Bargeld aus Item-Verkäufen, getrennt vom Stash-Wert)
+    try {
+        const cols = db.exec(`PRAGMA table_info(players)`);
+        const hasBalance = cols.length > 0 && cols[0].values.some(row => row[1] === 'balance');
+        if (!hasBalance) {
+            db.run(`ALTER TABLE players ADD COLUMN balance INTEGER NOT NULL DEFAULT 0`);
+            console.log('[DB] Migration: balance Spalte zur players Tabelle hinzugefügt.');
+        }
+    } catch (err) {
+        console.error('[DB] Migration-Fehler (balance):', err.message);
     }
 
     // Migration: squad_window_id Spalte nachrüsten (verknüpft pending_raids, die zu
