@@ -1,3 +1,13 @@
+/**
+ * Löst fällige Raids auf — ersetzt das frühere in-memory setTimeout in loot.js.
+ * Läuft periodisch (siehe index.js) und überlebt dadurch Bot-Neustarts: Raids,
+ * die während eines Deploys/Restarts fällig wurden, werden beim nächsten Tick
+ * einfach nachträglich aufgelöst statt spurlos zu verschwinden.
+ *
+ * Seit Schritt 2 der Squad-Mechanik: Zeilen mit der gleichen squad_window_id
+ * gehören zu EINEM gemeinsamen Raid (ein Würfelwurf für die Gruppe) und werden
+ * zu einer einzigen Sammel-Nachricht zusammengefasst statt einzeln gesendet.
+ */
 const { all, run } = require('../db/schema');
 const { updatePlayer, addOrUpdateInventoryItem, setCooldown, getStashValue, getPlayer } = require('../db/players');
 const { getConfig, setConfig, getLeveling } = require('../db/config');
@@ -46,7 +56,25 @@ async function resolveGroup(rows, sayFn) {
         return;
     }
 
-    await sayFn(rows[0].channel, buildGroupMessage(outcomes, rows[0].map));
+    // Echter Gruppen-Raid (2+ Teilnehmer) -> in die gemeinsame Historie eintragen
+    let squadIcon = null;
+    if (rows[0].squad_window_id != null) {
+        try {
+            const window = require('../db/schema').get(`SELECT squad_id FROM squad_raid_windows WHERE id = ?`, [rows[0].squad_window_id]);
+            if (window) {
+                const squadRow = require('../db/schema').get(`SELECT icon FROM squads WHERE id = ?`, [window.squad_id]);
+                squadIcon = squadRow?.icon || null;
+                run(
+                    `INSERT INTO squad_raid_history (squad_id, map, survived, participants) VALUES (?, ?, ?, ?)`,
+                    [window.squad_id, rows[0].map, outcomes[0].survived ? 1 : 0, JSON.stringify(outcomes.map(o => o.username))]
+                );
+            }
+        } catch (err) {
+            logger.error('RAID-RESOLVER', 'Konnte Squad-Raid-Historie nicht speichern: ' + err.message);
+        }
+    }
+
+    await sayFn(rows[0].channel, buildGroupMessage(outcomes, rows[0].map, squadIcon));
 }
 
 // ─── Stats anwenden, OHNE eine Nachricht zu senden ───────────────────────────
@@ -129,8 +157,8 @@ function buildSoloMessage(o) {
 }
 
 // ─── Sammel-Nachricht für einen gemeinsamen Squad-Raid ───────────────────────
-function buildGroupMessage(outcomes, map) {
-    const emoji = getMapEmoji(map);
+function buildGroupMessage(outcomes, map, squadIcon) {
+    const emoji = squadIcon || getMapEmoji(map);
     const names = outcomes.map(o => o.username);
 
     if (!outcomes[0].survived) {
@@ -138,9 +166,10 @@ function buildGroupMessage(outcomes, map) {
     }
 
     const fragments = outcomes.map(o => {
-        const mainItem = o.loot[0];
-        const itemPart = mainItem ? `${mainItem.displayName} [${formatShort(mainItem.value)}]` : 'nichts Brauchbares';
-        return `@${o.username} mit ${itemPart}`;
+        if (!o.loot.length) return `@${o.username} mit nichts Brauchbares`;
+        const itemsPart = o.loot.map(i => `${i.displayName} [${formatShort(i.value)}]`).join(' & ');
+        const doubleTag = o.loot.length > 1 ? ' 🔥' : '';
+        return `@${o.username}${doubleTag} mit ${itemsPart} (+${o.xpGain} XP)`;
     });
 
     const levelUps = outcomes.filter(o => o.leveledUp);
