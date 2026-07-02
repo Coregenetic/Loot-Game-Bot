@@ -1,4 +1,4 @@
-name: Deploy to Fly.io
+name: Deploy to Hetzner
 
 on:
   push:
@@ -7,17 +7,17 @@ on:
 
 jobs:
   deploy:
-    name: Deploy Bot
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Fly.io CLI
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Deploy
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: root
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          script: |
+            cd /opt/lootgame/repo
+            git pull origin main
+            cd /opt/lootgame
+            docker compose up -d --build
+            docker image prune -f
