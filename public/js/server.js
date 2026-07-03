@@ -7,6 +7,8 @@ function switchServerSubtab(name) {
 }
 
 let htzCpuChart = null;
+let htzRefreshInterval = null;
+const HTZ_REFRESH_MS = 15000; // alle 15 Sekunden neue Daten
 
 async function loadHetznerData() {
   try {
@@ -29,14 +31,14 @@ async function loadHetznerData() {
     const sub = document.getElementById('htz-subtitle');
     if (sub && status.location) sub.textContent = 'CoresServer · ' + status.location + ', DE';
 
-    // CPU
+    // CPU aktueller Wert
     const cpuVal = document.getElementById('htz-cpu-val');
     if (cpuVal && metrics.cpu !== null && metrics.cpu !== undefined) {
       cpuVal.textContent = metrics.cpu.toFixed(1) + '%';
       cpuVal.style.color = metrics.cpu > 80 ? '#f87171' : metrics.cpu > 50 ? '#fbbf24' : '#10b981';
     }
 
-    // CPU Chart
+    // CPU Chart — beim ersten Laden komplett aufbauen, danach nur Datenpunkte anhängen
     const canvas = document.getElementById('htz-cpu-chart');
     if (canvas && metrics.cpuHistory?.length) {
       const labels = metrics.cpuHistory.map(p => {
@@ -44,19 +46,50 @@ async function loadHetznerData() {
         return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
       });
       const data = metrics.cpuHistory.map(p => p.v);
-      if (htzCpuChart) htzCpuChart.destroy();
-      htzCpuChart = new Chart(canvas, {
-        type: 'line',
-        data: { labels, datasets: [{ data, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true }] },
-        options: {
-          responsive: true, maintainAspectRatio: false, animation: false,
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } } },
-          scales: {
-            x: { display: false },
-            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' }, callback: v => v + '%', maxTicksLimit: 4 } }
+
+      if (!htzCpuChart) {
+        // Erster Aufbau
+        htzCpuChart = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              data,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16,185,129,0.08)',
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } } },
+            scales: {
+              x: { display: false },
+              y: {
+                min: 0, max: 100,
+                grid: { color: 'rgba(255,255,255,0.04)' },
+                ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' }, callback: v => v + '%', maxTicksLimit: 4 }
+              }
+            }
           }
+        });
+      } else {
+        // Live-Update: neuen Datenpunkt anhängen, ältesten entfernen (rollendes Fenster)
+        const lastExisting = htzCpuChart.data.labels[htzCpuChart.data.labels.length - 1];
+        const lastNew      = labels[labels.length - 1];
+        if (lastNew !== lastExisting) {
+          htzCpuChart.data.labels.push(lastNew);
+          htzCpuChart.data.datasets[0].data.push(data[data.length - 1]);
+          if (htzCpuChart.data.labels.length > 30) {
+            htzCpuChart.data.labels.shift();
+            htzCpuChart.data.datasets[0].data.shift();
+          }
+          htzCpuChart.update('none'); // ohne Animation für flüssiges Live-Gefühl
         }
-      });
+      }
     }
 
     // Netzwerk
@@ -73,7 +106,6 @@ async function loadHetznerData() {
       if (heapBar) heapBar.style.width = heapPct + '%';
       if (heapLbl) heapLbl.textContent = metrics.ram.heapUsedMb + ' / ' + metrics.ram.heapTotalMb + ' MB';
 
-      // RAM (Server gesamt)
       const freeGb  = metrics.ram.freeGb;
       const totalGb = metrics.ram.totalGb;
       const usedGb  = parseFloat((totalGb - freeGb).toFixed(1));
@@ -106,10 +138,28 @@ async function loadHetznerData() {
     const rebootBtn = document.getElementById('htz-reboot-btn');
     if (rebootBtn && currentUser?.role === 'superadmin') rebootBtn.classList.remove('hidden');
 
+    // Letztes Update anzeigen
+    const updEl = document.getElementById('htz-last-update');
+    if (updEl) {
+      const now = new Date();
+      updEl.textContent = 'Aktualisiert: ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+    }
+
   } catch (err) {
     const msg = document.getElementById('htz-action-msg');
     if (msg) { msg.textContent = '✗ Hetzner API Fehler: ' + err.message; msg.style.color = 'var(--red)'; }
   }
+}
+
+function startHetznerLive() {
+  loadHetznerData();
+  if (htzRefreshInterval) clearInterval(htzRefreshInterval);
+  htzRefreshInterval = setInterval(loadHetznerData, HTZ_REFRESH_MS);
+}
+
+function stopHetznerLive() {
+  if (htzRefreshInterval) { clearInterval(htzRefreshInterval); htzRefreshInterval = null; }
+  if (htzCpuChart) { htzCpuChart.destroy(); htzCpuChart = null; }
 }
 
 async function hetznerRestartBot() {
@@ -152,7 +202,7 @@ async function checkServerAccess() {
     loadServerInfo();
     loadChannels();
     loadCommands_panel();
-    loadHetznerData();
+    startHetznerLive();
     loadMaintenance();
     loadTournament();
     loadSellRate();

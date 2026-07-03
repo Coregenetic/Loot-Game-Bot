@@ -195,6 +195,7 @@ async function navigateTo(tab) {
 
   activeTab = tab;
   if (tab !== 'logs' && logPoll) { clearInterval(logPoll); logPoll = null; updateLogStatus(false); }
+  if (tab !== 'server' && typeof stopHetznerLive === 'function') stopHetznerLive();
   if (tab === 'overview')   { loadOverview(); applyPermissionVisibility(); renderLiveFeed(); updateLiveFeedStatusBadge(); }
   if (tab === 'analytics')  loadAnalytics(currentAnDays || 7);
   if (tab === 'logs')       startLogPoll();
