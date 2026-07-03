@@ -22,6 +22,8 @@ async function loadOverview() {
     updateDashTournamentBtn(tour.active);
   } catch {}
 
+  let hetznerCpuChart = null;
+
   try {
     const [status, metrics] = await Promise.all([
       fetch('/api/admin/hetzner/status', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json()),
@@ -31,62 +33,30 @@ async function loadOverview() {
     const statusEl = document.getElementById('ov-hetzner-status');
     if (statusEl) {
       const running = status.status === 'running';
-      statusEl.textContent = running ? '● Online' : '○ ' + (status.status || 'Unbekannt');
+      statusEl.textContent = running ? '● Online' : '○ ' + (status.status || '—');
       statusEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full ' +
         (running ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20');
     }
 
-    const ramEl = document.getElementById('ov-ram-label');
-    if (ramEl) ramEl.textContent = (status.memory || '—') + ' GB DDR5';
+    const cpuEl = document.getElementById('ov-cpu-label');
+    if (cpuEl && metrics.cpu !== null) cpuEl.textContent = metrics.cpu.toFixed(1) + '%';
 
-    const locEl = document.getElementById('ov-location-label');
-    if (locEl) locEl.textContent = status.location || '—';
-
-    if (metrics.cpu !== null && metrics.cpu !== undefined) {
-      const cpuLabel = document.getElementById('ov-cpu-label');
-      const cpuBar   = document.getElementById('ov-cpu-bar');
-      if (cpuLabel) cpuLabel.textContent = metrics.cpu.toFixed(1) + '%';
-      if (cpuBar)   cpuBar.style.width = Math.min(metrics.cpu, 100) + '%';
-      if (cpuBar)   cpuBar.className = 'h-full rounded-full transition-all ' +
-        (metrics.cpu > 80 ? 'bg-rose-500' : metrics.cpu > 50 ? 'bg-amber-500' : 'bg-emerald-500');
+    if (metrics.ram) {
+      const usedGb = parseFloat((metrics.ram.totalGb - metrics.ram.freeGb).toFixed(1));
+      const ramEl  = document.getElementById('ov-ram-label');
+      if (ramEl) ramEl.textContent = usedGb + ' / ' + metrics.ram.totalGb + ' GB';
     }
 
-    // Reboot-Button nur für Superadmin sichtbar
-    const rebootBtn = document.getElementById('ov-reboot-btn');
-    if (rebootBtn && currentUser?.role === 'superadmin') {
-      rebootBtn.classList.remove('hidden');
+    if (metrics.disk?.totalGb) {
+      const usedGb  = parseFloat((metrics.disk.totalGb - metrics.disk.freeGb).toFixed(1));
+      const diskEl  = document.getElementById('ov-disk-label');
+      if (diskEl) diskEl.textContent = usedGb + ' / ' + metrics.disk.totalGb + ' GB';
     }
   } catch {}
 }
 
-// ─── Hetzner Quick Controls ───────────────────────────────────────────────────
-async function hetznerRestartBot() {
-  showConfirm('Bot neu starten?', 'Der Bot-Container wird neu gestartet. Für ~10 Sekunden ist der Bot offline.', async () => {
-    const msgEl = document.getElementById('ov-hetzner-msg');
-    try {
-      const r = await fetch('/api/admin/hetzner/restart-bot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-      if (msgEl) { msgEl.textContent = '✓ ' + r.message; msgEl.style.color = 'var(--green)'; }
-      setTimeout(loadOverview, 12000);
-    } catch (e) {
-      if (msgEl) { msgEl.textContent = '✗ ' + e.message; msgEl.style.color = 'var(--red)'; }
-    }
-  });
-}
-
-async function hetznerRebootServer() {
-  showConfirm('Server neu starten?', '⚠️ Der gesamte Server wird neu gestartet. Der Bot ist für 1-2 Minuten offline.', async () => {
-    const msgEl = document.getElementById('ov-hetzner-msg');
-    try {
-      const r = await fetch('/api/admin/hetzner/reboot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-      if (msgEl) { msgEl.textContent = '✓ ' + r.message; msgEl.style.color = 'var(--green)'; }
-    } catch (e) {
-      if (msgEl) { msgEl.textContent = '✗ ' + e.message; msgEl.style.color = 'var(--red)'; }
-    }
-  });
-}
-
-// ─── Quick Actions (clearAllCooldowns wird auch vom Cooldowns-Tab genutzt) ────
+// ─── Quick Actions ────────────────────────────────────────────────────────────
 async function clearAllCooldowns() {
   showConfirm('Alle Cooldowns löschen?', 'Möchtest du wirklich alle aktiven Spieler-Cooldowns zurücksetzen?', async () => {
     try {

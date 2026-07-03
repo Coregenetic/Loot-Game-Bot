@@ -6,54 +6,135 @@ function switchServerSubtab(name) {
   });
 }
 
-async function loadMachineInfo() {
-  try {
-    const info = await apiCall('/api/admin/machine');
-    const u = info.uptime || 0;
-    const h = Math.floor(u/3600), m = Math.floor((u%3600)/60), s = u%60;
-    const mem = Math.round((info.memory?.heapUsed||0)/1024/1024);
-    const memTotal = Math.round((info.memory?.rss||0)/1024/1024);
+let htzCpuChart = null;
 
-    document.getElementById('machineInfoGrid').innerHTML = `
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Region</div>
-        <div class="text-sm font-bold text-white uppercase">${info.region || '—'}</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Uptime</div>
-        <div class="text-sm font-bold text-emerald-400">${h}h ${m}m ${s}s</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Heap / RSS</div>
-        <div class="text-sm font-bold text-blue-400">${mem} / ${memTotal} MB</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Node.js</div>
-        <div class="text-sm font-bold text-white">${info.node || '—'}</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">App</div>
-        <div class="text-sm font-bold text-white">${info.app || '—'}</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Machine ID</div>
-        <div class="text-xs font-mono text-slate-400">${(info.id || '—').slice(0,14)}</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Channel</div>
-        <div class="text-xs font-mono text-slate-300">#${info.channel || '—'}</div>
-      </div>
-      <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-800">
-        <div class="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">PID</div>
-        <div class="text-sm font-bold text-slate-300">${info.pid || '—'}</div>
-      </div>
-    `;
-    if (info.image) {
-      document.getElementById('machineImage').textContent = '🐳 ' + info.image;
+async function loadHetznerData() {
+  try {
+    const [status, metrics] = await Promise.all([
+      fetch('/api/admin/hetzner/status', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json()),
+      fetch('/api/admin/hetzner/metrics', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json())
+    ]);
+
+    // Status Pill
+    const statusEl = document.getElementById('htz-status');
+    if (statusEl) {
+      const running = status.status === 'running';
+      statusEl.textContent = running ? '● Running' : '○ ' + (status.status || '—');
+      statusEl.className = 'text-[10px] font-mono px-2.5 py-1 rounded-full ' +
+        (running ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                 : 'bg-rose-500/10 text-rose-400 border border-rose-500/20');
     }
+
+    // Subtitle
+    const sub = document.getElementById('htz-subtitle');
+    if (sub && status.location) sub.textContent = 'CoresServer · ' + status.location + ', DE';
+
+    // CPU
+    const cpuVal = document.getElementById('htz-cpu-val');
+    if (cpuVal && metrics.cpu !== null && metrics.cpu !== undefined) {
+      cpuVal.textContent = metrics.cpu.toFixed(1) + '%';
+      cpuVal.style.color = metrics.cpu > 80 ? '#f87171' : metrics.cpu > 50 ? '#fbbf24' : '#10b981';
+    }
+
+    // CPU Chart
+    const canvas = document.getElementById('htz-cpu-chart');
+    if (canvas && metrics.cpuHistory?.length) {
+      const labels = metrics.cpuHistory.map(p => {
+        const d = new Date(p.t * 1000);
+        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+      });
+      const data = metrics.cpuHistory.map(p => p.v);
+      if (htzCpuChart) htzCpuChart.destroy();
+      htzCpuChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels, datasets: [{ data, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } } },
+          scales: {
+            x: { display: false },
+            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' }, callback: v => v + '%', maxTicksLimit: 4 } }
+          }
+        }
+      });
+    }
+
+    // Netzwerk
+    const netIn  = document.getElementById('htz-net-in');
+    const netOut = document.getElementById('htz-net-out');
+    if (netIn)  netIn.textContent  = metrics.netIn  ?? '0';
+    if (netOut) netOut.textContent = metrics.netOut ?? '0';
+
+    // Heap (Bot-Prozess)
+    if (metrics.ram) {
+      const heapPct  = Math.round(metrics.ram.heapUsedMb / metrics.ram.heapTotalMb * 100);
+      const heapBar  = document.getElementById('htz-heap-bar');
+      const heapLbl  = document.getElementById('htz-heap-label');
+      if (heapBar) heapBar.style.width = heapPct + '%';
+      if (heapLbl) heapLbl.textContent = metrics.ram.heapUsedMb + ' / ' + metrics.ram.heapTotalMb + ' MB';
+
+      // RAM (Server gesamt)
+      const freeGb  = metrics.ram.freeGb;
+      const totalGb = metrics.ram.totalGb;
+      const usedGb  = parseFloat((totalGb - freeGb).toFixed(1));
+      const ramPct  = Math.round(usedGb / totalGb * 100);
+      const ramBar  = document.getElementById('htz-ram-bar');
+      const ramLbl  = document.getElementById('htz-ram-label');
+      const ramUsed = document.getElementById('htz-ram-used');
+      const ramPctEl = document.getElementById('htz-ram-pct');
+      if (ramBar)  { ramBar.style.width = ramPct + '%'; ramBar.style.background = ramPct > 80 ? '#f87171' : '#60a5fa'; }
+      if (ramLbl)  ramLbl.textContent = totalGb + ' GB gesamt';
+      if (ramUsed) ramUsed.textContent = usedGb + ' GB genutzt';
+      if (ramPctEl) ramPctEl.textContent = ramPct + '%';
+    }
+
+    // Disk
+    if (metrics.disk?.totalGb) {
+      const usedGb = parseFloat((metrics.disk.totalGb - metrics.disk.freeGb).toFixed(1));
+      const pct    = Math.round(usedGb / metrics.disk.totalGb * 100);
+      const bar    = document.getElementById('htz-disk-bar');
+      const lbl    = document.getElementById('htz-disk-label');
+      const used   = document.getElementById('htz-disk-used');
+      const pctEl  = document.getElementById('htz-disk-pct');
+      if (bar)   { bar.style.width = pct + '%'; bar.style.background = pct > 80 ? '#f87171' : '#10b981'; }
+      if (lbl)   lbl.textContent  = metrics.disk.totalGb + ' GB gesamt';
+      if (used)  used.textContent = usedGb + ' GB genutzt';
+      if (pctEl) pctEl.textContent = pct + '% · ' + metrics.disk.freeGb + ' GB frei';
+    }
+
+    // Reboot-Button nur für Superadmin
+    const rebootBtn = document.getElementById('htz-reboot-btn');
+    if (rebootBtn && currentUser?.role === 'superadmin') rebootBtn.classList.remove('hidden');
+
   } catch (err) {
-    document.getElementById('machineInfoGrid').innerHTML = '<p class="text-xs font-mono text-rose-400 col-span-4">Fehler: ' + err.message + '</p>';
+    const msg = document.getElementById('htz-action-msg');
+    if (msg) { msg.textContent = '✗ Hetzner API Fehler: ' + err.message; msg.style.color = 'var(--red)'; }
   }
+}
+
+async function hetznerRestartBot() {
+  showConfirm('Bot neu starten?', 'Der Bot-Container wird neu gestartet. Für ~10 Sekunden offline.', async () => {
+    const msg = document.getElementById('htz-action-msg');
+    try {
+      const r = await fetch('/api/admin/hetzner/restart-bot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+      if (msg) { msg.textContent = '✓ ' + r.message; msg.style.color = 'var(--green)'; }
+      setTimeout(loadHetznerData, 12000);
+    } catch (e) {
+      if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
+    }
+  });
+}
+
+async function hetznerRebootServer() {
+  showConfirm('Server neu starten?', '⚠️ Der gesamte Server wird neu gestartet. Bot ~1-2 Min. offline.', async () => {
+    const msg = document.getElementById('htz-action-msg');
+    try {
+      const r = await fetch('/api/admin/hetzner/reboot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+      if (msg) { msg.textContent = '✓ ' + r.message; msg.style.color = 'var(--green)'; }
+    } catch (e) {
+      if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
+    }
+  });
 }
 
 // ─── Server Control ───────────────────────────────────────────────────────────
@@ -71,9 +152,10 @@ async function checkServerAccess() {
     loadServerInfo();
     loadChannels();
     loadCommands_panel();
-    loadMachineInfo();
+    loadHetznerData();
     loadMaintenance();
     loadTournament();
+    loadSellRate();
     loadBackups();
   } catch (err) {
     showToast('Fehler: ' + err.message, 'error');
@@ -398,6 +480,33 @@ function updateTournamentUI(active) {
 }
 
 // ─── Wartungsmodus ────────────────────────────────────────────────────────────
+async function loadSellRate() {
+  try {
+    const data = await apiCall('/api/admin/game-config');
+    const pct = Math.round((data.SellRate ?? 0.8) * 100);
+    document.getElementById('sellRateSlider').value = pct;
+    document.getElementById('sellRateLabel').textContent = pct + '%';
+  } catch (err) { console.error('Konnte Verkaufsrate nicht laden:', err); }
+}
+
+function updateSellRateLabel() {
+  document.getElementById('sellRateLabel').textContent = document.getElementById('sellRateSlider').value + '%';
+}
+
+async function saveSellRate() {
+  const pct = parseInt(document.getElementById('sellRateSlider').value);
+  try {
+    await fetch('/api/admin/game-config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-session-token': LootGameAPI.getToken() },
+      body: JSON.stringify({ SellRate: pct / 100 })
+    });
+    showQuickMsg('✓ Verkaufsrate gespeichert', 'var(--green)');
+  } catch (err) {
+    showQuickMsg('✗ ' + err.message, 'var(--red)');
+  }
+}
+
 async function loadMaintenance() {
   try {
     const data = await apiCall('/api/admin/maintenance');
