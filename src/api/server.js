@@ -1,193 +1,74 @@
-const express    = require('express');
-const helmet     = require('helmet');
-const http       = require('http');
-const path       = require('path');
-const logger     = require('../utils/logger');
-const sessionAuth    = require('./middleware/session');
-const { requirePermission } = require('./middleware/permission');
-const authRoutes     = require('./routes/auth');
-const configRoutes   = require('./routes/config');
-const itemsRoutes    = require('./routes/items');
-const playersRoutes  = require('./routes/players');
-const eventsRoutes   = require('./routes/events');
-const messagesRoutes = require('./routes/messages');
-const pushRoutes     = require('./routes/push');
-const { router: playerAuthRoutes } = require('./routes/playerAuth');
-const { router: playerSquadRoutes } = require('./routes/playerSquad');
-const adminSquadsRoutes = require('./routes/adminSquads');
-const adminRoutes    = require('./routes/admin');
+<div class="space-y-5">
 
-const PUBLIC_DIR = path.join(__dirname, '../../public');
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-// Erlaubte Origin fürs Dashboard — per Env überschreibbar, sonst alle *.fly.dev
-// Domains dieser App (kein offenes Wildcard-CORS mehr).
-const ALLOWED_ORIGIN = process.env.DASHBOARD_ORIGIN || null;
+    <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 50ms;">
+      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Bot-Verhalten</div>
+      <div class="flex items-center justify-between py-1.5">
+        <span class="text-sm text-slate-300">Wartungsmodus</span>
+        <span id="ov-maintenance-pill" class="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Inaktiv</span>
+      </div>
+      <div class="flex items-center justify-between py-1.5">
+        <span class="text-sm text-slate-300">Turnier-Modus</span>
+        <span id="ov-tournament-pill" class="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Inaktiv</span>
+      </div>
+    </div>
 
-function createServer() {
-    const app = express();
+    <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 100ms;">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
+            <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+          <span class="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Hetzner Server</span>
+        </div>
+        <span id="ov-hetzner-status" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-500">—</span>
+      </div>
+      <div class="space-y-2 mb-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">CPU</span>
+          <div class="flex items-center gap-2">
+            <div class="w-20 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="ov-cpu-bar" class="h-full bg-emerald-500 rounded-full transition-all" style="width:0%"></div>
+            </div>
+            <span id="ov-cpu-label" class="text-xs font-mono text-white tabular-nums w-10 text-right">—</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">RAM</span>
+          <span id="ov-ram-label" class="text-xs font-mono text-white tabular-nums">—</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">Standort</span>
+          <span id="ov-location-label" class="text-xs font-mono text-white tabular-nums">—</span>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-3 border-t border-slate-800/60">
+        <button onclick="hetznerRestartBot()" class="flex-1 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 hover:bg-amber-500/20 text-xs font-mono transition-colors">
+          🔄 Bot neu starten
+        </button>
+        <button onclick="hetznerRebootServer()" id="ov-reboot-btn" class="hidden flex-1 px-2 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 hover:bg-rose-500/20 text-xs font-mono transition-colors">
+          🔁 Server Reboot
+        </button>
+      </div>
+      <div id="ov-hetzner-msg" class="text-[10px] font-mono mt-2 min-h-[12px] text-slate-500"></div>
+    </div>
+  </div>
 
-    // Fly.io läuft hinter einem Proxy der X-Forwarded-For setzt — ohne das hier
-    // würde express-rate-limit (siehe routes/auth.js) bei jedem Request crashen.
-    app.set('trust proxy', 1);
+  <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 150ms;">
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        Live-Feed
+      </div>
+      <span id="liveFeedStatus" class="text-[9px] font-mono text-slate-600">verbinde...</span>
+    </div>
+    <div id="liveFeedList" class="space-y-1.5 max-h-[28rem] overflow-y-auto pr-1">
+      <p class="text-xs font-mono text-slate-600">Warte auf Aktivität...</p>
+    </div>
+  </div>
 
-    app.use(helmet({
-        contentSecurityPolicy: false // eigenes CSP würde Tailwind-CDN/Inline-Scripts blockieren
-    }));
-
-    app.use(express.json({ limit: '10mb' }));
-
-    app.use((req, res, next) => {
-        // Setze DASHBOARD_ORIGIN (z.B. https://lootgamebot.fly.dev) um CORS auf
-        // eure eigene Domain einzuschränken. Ohne gesetzte Env bleibt es offen wie
-        // bisher, damit nichts ungewollt kaputt geht.
-        res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN || '*');
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token, x-dashboard-token');
-        if (req.method === 'OPTIONS') return res.sendStatus(200);
-        next();
-    });
-
-    // Static Files
-    app.use(express.static(PUBLIC_DIR));
-    app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'login.html')));
-
-    // Public Routes
-    app.get('/health', (req, res) => {
-        let botConnected = false;
-        try {
-            const { COMMAND_SOURCE } = require('../bot');
-            if (COMMAND_SOURCE === 'eventsub') {
-                botConnected = !!global.eventSubShadow?.isConnected();
-            } else {
-                botConnected = global.botInstance?.client?.readyState() === 'OPEN';
-            }
-        } catch (_) {}
-        res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now(), botConnected });
-    });
-
-    app.use('/api/auth', authRoutes);
-
-    // Overlay (kein Auth)
-    app.get('/overlay/leaderboard', (req, res) => {
-        try {
-            const { getLatestLeaderboardData } = require('../commands/leaderboard');
-            const data = getLatestLeaderboardData();
-            if (!data) return res.status(404).json({ error: 'Noch kein !toplooter getriggert' });
-            res.json(data);
-        } catch (err) { res.status(500).json({ error: err.message }); }
-    });
-
-    app.get('/overlay/level/latest', (req, res) => {
-        try {
-            const { getLatestLevelData } = require('../commands/level');
-            const data = getLatestLevelData();
-            if (!data) return res.status(404).json({ error: 'Noch kein !lvl getriggert' });
-            res.json(data);
-        } catch (err) { res.status(500).json({ error: err.message }); }
-    });
-
-    app.get('/overlay/level/:username', (req, res) => {
-        try {
-            const { getPlayer, getStashValue } = require('../db/players');
-            const { getLeveling }              = require('../db/config');
-            const { calcXPForLevel, getRankName } = require('../utils/format');
-            const player = getPlayer(req.params.username);
-            if (!player) return res.status(404).json({ error: 'Player not found' });
-            const leveling = getLeveling();
-            const xpForCur = calcXPForLevel(player.level, leveling);
-            const xpForNxt = calcXPForLevel(player.level + 1, leveling);
-            const xpInLvl  = Math.max(0, player.xp - xpForCur);
-            const xpNeeded = Math.max(1, xpForNxt - xpForCur);
-            res.json({
-                timestamp: Date.now(), user: player.username,
-                level: player.level, rank: getRankName(player.level, leveling.Ranks),
-                prestige: player.prestige, hasKappa: player.has_kappa === 1,
-                xp: xpInLvl, xpNeeded, progress: Math.round((xpInLvl / xpNeeded) * 100),
-                stashValue: getStashValue(player.id),
-                raidsTotal: player.raids_total, raidsSurvived: player.raids_survived, raidsDied: player.raids_died
-            });
-        } catch (err) { res.status(500).json({ error: err.message }); }
-    });
-
-    // Öffentlicher Events-Endpunkt für Overlays
-    app.get('/api/events', (req, res) => {
-        try {
-            const { getActiveEvents } = require('../db/config');
-            res.json(getActiveEvents());
-        } catch (err) { res.status(500).json({ error: err.message }); }
-    });
-
-    // Kappa-Übersicht (öffentlich, Token-geschützt)
-    app.get('/api/kappa/:token', (req, res) => {
-        try {
-            const { validateKappaToken } = require('../utils/kappaTokens');
-            const username = validateKappaToken(req.params.token);
-            if (!username) return res.status(401).json({ error: 'Link abgelaufen oder ungültig. Tippe !kappa erneut im Chat.' });
-
-            const { getPlayer, getInventory } = require('../db/players');
-            const { getKappaItems }           = require('../db/items');
-
-            const player = getPlayer(username);
-            if (!player) return res.status(404).json({ error: 'Spieler nicht gefunden' });
-
-            const kappaItems = getKappaItems();
-            const inventory  = getInventory(player.id);
-            const invMap     = new Map(inventory.map(i => [i.item_name.toLowerCase(), i]));
-
-            const items = kappaItems.map(item => {
-                const name    = item.text || item.name;
-                const invItem = invMap.get(name.toLowerCase());
-                return {
-                    name,
-                    have:  !!(invItem && invItem.count > 0),
-                    count: invItem ? invItem.count : 0,
-                    value: item.value || 0
-                };
-            });
-
-            const found = items.filter(i => i.have).length;
-
-            res.json({
-                username:  player.username,
-                hasKappa:  player.has_kappa === 1,
-                found,
-                total:     items.length,
-                items
-            });
-        } catch (err) { res.status(500).json({ error: err.message }); }
-    });
-
-    // Log-Buffer
-    app.get('/api/logs', sessionAuth, requirePermission('logs:view'), (req, res) => {
-        res.json(logger.getBuffer());
-    });
-
-    // Protected Routes
-    app.use('/api/config',   sessionAuth, configRoutes);
-    app.use('/api/items',    sessionAuth, itemsRoutes);
-    app.use('/api/players',  sessionAuth, playersRoutes);
-    app.use('/api/events',   sessionAuth, eventsRoutes);
-    app.use('/api/messages', sessionAuth, messagesRoutes);
-    app.use('/api/push',     pushRoutes); // Auth wird pro Route innen gehandhabt (vapid-key ist öffentlich)
-    app.use('/api/player-auth', playerAuthRoutes); // Eigenes, von Dashboard komplett getrenntes Auth-System
-    app.use('/api/squad', playerSquadRoutes); // Nutzt playerSessionAuth intern, keine extra Middleware hier
-    app.use('/api/admin/squads', sessionAuth, adminSquadsRoutes);
-    app.use('/api/admin',    sessionAuth, adminRoutes);
-
-    return app;
-}
-
-function startServer() {
-    const app  = createServer();
-    const port = process.env.PORT || 3000;
-    const httpServer = app.listen(port, '0.0.0.0', () => {
-        logger.info('API', `Server läuft auf http://0.0.0.0:${port}`);
-    });
-
-    const wsHub = require('../utils/wsHub');
-    wsHub.attach(httpServer);
-
-    return { httpServer, app };
-}
-
-module.exports = { createServer, startServer };
+</div>

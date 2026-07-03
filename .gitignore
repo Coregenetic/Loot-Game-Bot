@@ -6,3 +6,4 @@ data/legacy_profiles/
 data/legacy_items/
 data/legacy_config/
 *.log
+lootgame.db.backup
