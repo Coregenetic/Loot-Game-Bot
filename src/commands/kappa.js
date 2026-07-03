@@ -5,7 +5,7 @@ const { generateKappaToken } = require('../utils/kappaTokens');
 
 const COMMAND = '!kappa';
 const KAPPA_CONTAINER_NAME = 'Kappa Container';
-const BASE_URL = process.env.GAME_CENTER_URL || 'https://lootgamebot.fly.dev';
+const BASE_URL = (process.env.PLAYER_HUB_URL || 'https://lootgamebot.fly.dev/player-login.html').replace('/player-login.html', '');
 
 async function handler({ client, channel, user }) {
     const player = await getOrCreatePlayer(user);
