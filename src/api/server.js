@@ -58,7 +58,13 @@ function createServer() {
         try {
             const { COMMAND_SOURCE } = require('../bot');
             if (COMMAND_SOURCE === 'eventsub') {
-                botConnected = !!global.eventSubShadow?.isConnected();
+                // EventSub-Modus: WebSocket offen ODER isReady (Commands verarbeitet)
+                // ODER tmi.js-Verbindung offen (Bot ist im Chat aktiv)
+                botConnected = !!(
+                    global.eventSubShadow?.isConnected() ||
+                    global.eventSubShadow?.isReady() ||
+                    global.botInstance?.client?.readyState() === 'OPEN'
+                );
             } else {
                 botConnected = global.botInstance?.client?.readyState() === 'OPEN';
             }
