@@ -128,7 +128,7 @@ router.post('/invite', playerSessionAuth, async (req, res) => {
 
         const { sendChatMessage } = require('../../utils/chatSender');
         const channel = '#' + (process.env.TWITCH_CHANNEL || '');
-        const url = (process.env.PLAYER_HUB_URL || 'https://lootgamebot.fly.dev/player-login.html').replace('player-login.html', 'player-squad.html');
+        const url = (process.env.PLAYER_HUB_URL || 'https://lootgamebot.de/player-login.html').replace('player-login.html', 'player-squad.html');
         sendChatMessage(channel, `📨 @${targetPlayer.username}, du wurdest ins Squad "${squad.name}" eingeladen! Bestätige hier: ${url}`).catch(() => {});
 
         res.json({ success: true });
