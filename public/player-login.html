@@ -248,7 +248,8 @@
         return;
       }
 
-      localStorage.setItem('lootgame_token', data.token);
+      localStorage.setItem('lootgame_session_token', data.token);
+      localStorage.setItem('lootgame_username', data.username);
       window.location.href = '/admin.html';
     } catch (e) {
       errEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
