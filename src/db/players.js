@@ -1,4 +1,4 @@
-const { get, all, run, saveDb, getDb } = require('./schema');
+const { get, all, run, saveDb } = require('./schema');
 
 // ─── Spieler laden / anlegen ──────────────────────────────────────────────────
 

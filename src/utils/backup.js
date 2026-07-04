@@ -1,11 +1,10 @@
 /**
- * Backup-System für die sql.js Datenbank.
+ * Backup-System für die better-sqlite3 Datenbank.
  * Backups werden als Datei-Kopien im /app/data/backups Ordner gespeichert.
  */
 
 const fs   = require('fs');
 const path = require('path');
-const initSqlJs = require('sql.js');
 
 const DB_PATH = process.env.NODE_ENV === 'production'
     ? '/app/data/lootgame.db'
@@ -106,54 +105,41 @@ function getBackupPath(filename) {
 
 // ─── Backup-Inhalt einsehen (read-only, rührt nichts an) ──────────────────────
 async function inspectBackup(filename) {
+    const Database = require('better-sqlite3');
     const filepath = getBackupPath(filename);
-    const buffer = fs.readFileSync(filepath);
-    const SQL = await initSqlJs();
-    const db = new SQL.Database(buffer);
+    const backupDb = new Database(filepath, { readonly: true });
 
     const counts = {};
     for (const table of KNOWN_TABLES) {
         try {
-            const stmt = db.prepare(`SELECT COUNT(*) as c FROM ${table}`);
-            stmt.step();
-            counts[table] = stmt.getAsObject().c;
-            stmt.free();
+            counts[table] = backupDb.prepare(`SELECT COUNT(*) as c FROM ${table}`).get().c;
         } catch {
-            counts[table] = null; // Tabelle existierte in diesem Backup nicht (alte Version)
+            counts[table] = null; // Tabelle existierte in diesem Backup nicht
         }
     }
-    db.close();
+    backupDb.close();
     return counts;
 }
 
 // ─── Gezielt einzelne Tabellen aus einem Backup wiederherstellen ──────────────
-// Im Gegensatz zu restoreBackup() (komplettes Zurückrollen) werden hier NUR die
-// gewählten Tabellen ersetzt, alles andere in der laufenden DB bleibt unberührt.
-// Nur für Tabellen ohne Fremdschlüssel-Abhängigkeiten (siehe SELECTIVE_TABLES).
 async function restoreTablesFromBackup(filename, tables, schemaModule) {
+    const Database = require('better-sqlite3');
     const valid = tables.filter(t => SELECTIVE_TABLES.includes(t));
     if (!valid.length) throw new Error('Keine gültigen Tabellen ausgewählt');
 
     const filepath = getBackupPath(filename);
-    const buffer = fs.readFileSync(filepath);
-    const SQL = await initSqlJs();
-    const backupDb = new SQL.Database(buffer);
+    const backupDb = new Database(filepath, { readonly: true });
 
     const dump = {};
     for (const table of valid) {
         try {
-            const stmt = backupDb.prepare(`SELECT * FROM ${table}`);
-            const rows = [];
-            while (stmt.step()) rows.push(stmt.getAsObject());
-            stmt.free();
-            dump[table] = rows;
+            dump[table] = backupDb.prepare(`SELECT * FROM ${table}`).all();
         } catch {
-            dump[table] = []; // Tabelle existierte in diesem Backup nicht
+            dump[table] = [];
         }
     }
     backupDb.close();
 
-    // Sicherheits-Backup der aktuellen DB, bevor irgendwas überschrieben wird
     createBackup('before-table-restore');
 
     const { run } = schemaModule;
