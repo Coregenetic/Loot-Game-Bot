@@ -8,16 +8,53 @@ function switchServerSubtab(name) {
 
 let htzCpuChart = null;
 let htzRefreshInterval = null;
-const HTZ_REFRESH_MS = 15000; // alle 15 Sekunden neue Daten
+let metricsWs = null;
+const CPU_WINDOW = 60; // Datenpunkte im Chart (60 x 2s = 2 Minuten)
 
-async function loadHetznerData() {
+function startHetznerLive() {
+  // Einmalig Status + Basis-Infos via HTTP holen (läuft nicht so oft)
+  loadHetznerStatus();
+
+  // Echtzeit-Metriken via WebSocket
+  startMetricsWs();
+}
+
+function stopHetznerLive() {
+  if (metricsWs) { metricsWs.close(); metricsWs = null; }
+  if (htzRefreshInterval) { clearInterval(htzRefreshInterval); htzRefreshInterval = null; }
+  if (htzCpuChart) { htzCpuChart.destroy(); htzCpuChart = null; }
+}
+
+function startMetricsWs() {
+  if (metricsWs && metricsWs.readyState === WebSocket.OPEN) return;
+
+  const wsUrl = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/admin';
+  metricsWs = new WebSocket(wsUrl);
+
+  metricsWs.onopen = () => {
+    const token = LootGameAPI.getToken();
+    if (token) metricsWs.send(JSON.stringify({ type: 'auth', token }));
+  };
+
+  metricsWs.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'server_metrics') applyMetrics(msg);
+    } catch {}
+  };
+
+  metricsWs.onclose = () => {
+    // Reconnect nach 3s falls Server-Tab noch offen
+    if (activeTab === 'server') setTimeout(startMetricsWs, 3000);
+  };
+}
+
+async function loadHetznerStatus() {
   try {
-    const [status, metrics] = await Promise.all([
-      fetch('/api/admin/hetzner/status', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json()),
-      fetch('/api/admin/hetzner/metrics', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json())
-    ]);
+    const status = await fetch('/api/admin/hetzner/status', {
+      headers: { 'x-session-token': LootGameAPI.getToken() }
+    }).then(r => r.json());
 
-    // Status Pill
     const statusEl = document.getElementById('htz-status');
     if (statusEl) {
       const running = status.status === 'running';
@@ -26,140 +63,122 @@ async function loadHetznerData() {
         (running ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20');
     }
-
-    // Subtitle
     const sub = document.getElementById('htz-subtitle');
     if (sub && status.location) sub.textContent = 'CoresServer · ' + status.location + ', DE';
 
-    // CPU aktueller Wert
+    const rebootBtn = document.getElementById('htz-reboot-btn');
+    if (rebootBtn && currentUser?.role === 'superadmin') rebootBtn.classList.remove('hidden');
+  } catch {}
+}
+
+function applyMetrics(m) {
+  const now = new Date(m.ts);
+  const timeLabel = now.getHours().toString().padStart(2,'0') + ':' +
+                    now.getMinutes().toString().padStart(2,'0') + ':' +
+                    now.getSeconds().toString().padStart(2,'0');
+
+  // ─── CPU ───────────────────────────────────────────────────────────────────
+  if (m.cpu !== null && m.cpu !== undefined) {
     const cpuVal = document.getElementById('htz-cpu-val');
-    if (cpuVal && metrics.cpu !== null && metrics.cpu !== undefined) {
-      cpuVal.textContent = metrics.cpu.toFixed(1) + '%';
-      cpuVal.style.color = metrics.cpu > 80 ? '#f87171' : metrics.cpu > 50 ? '#fbbf24' : '#10b981';
+    if (cpuVal) {
+      cpuVal.textContent = m.cpu.toFixed(1) + '%';
+      cpuVal.style.color = m.cpu > 80 ? '#f87171' : m.cpu > 50 ? '#fbbf24' : '#10b981';
     }
 
-    // CPU Chart — beim ersten Laden komplett aufbauen, danach nur Datenpunkte anhängen
     const canvas = document.getElementById('htz-cpu-chart');
-    if (canvas && metrics.cpuHistory?.length) {
-      const labels = metrics.cpuHistory.map(p => {
-        const d = new Date(p.t * 1000);
-        return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-      });
-      const data = metrics.cpuHistory.map(p => p.v);
-
+    if (canvas) {
       if (!htzCpuChart) {
-        // Erster Aufbau
         htzCpuChart = new Chart(canvas, {
           type: 'line',
           data: {
-            labels,
+            labels: [],
             datasets: [{
-              data,
+              data: [],
               borderColor: '#10b981',
               backgroundColor: 'rgba(16,185,129,0.08)',
               borderWidth: 1.5,
               pointRadius: 0,
-              tension: 0.3,
+              tension: 0.2,
               fill: true
             }]
           },
           options: {
-            responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } } },
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 200 },
+            plugins: { legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + '%' } }
+            },
             scales: {
               x: { display: false },
-              y: {
-                min: 0, max: 100,
+              y: { min: 0, max: 100,
                 grid: { color: 'rgba(255,255,255,0.04)' },
-                ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' }, callback: v => v + '%', maxTicksLimit: 4 }
+                ticks: { color: '#475569', font: { size: 9, family: 'JetBrains Mono' },
+                  callback: v => v + '%', maxTicksLimit: 5 }
               }
             }
           }
         });
-      } else {
-        // Live-Update: neuen Datenpunkt anhängen, ältesten entfernen (rollendes Fenster)
-        const lastExisting = htzCpuChart.data.labels[htzCpuChart.data.labels.length - 1];
-        const lastNew      = labels[labels.length - 1];
-        if (lastNew !== lastExisting) {
-          htzCpuChart.data.labels.push(lastNew);
-          htzCpuChart.data.datasets[0].data.push(data[data.length - 1]);
-          if (htzCpuChart.data.labels.length > 30) {
-            htzCpuChart.data.labels.shift();
-            htzCpuChart.data.datasets[0].data.shift();
-          }
-          htzCpuChart.update('none'); // ohne Animation für flüssiges Live-Gefühl
-        }
       }
-    }
 
-    // Netzwerk
+      htzCpuChart.data.labels.push(timeLabel);
+      htzCpuChart.data.datasets[0].data.push(m.cpu);
+      if (htzCpuChart.data.labels.length > CPU_WINDOW) {
+        htzCpuChart.data.labels.shift();
+        htzCpuChart.data.datasets[0].data.shift();
+      }
+      // Farbe dynamisch je nach Last
+      const avg = htzCpuChart.data.datasets[0].data.slice(-5).reduce((a,b)=>a+b,0)/5;
+      htzCpuChart.data.datasets[0].borderColor = avg > 80 ? '#f87171' : avg > 50 ? '#fbbf24' : '#10b981';
+      htzCpuChart.data.datasets[0].backgroundColor = avg > 80 ? 'rgba(248,113,113,0.08)' : avg > 50 ? 'rgba(251,191,36,0.08)' : 'rgba(16,185,129,0.08)';
+      htzCpuChart.update('none');
+    }
+  }
+
+  // ─── Netzwerk ───────────────────────────────────────────────────────────────
+  if (m.net) {
     const netIn  = document.getElementById('htz-net-in');
     const netOut = document.getElementById('htz-net-out');
-    if (netIn)  netIn.textContent  = metrics.netIn  ?? '0';
-    if (netOut) netOut.textContent = metrics.netOut ?? '0';
-
-    // Heap (Bot-Prozess)
-    if (metrics.ram) {
-      const heapPct  = Math.round(metrics.ram.heapUsedMb / metrics.ram.heapTotalMb * 100);
-      const heapBar  = document.getElementById('htz-heap-bar');
-      const heapLbl  = document.getElementById('htz-heap-label');
-      if (heapBar) heapBar.style.width = heapPct + '%';
-      if (heapLbl) heapLbl.textContent = metrics.ram.heapUsedMb + ' / ' + metrics.ram.heapTotalMb + ' MB';
-
-      const freeGb  = metrics.ram.freeGb;
-      const totalGb = metrics.ram.totalGb;
-      const usedGb  = parseFloat((totalGb - freeGb).toFixed(1));
-      const ramPct  = Math.round(usedGb / totalGb * 100);
-      const ramBar  = document.getElementById('htz-ram-bar');
-      const ramLbl  = document.getElementById('htz-ram-label');
-      const ramUsed = document.getElementById('htz-ram-used');
-      const ramPctEl = document.getElementById('htz-ram-pct');
-      if (ramBar)  { ramBar.style.width = ramPct + '%'; ramBar.style.background = ramPct > 80 ? '#f87171' : '#60a5fa'; }
-      if (ramLbl)  ramLbl.textContent = totalGb + ' GB gesamt';
-      if (ramUsed) ramUsed.textContent = usedGb + ' GB genutzt';
-      if (ramPctEl) ramPctEl.textContent = ramPct + '%';
-    }
-
-    // Disk
-    if (metrics.disk?.totalGb) {
-      const usedGb = parseFloat((metrics.disk.totalGb - metrics.disk.freeGb).toFixed(1));
-      const pct    = Math.round(usedGb / metrics.disk.totalGb * 100);
-      const bar    = document.getElementById('htz-disk-bar');
-      const lbl    = document.getElementById('htz-disk-label');
-      const used   = document.getElementById('htz-disk-used');
-      const pctEl  = document.getElementById('htz-disk-pct');
-      if (bar)   { bar.style.width = pct + '%'; bar.style.background = pct > 80 ? '#f87171' : '#10b981'; }
-      if (lbl)   lbl.textContent  = metrics.disk.totalGb + ' GB gesamt';
-      if (used)  used.textContent = usedGb + ' GB genutzt';
-      if (pctEl) pctEl.textContent = pct + '% · ' + metrics.disk.freeGb + ' GB frei';
-    }
-
-    // Reboot-Button nur für Superadmin
-    const rebootBtn = document.getElementById('htz-reboot-btn');
-    if (rebootBtn && currentUser?.role === 'superadmin') rebootBtn.classList.remove('hidden');
-
-    // Letztes Update anzeigen
-    const updEl = document.getElementById('htz-last-update');
-    if (updEl) {
-      const now = new Date();
-      updEl.textContent = 'Aktualisiert: ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
-    }
-
-  } catch (err) {
-    const msg = document.getElementById('htz-action-msg');
-    if (msg) { msg.textContent = '✗ Hetzner API Fehler: ' + err.message; msg.style.color = 'var(--red)'; }
+    if (netIn)  netIn.textContent  = m.net.rxKbs.toFixed(1);
+    if (netOut) netOut.textContent = m.net.txKbs.toFixed(1);
   }
-}
 
-function startHetznerLive() {
-  loadHetznerData();
-  if (htzRefreshInterval) clearInterval(htzRefreshInterval);
-  htzRefreshInterval = setInterval(loadHetznerData, HTZ_REFRESH_MS);
-}
+  // ─── Heap ───────────────────────────────────────────────────────────────────
+  if (m.heap) {
+    const heapBar = document.getElementById('htz-heap-bar');
+    const heapLbl = document.getElementById('htz-heap-label');
+    if (heapBar) heapBar.style.width = m.heap.pct + '%';
+    if (heapLbl) heapLbl.textContent = m.heap.usedMb + ' / ' + m.heap.totalMb + ' MB';
+  }
 
-function stopHetznerLive() {
-  if (htzRefreshInterval) { clearInterval(htzRefreshInterval); htzRefreshInterval = null; }
-  if (htzCpuChart) { htzCpuChart.destroy(); htzCpuChart = null; }
+  // ─── RAM ────────────────────────────────────────────────────────────────────
+  if (m.ram) {
+    const usedGb  = parseFloat((m.ram.usedMb / 1024).toFixed(2));
+    const totalGb = parseFloat((m.ram.totalMb / 1024).toFixed(1));
+    const ramBar  = document.getElementById('htz-ram-bar');
+    const ramLbl  = document.getElementById('htz-ram-label');
+    const ramUsed = document.getElementById('htz-ram-used');
+    const ramPctEl = document.getElementById('htz-ram-pct');
+    if (ramBar)  { ramBar.style.width = m.ram.pct + '%'; ramBar.style.background = m.ram.pct > 80 ? '#f87171' : '#60a5fa'; }
+    if (ramLbl)  ramLbl.textContent  = totalGb + ' GB gesamt';
+    if (ramUsed) ramUsed.textContent = usedGb + ' GB genutzt';
+    if (ramPctEl) ramPctEl.textContent = m.ram.pct + '%';
+  }
+
+  // ─── Disk ────────────────────────────────────────────────────────────────────
+  if (m.disk) {
+    const bar   = document.getElementById('htz-disk-bar');
+    const lbl   = document.getElementById('htz-disk-label');
+    const used  = document.getElementById('htz-disk-used');
+    const pctEl = document.getElementById('htz-disk-pct');
+    if (bar)   { bar.style.width = m.disk.pct + '%'; bar.style.background = m.disk.pct > 80 ? '#f87171' : '#10b981'; }
+    if (lbl)   lbl.textContent  = m.disk.totalGb + ' GB gesamt';
+    if (used)  used.textContent = m.disk.usedGb + ' GB genutzt';
+    if (pctEl) pctEl.textContent = m.disk.pct + '% · ' + m.disk.freeGb + ' GB frei';
+  }
+
+  // ─── Timestamp ───────────────────────────────────────────────────────────────
+  const updEl = document.getElementById('htz-last-update');
+  if (updEl) updEl.textContent = 'Live · ' + timeLabel;
 }
 
 async function hetznerRestartBot() {
@@ -168,7 +187,7 @@ async function hetznerRestartBot() {
     try {
       const r = await fetch('/api/admin/hetzner/restart-bot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
       if (msg) { msg.textContent = '✓ ' + r.message; msg.style.color = 'var(--green)'; }
-      setTimeout(loadHetznerData, 12000);
+      setTimeout(loadHetznerStatus, 12000);
     } catch (e) {
       if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
     }

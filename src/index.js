@@ -88,6 +88,9 @@ async function main() {
     const { resolvePendingRaids } = require('./engine/raidResolver');
     const { sendChatMessage } = require('./utils/chatSender');
     const { resolveSquadWindows } = require('./engine/squadRaid');
+    const { startMetricsBroadcast } = require('./utils/sysMetrics');
+
+    startMetricsBroadcast();
 
     async function raidResolveTick() {
         try { await resolvePendingRaids(sendChatMessage); }
