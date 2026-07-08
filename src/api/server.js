@@ -48,7 +48,15 @@ function createServer() {
         next();
     });
 
-    // Static Files
+    // Static Files — automatisch .html ergänzen falls Datei ohne Endung angefragt wird
+    const fs = require('fs');
+    app.use((req, res, next) => {
+        if (!req.path.includes('.') && !req.path.startsWith('/api') && !req.path.startsWith('/ws')) {
+            const htmlFile = require('path').join(PUBLIC_DIR, req.path + '.html');
+            if (fs.existsSync(htmlFile)) return res.sendFile(htmlFile);
+        }
+        next();
+    });
     app.use(express.static(PUBLIC_DIR));
     app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'login.html')));
 
