@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>body{background:#05080c;color:#e2e8f0;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;}</style>
+</head>
+<body>
+<div>
+  <div style="font-size:32px;margin-bottom:16px;">✅</div>
+  <p style="color:#10b981;font-weight:600;">Erfolgreich angemeldet!</p>
+  <p style="color:#475569;font-size:13px;margin-top:8px;">Du wirst weitergeleitet...</p>
+</div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const error = params.get('error');
+  if (token) {
+    try { localStorage.setItem('lootgame_player_token', token); } catch(e) {}
+    setTimeout(() => { window.location.replace('/player-hub.html?token=' + token); }, 800);
+  } else if (error) {
+    window.location.replace('/player-login.html?error=' + error);
+  } else {
+    window.location.replace('/player-login.html');
+  }
+</script>
+</body>
+</html>
