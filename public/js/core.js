@@ -74,8 +74,9 @@ const TAB_PERMISSIONS = {
   players:   'players:view',
   events:    'events:manage',
   squads:    'squads:manage',
-  server:    'server:manage',
-  users:     'superadmin' // Spezialfall, kein Permission-Key
+  server:     'server:manage',
+  monitoring: 'server:manage',
+  users:      'superadmin' // Spezialfall, kein Permission-Key
 };
 
 function canAccess(tab) {
@@ -165,7 +166,8 @@ const tabTitles = {
   'events': 'Live Event Control',
   'squads': 'Squad-Verwaltung',
   'users': 'User Management',
-  'server': 'Server Diagnostics'
+  'server': 'Server Diagnostics',
+  'monitoring': 'Server Monitoring'
 };
 
 async function navigateTo(tab) {
@@ -196,6 +198,7 @@ async function navigateTo(tab) {
   activeTab = tab;
   if (tab !== 'logs' && logPoll) { clearInterval(logPoll); logPoll = null; updateLogStatus(false); }
   if (tab !== 'server' && typeof stopHetznerLive === 'function') stopHetznerLive();
+  if (tab !== 'monitoring' && typeof stopMonitoringLive === 'function') stopMonitoringLive();
   if (tab === 'overview')   { loadOverview(); applyPermissionVisibility(); renderLiveFeed(); updateLiveFeedStatusBadge(); }
   if (tab === 'analytics')  loadAnalytics(currentAnDays || 7);
   if (tab === 'logs')       startLogPoll();
@@ -205,6 +208,7 @@ async function navigateTo(tab) {
   if (tab === 'squads')     loadSquads();
   if (tab === 'users')      loadUsers();
   if (tab === 'server')     checkServerAccess();
+  if (tab === 'monitoring')  startMonitoringLive();
 }
 
 // Alias für Abwärtskompatibilität mit altem Code

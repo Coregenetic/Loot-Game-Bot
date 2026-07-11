@@ -1,0 +1,112 @@
+<div class="space-y-4" id="monitoring-root">
+
+  <!-- Header mit Live-Indikator -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span class="text-xs font-mono text-emerald-400 uppercase tracking-widest">Live Monitoring</span>
+      </div>
+      <span class="text-[10px] font-mono text-slate-600 bg-emerald-500/5 border border-emerald-500/15 px-2 py-0.5 rounded-full">2s Intervall</span>
+    </div>
+    <span class="text-[10px] font-mono text-slate-600" id="mon-timestamp">—</span>
+  </div>
+
+  <!-- Kennzahl-Kacheln -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">CPU</div>
+      <div class="text-3xl font-bold font-mono" id="mon-cpu-val" style="color:#10b981;">—</div>
+      <div class="text-[10px] font-mono text-slate-600 mt-1">Auslastung</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">RAM</div>
+      <div class="text-3xl font-bold font-mono" id="mon-ram-val" style="color:#60a5fa;">—</div>
+      <div class="text-[10px] font-mono text-slate-600 mt-1" id="mon-ram-sub">von 4 GB</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">Disk</div>
+      <div class="text-3xl font-bold font-mono" id="mon-disk-val" style="color:#f59e0b;">—</div>
+      <div class="text-[10px] font-mono text-slate-600 mt-1" id="mon-disk-sub">von 40 GB</div>
+    </div>
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-4">
+      <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">Heap</div>
+      <div class="text-3xl font-bold font-mono" id="mon-heap-val" style="color:#a78bfa;">—</div>
+      <div class="text-[10px] font-mono text-slate-600 mt-1" id="mon-heap-sub">Node.js</div>
+    </div>
+  </div>
+
+  <!-- CPU Graph + RAM/Disk Balken -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <!-- CPU Graph -->
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">CPU Verlauf</div>
+        <span class="text-xs font-mono font-semibold" id="mon-cpu-graph-val" style="color:#10b981;">—</span>
+      </div>
+      <div class="relative h-32">
+        <canvas id="mon-cpu-chart"></canvas>
+      </div>
+      <div class="text-[9px] font-mono text-slate-700 mt-2">Letzte 2 Minuten · 60 Datenpunkte</div>
+    </div>
+
+    <!-- RAM + Disk Balken -->
+    <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+      <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-4">RAM & Disk</div>
+
+      <div class="mb-5">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs text-slate-400">RAM (System)</span>
+          <span class="text-xs font-mono text-white" id="mon-ram-detail">—</span>
+        </div>
+        <div class="h-2 bg-slate-900 rounded-full overflow-hidden mb-1">
+          <div id="mon-ram-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:#60a5fa;"></div>
+        </div>
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs text-slate-400">Heap (Node.js)</span>
+          <span class="text-xs font-mono text-white" id="mon-heap-detail">—</span>
+        </div>
+        <div class="h-2 bg-slate-900 rounded-full overflow-hidden">
+          <div id="mon-heap-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:#a78bfa;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs text-slate-400">Disk (SSD)</span>
+          <span class="text-xs font-mono text-white" id="mon-disk-detail">—</span>
+        </div>
+        <div class="h-2 bg-slate-900 rounded-full overflow-hidden">
+          <div id="mon-disk-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:#f59e0b;"></div>
+        </div>
+        <div class="text-[10px] font-mono text-slate-600 mt-1" id="mon-disk-free">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Netzwerk -->
+  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+    <div class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-4">Netzwerk</div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-4 text-center">
+        <div class="text-[10px] font-mono text-slate-500 mb-2">↓ Eingehend</div>
+        <div class="text-3xl font-bold font-mono text-emerald-400" id="mon-net-in">—</div>
+        <div class="text-[10px] font-mono text-slate-600 mt-1">KB/s</div>
+      </div>
+      <div class="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 text-center">
+        <div class="text-[10px] font-mono text-slate-500 mb-2">↑ Ausgehend</div>
+        <div class="text-3xl font-bold font-mono text-blue-400" id="mon-net-out">—</div>
+        <div class="text-[10px] font-mono text-slate-600 mt-1">KB/s</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  if (typeof startMonitoringLive === 'function') startMonitoringLive();
+</script>

@@ -52,9 +52,9 @@ function getRamStats() {
 // ─── Disk via df ─────────────────────────────────────────────────────────────
 function getDiskStats() {
     try {
-        const out = execSync('df /app/data --output=used,avail,size -B 1 | tail -1')
+        const out = execSync("df -k /app/data | awk 'NR==2{print $3, $4, $2}'")
             .toString().trim().split(/\s+/).map(Number);
-        const [used, avail, size] = out;
+        const [used, avail, size] = [out[0]*1024, out[1]*1024, out[2]*1024];
         return {
             usedGb:  parseFloat((used  / 1e9).toFixed(1)),
             freeGb:  parseFloat((avail / 1e9).toFixed(1)),
