@@ -28,6 +28,29 @@ function isReady() {
     return isConfigured() && !!BOT_USER_ID && !!BROADCASTER_USER_ID;
 }
 
+
+async function deleteExistingSubscriptions() {
+    try {
+        const token = await getUserAccessToken();
+        const res = await fetch(`${HELIX_BASE}/eventsub/subscriptions?type=channel.chat.message`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': getClientId() }
+        });
+        const data = await res.json();
+        const subs = data.data || [];
+        for (const sub of subs) {
+            try {
+                await fetch(`${HELIX_BASE}/eventsub/subscriptions?id=${sub.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Client-Id': getClientId() }
+                });
+                logger.info('EVENTSUB-SHADOW', `Alte Subscription gelöscht: ${sub.id}`);
+            } catch {}
+        }
+    } catch (err) {
+        logger.warn('EVENTSUB-SHADOW', 'Konnte alte Subscriptions nicht löschen: ' + err.message);
+    }
+}
+
 async function createChatMessageSubscription() {
     const token = await getUserAccessToken(); // WICHTIG: App-Token wird hier von Twitch abgelehnt
     const res = await fetch(`${HELIX_BASE}/eventsub/subscriptions`, {
@@ -94,9 +117,9 @@ function handleWebSocketMessage(raw) {
         case 'session_welcome':
             sessionId = data.payload.session.id;
             logger.info('EVENTSUB-SHADOW', 'WebSocket verbunden, Session ID erhalten.');
-            createChatMessageSubscription().catch(err =>
-                logger.error('EVENTSUB-SHADOW', err.message)
-            );
+            deleteExistingSubscriptions()
+                .then(() => createChatMessageSubscription())
+                .catch(err => logger.error('EVENTSUB-SHADOW', err.message));
             break;
 
         case 'session_reconnect': {
