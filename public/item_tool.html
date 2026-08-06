@@ -583,22 +583,16 @@
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('searchResults').classList.add('hidden');
             document.getElementById('searchResults').innerHTML = '';
-
-            const graphqlQuery = `
-            {
-                items(name: "${query}") { name shortName basePrice iconLink }
-            }`;
-
             try {
-                const response = await fetch('https://api.tarkov.dev/graphql', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify({ query: graphqlQuery })
-                });
-
-                const data = await response.json();
-                const items = data.data.items.filter(item => item.basePrice > 0).slice(0, 10);
-
+                const response = await fetch('https://json.tarkov.dev/pve/items');
+                const raw = await response.json();
+                const allItems = Object.values(raw.data?.items || raw);
+                const q = query.toLowerCase();
+                const toName = n => n.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const items = allItems
+                    .filter(item => item.normalizedName && item.normalizedName.toLowerCase().includes(q) && (item.basePrice || 0) > 0)
+                    .slice(0, 10)
+                    .map(item => ({ name: toName(item.normalizedName), shortName: item.shortName || item.normalizedName.split('-')[0], basePrice: item.basePrice || 0, iconLink: item.iconLink || '' }));
                 if (items.length === 0) {
                     document.getElementById('searchResults').innerHTML = '<p class="text-slate-500 text-xs font-mono uppercase p-3 bg-[#05080c] rounded border border-slate-800">No trading items found.</p>';
                 } else {
