@@ -1,4 +1,4 @@
- PlayerAPI = (() => {
+PlayerAPI = (() => {
     const TOKEN_KEY = 'lootgame_player_token';
 
     function getToken() {
@@ -43,6 +43,7 @@
         me:           () => call('/api/player-auth/me'),
         myStats:      () => call('/api/player-auth/my-stats'),
         myInventory:  () => call('/api/player-auth/my-inventory'),
+        sellItem:     (itemName, count) => call('/api/player-auth/sell-item', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ itemName, count }) }),
         leaderboard:  (limit) => call('/api/player-auth/leaderboard' + (limit ? '?limit=' + limit : '')),
         squad: {
             my:        () => call('/api/squad/my'),

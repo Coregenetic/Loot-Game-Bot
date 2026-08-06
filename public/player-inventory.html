@@ -43,6 +43,11 @@
       <span class="text-[11px] font-mono text-slate-500 whitespace-nowrap" id="itemCount">— Items</span>
     </div>
 
+    <div class="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 rounded-xl px-3 py-2">
+      <span class="text-xs text-slate-400">💰 Bargeld</span>
+      <span class="text-sm font-mono font-semibold text-emerald-400" id="balanceDisplay">—</span>
+    </div>
+
     <div class="flex items-center justify-between flex-wrap gap-2">
       <div class="flex gap-1.5 flex-wrap" id="catFilters">
         <span class="cat-pill on" data-cat="all">Alle</span>
@@ -68,6 +73,8 @@
 <script>
   let allItems = [];
   let curCat = 'all';
+  let sellModeItem = null;
+  let playerBalance = 0;
 
   function formatVal(v) {
     if (!v) return '0 ₽';
@@ -92,6 +99,7 @@
     if (sortMode === 'qty_asc')    items.sort((a,b) => a.count - b.count);
 
     document.getElementById('itemCount').textContent = allItems.length + ' Items';
+    document.getElementById('balanceDisplay').textContent = formatVal(playerBalance);
 
     const listEl = document.getElementById('invList');
     if (!items.length) {
@@ -102,28 +110,58 @@
     listEl.innerHTML = items.map(function(item) {
       const total = item.value * item.count;
       const icon = item.icon || FALLBACK_ICON;
-      return '<div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-900/30 border-l-[3px] border-slate-600 hover:bg-slate-800/30 transition-colors">' +
-          '<div class="flex items-center gap-3 min-w-0">' +
-            '<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/[0.04] overflow-hidden">' +
-              '<img src="' + icon + '" alt="" class="w-6 h-6 object-contain" onerror="this.src=\'' + FALLBACK_ICON + '\'">' +
+      const safeName = item.item_name.replace(/'/g, "\'");
+      const inSell = sellModeItem === item.item_name;
+      const cssSafe = item.item_name.replace(/[^a-zA-Z0-9]/g, '_');
+      const sellRow = inSell
+        ? '<div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-800">' +
+            '<input type="number" min="1" max="' + item.count + '" value="' + item.count + '" id="sq-' + cssSafe + '" class="w-16 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-center outline-none">' +
+            '<button onclick="confirmSell(\'' + safeName + '\')" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Bestätigen</button>' +
+            '<button onclick="cancelSell()" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono">Abbrechen</button>' +
+          '</div>'
+        : '';
+      return '<div class="px-3 py-2.5 rounded-xl bg-slate-900/30 border-l-[3px] border-slate-600 hover:bg-slate-800/30 transition-colors">' +
+          '<div class="flex items-center justify-between">' +
+            '<div class="flex items-center gap-3 min-w-0">' +
+              '<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/[0.04] overflow-hidden">' +
+                '<img src="' + icon + '" alt="" class="w-6 h-6 object-contain" onerror="this.src=\'' + FALLBACK_ICON + '\'">' +
+              '</div>' +
+              '<div class="min-w-0">' +
+                '<span class="text-sm text-slate-200 truncate block">' + item.item_name + '</span>' +
+                '<span class="text-xs font-mono text-slate-500 tabular-nums">' + item.count + 'x</span>' +
+              '</div>' +
             '</div>' +
-            '<div class="min-w-0">' +
-              '<span class="text-sm text-slate-200 truncate block">' + item.item_name + '</span>' +
-              '<span class="text-xs font-mono text-slate-500 tabular-nums">' + item.count + 'x</span>' +
+            '<div class="flex items-center gap-3 flex-shrink-0 ml-2">' +
+              '<div class="text-right">' +
+                '<div class="text-sm font-mono font-semibold text-amber-400 tabular-nums">' + formatVal(total) + '</div>' +
+                '<div class="text-xs font-mono text-slate-600 tabular-nums">' + formatVal(item.value) + '/Stk</div>' +
+              '</div>' +
+              '<button onclick="toggleSell(\'' + safeName + '\')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs font-mono">Verkaufen</button>' +
             '</div>' +
           '</div>' +
-          '<div class="text-right flex-shrink-0 ml-2">' +
-            '<div class="text-sm font-mono font-semibold text-amber-400 tabular-nums">' + formatVal(total) + '</div>' +
-            '<div class="text-xs font-mono text-slate-600 tabular-nums">' + formatVal(item.value) + '/Stk</div>' +
-          '</div>' +
+          sellRow +
         '</div>';
     }).join('');
+  }
+
+  function toggleSell(name) { sellModeItem = sellModeItem === name ? null : name; render(); }
+  function cancelSell() { sellModeItem = null; render(); }
+  async function confirmSell(name) {
+    const input = document.getElementById('sq-' + name.replace(/[^a-zA-Z0-9]/g, '_'));
+    const count = parseInt(input?.value || 1);
+    try {
+      const r = await PlayerAPI.sellItem(name, count);
+      playerBalance = r.newBalance;
+      sellModeItem = null;
+      await loadInventory();
+    } catch(e) { alert(e.message); }
   }
 
   async function loadInventory() {
     try {
       const data = await PlayerAPI.myInventory();
       allItems = data.inventory;
+      playerBalance = data.balance || 0;
       document.getElementById('loadingState').classList.add('hidden');
       document.getElementById('invContent').classList.remove('hidden');
       render();

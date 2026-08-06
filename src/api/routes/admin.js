@@ -13,6 +13,41 @@ const { createUser, userExists, getAllUsers, setUserRole, VALID_ROLES } = requir
 
 const MIN_PASSWORD_LENGTH = 10;
 
+// ─── Spiel-Balance (Wirtschaft) ────────────────────────────────────────────────
+const ECONOMY_FIELDS = ['SellRate'];
+
+router.get('/game-config', requirePermission('server:manage'), (req, res) => {
+    try {
+        const { getGeneral } = require('../../db/config');
+        const general = getGeneral();
+        const result = {};
+        for (const field of ECONOMY_FIELDS) result[field] = general[field];
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/game-config', requirePermission('server:manage'), (req, res) => {
+    try {
+        const { updateConfigField } = require('../../db/config');
+        const updates = {};
+        for (const field of ECONOMY_FIELDS) {
+            if (req.body[field] === undefined) continue;
+            const num = Number(req.body[field]);
+            if (Number.isNaN(num) || num < 0 || num > 1) {
+                return res.status(400).json({ error: field + ' muss zwischen 0 und 1 liegen.' });
+            }
+            updateConfigField('General', field, num);
+            updates[field] = num;
+        }
+        logAudit(req.session.username, 'game_config_update', updates);
+        res.json({ success: true, updates });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 router.get('/analytics', requirePermission('analytics:view'), (req, res) => {

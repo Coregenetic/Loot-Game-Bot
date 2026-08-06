@@ -1,10 +1,3 @@
-/**
- * Player-Auth — komplett getrennt vom Dashboard-Auth-System (auth.js/users.js).
- * Zuschauer loggen sich per Twitch-OAuth ein, um NUR ihre eigenen Spieler-Daten
- * zu sehen (Stash/Kappa/Inventar/Historie). Niemals Admin-Rechte, niemals
- * Verknüpfung zu dashboard_users. Der Username kommt ausschließlich aus der
- * verifizierten Twitch-Identität — niemals aus Query/Body/Param.
- */
 const express = require('express');
 const router  = express.Router();
 const crypto  = require('crypto');
@@ -218,8 +211,35 @@ router.get('/my-inventory', playerSessionAuth, (req, res) => {
         const { getPlayer, getInventory } = require('../../db/players');
         const player = getPlayer(req.playerUsername);
         if (!player) return res.status(404).json({ error: 'Kein Spieler-Profil gefunden.' });
+        res.json({ inventory: getInventory(player.id), balance: player.balance || 0 });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        res.json({ inventory: getInventory(player.id) });
+// ─── Item verkaufen ───────────────────────────────────────────────────────────
+router.post('/sell-item', playerSessionAuth, (req, res) => {
+    try {
+        const { getPlayer, getInventory, removeInventoryItem, updatePlayer } = require('../../db/players');
+        const { getGeneral } = require('../../db/config');
+        const player = getPlayer(req.playerUsername);
+        if (!player) return res.status(404).json({ error: 'Kein Spieler-Profil gefunden.' });
+        const { itemName, count } = req.body;
+        const sellCount = parseInt(count);
+        if (!itemName || !Number.isInteger(sellCount) || sellCount < 1) {
+            return res.status(400).json({ error: 'Ungültige Anfrage.' });
+        }
+        const inventory = getInventory(player.id);
+        const item = inventory.find(i => i.item_name === itemName);
+        if (!item) return res.status(404).json({ error: 'Item nicht im Inventar gefunden.' });
+        if (sellCount > item.count) return res.status(400).json({ error: 'Du hast nicht so viele davon.' });
+        const sellRate = getGeneral().SellRate ?? 0.8;
+        const earned = Math.round(item.value * sellCount * sellRate);
+        const removed = removeInventoryItem(player.id, itemName, sellCount);
+        if (!removed) return res.status(500).json({ error: 'Verkauf fehlgeschlagen.' });
+        const newBalance = (player.balance || 0) + earned;
+        updatePlayer(req.playerUsername, { balance: newBalance });
+        res.json({ success: true, earned, newBalance, sellRate });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -239,20 +259,23 @@ router.get('/leaderboard', playerSessionAuth, (req, res) => {
         const limit = Math.min(parseInt(req.query.limit) || 20, 100);
 
         const allPlayers = all(`
-            SELECT p.id, p.username, p.display_name, p.avatar_url, p.level,
+            SELECT p.id, p.username, p.display_name, p.avatar_url, p.level, p.balance,
                    COALESCE(SUM(i.count * i.value), 0) AS stash_value
             FROM players p LEFT JOIN inventory i ON i.player_id = p.id
             GROUP BY p.id
         `);
         const sorted = allPlayers
-            .sort((a, b) => b.stash_value - a.stash_value)
+            .map(p => ({ ...p, net_worth: p.stash_value + (p.balance || 0) }))
+            .sort((a, b) => b.net_worth - a.net_worth)
             .map((p, idx) => ({
                 rank: idx + 1,
                 username: p.username,
                 displayName: p.display_name || p.username,
                 avatarUrl: p.avatar_url || null,
                 level: p.level || 1,
-                stashValue: p.stash_value
+                stashValue: p.stash_value,
+                balance: p.balance || 0,
+                netWorth: p.net_worth
             }));
 
         const top = sorted.slice(0, limit);
