@@ -73,7 +73,6 @@
 <script>
   let allItems = [];
   let curCat = 'all';
-  let sellModeItem = null;
   let playerBalance = 0;
 
   function formatVal(v) {
@@ -111,15 +110,7 @@
       const total = item.value * item.count;
       const icon = item.icon || FALLBACK_ICON;
       const safeName = item.item_name.replace(/'/g, "\'");
-      const inSell = sellModeItem === item.item_name;
-      const cssSafe = item.item_name.replace(/[^a-zA-Z0-9]/g, '_');
-      const sellRow = inSell
-        ? '<div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-800">' +
-            '<input type="number" min="1" max="' + item.count + '" value="' + item.count + '" id="sq-' + cssSafe + '" class="w-16 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white text-center outline-none">' +
-            '<button onclick="confirmSell(\'' + safeName + '\')" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">Bestätigen</button>' +
-            '<button onclick="cancelSell()" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono">Abbrechen</button>' +
-          '</div>'
-        : '';
+
       return '<div class="px-3 py-2.5 rounded-xl bg-slate-900/30 border-l-[3px] border-slate-600 hover:bg-slate-800/30 transition-colors">' +
           '<div class="flex items-center justify-between">' +
             '<div class="flex items-center gap-3 min-w-0">' +
@@ -136,26 +127,80 @@
                 '<div class="text-sm font-mono font-semibold text-amber-400 tabular-nums">' + formatVal(total) + '</div>' +
                 '<div class="text-xs font-mono text-slate-600 tabular-nums">' + formatVal(item.value) + '/Stk</div>' +
               '</div>' +
-              '<button onclick="toggleSell(\'' + safeName + '\')" class="px-2.5 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs font-mono">Verkaufen</button>' +
+              '<button onclick="openSellModal(\'' + safeName + '\', ' + item.count + ', ' + item.value + ', \'' + icon + '\')" style="padding:6px 12px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);color:#f87171;font-size:11px;font-family:JetBrains Mono,monospace;cursor:pointer;">Verkaufen</button>' +
             '</div>' +
           '</div>' +
-          sellRow +
         '</div>';
     }).join('');
   }
 
-  function toggleSell(name) { sellModeItem = sellModeItem === name ? null : name; render(); }
-  function cancelSell() { sellModeItem = null; render(); }
-  async function confirmSell(name) {
-    const input = document.getElementById('sq-' + name.replace(/[^a-zA-Z0-9]/g, '_'));
-    const count = parseInt(input?.value || 1);
-    try {
-      const r = await PlayerAPI.sellItem(name, count);
-      playerBalance = r.newBalance;
-      sellModeItem = null;
-      await loadInventory();
-    } catch(e) { alert(e.message); }
+  let _modalItem = null;
+  let _modalValue = 0;
+
+  function formatVal(v) {
+    if (!v) return '0 ₽';
+    if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
+    if (v >= 1e6) return (v/1e6).toFixed(2) + 'M ₽';
+    if (v >= 1e3) return (v/1e3).toFixed(0) + 'K ₽';
+    return v + ' ₽';
   }
+
+  function openSellModal(name, maxCount, value, icon) {
+    _modalItem = name; _modalValue = value;
+    document.getElementById('modalItemName').textContent = name;
+    document.getElementById('modalItemValue').textContent = maxCount + 'x verfügbar · ' + formatVal(value) + '/Stk';
+    document.getElementById('modalIcon').src = icon;
+    document.getElementById('modalQty').max = maxCount;
+    document.getElementById('modalQty').value = 1;
+    document.getElementById('modalError').textContent = '';
+    updateModalEarned();
+    const modal = document.getElementById('sellModal');
+    modal.style.display = 'flex';
+  }
+
+  function closeSellModal() {
+    document.getElementById('sellModal').style.display = 'none';
+    _modalItem = null;
+  }
+
+  function modalQtyChange(delta) {
+    const input = document.getElementById('modalQty');
+    const newVal = Math.max(1, Math.min(parseInt(input.max), parseInt(input.value || 1) + delta));
+    input.value = newVal;
+    updateModalEarned();
+  }
+
+  function modalQtyMax() {
+    const input = document.getElementById('modalQty');
+    input.value = input.max;
+    updateModalEarned();
+  }
+
+  function updateModalEarned() {
+    const qty = parseInt(document.getElementById('modalQty').value || 1);
+    const rate = 0.8; // wird später vom Server geholt
+    const earned = Math.round(_modalValue * qty * rate);
+    document.getElementById('modalEarned').textContent = formatVal(earned);
+    document.getElementById('modalRateInfo').textContent = qty + 'x · ' + Math.round(rate * 100) + '% Verkaufsrate';
+  }
+
+  async function confirmSellModal() {
+    const qty = parseInt(document.getElementById('modalQty').value || 1);
+    const errEl = document.getElementById('modalError');
+    try {
+      const r = await PlayerAPI.sellItem(_modalItem, qty);
+      playerBalance = r.newBalance;
+      closeSellModal();
+      await loadInventory();
+    } catch(e) {
+      errEl.textContent = e.message;
+    }
+  }
+
+  // Klick außerhalb schließt Modal
+  document.getElementById('sellModal').addEventListener('click', function(e) {
+    if (e.target === this) closeSellModal();
+  });
 
   async function loadInventory() {
     try {
@@ -189,5 +234,40 @@
     loadInventory();
   }
 </script>
+
+<!-- Verkaufs-Modal -->
+<div id="sellModal" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:#0a0f18;border:1px solid rgba(16,185,129,0.2);border-radius:20px;padding:28px 24px;width:90%;max-width:360px;box-shadow:0 0 60px rgba(16,185,129,0.08);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <img id="modalIcon" src="" alt="" style="width:40px;height:40px;object-fit:contain;background:rgba(255,255,255,0.04);border-radius:10px;padding:6px;">
+      <div>
+        <div id="modalItemName" style="font-size:14px;font-weight:600;color:#e2e8f0;"></div>
+        <div id="modalItemValue" style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#64748b;margin-top:2px;"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <label style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:8px;">Menge</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="modalQtyChange(-1)" style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <input type="number" id="modalQty" min="1" value="1" style="flex:1;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#e2e8f0;font-size:15px;font-family:'JetBrains Mono',monospace;text-align:center;outline:none;" oninput="updateModalEarned()">
+        <button onclick="modalQtyChange(1)" style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button id="modalMaxBtn" onclick="modalQtyMax()" style="padding:0 12px;height:36px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#64748b;font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;">MAX</button>
+      </div>
+    </div>
+    <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;color:#64748b;">Du erhältst</span>
+        <span id="modalEarned" style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#10b981;">—</span>
+      </div>
+      <div id="modalRateInfo" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:#334155;margin-top:4px;text-align:right;"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeSellModal()" style="flex:1;padding:11px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:#64748b;font-size:13px;font-weight:600;cursor:pointer;">Abbrechen</button>
+      <button onclick="confirmSellModal()" style="flex:1;padding:11px;border-radius:10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(16,185,129,0.1);">Verkaufen ✓</button>
+    </div>
+    <div id="modalError" style="font-size:11px;color:#f87171;text-align:center;margin-top:10px;min-height:14px;font-family:'JetBrains Mono',monospace;"></div>
+  </div>
+</div>
+
 </body>
 </html>
