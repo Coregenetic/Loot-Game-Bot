@@ -186,6 +186,8 @@ router.get('/my-stats', playerSessionAuth, (req, res) => {
             prestige: player.prestige || 0,
             hasKappa: player.has_kappa === 1,
             stashValue,
+            balance: player.balance || 0,
+            netWorth: stashValue + (player.balance || 0),
             rank,
             totalPlayers: sorted.length,
             raidsTotal: player.raids_total || 0,

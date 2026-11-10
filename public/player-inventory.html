@@ -197,9 +197,12 @@
     }
   }
 
-  // Klick außerhalb schließt Modal
-  document.getElementById('sellModal').addEventListener('click', function(e) {
-    if (e.target === this) closeSellModal();
+  // Klick außerhalb schließt Modal — nach DOM-Load
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('sellModal');
+    if (modal) modal.addEventListener('click', function(e) {
+      if (e.target === this) closeSellModal();
+    });
   });
 
   async function loadInventory() {

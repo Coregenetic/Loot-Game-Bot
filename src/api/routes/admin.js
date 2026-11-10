@@ -265,7 +265,7 @@ router.post('/give-item', requirePermission('players:manage'), async (req, res) 
         const { getAllItems } = require('../../db/items');
 
         const items = getAllItems();
-        const item  = items.find(i => (i.text || i.name).toLowerCase() === itemName.toLowerCase());
+        const item  = items.find(i => i.name.toLowerCase() === itemName.toLowerCase() || (i.text && i.text.toLowerCase() === itemName.toLowerCase()));
         if (!item) return res.status(404).json({ error: 'Item nicht in der Datenbank gefunden' });
 
         const player = await getOrCreatePlayer(username);

@@ -21,7 +21,8 @@ function setMaintenance(active, client) {
             ? '🔧 Das Loot-Game ist jetzt im Wartungsmodus. Wir sind gleich zurück!'
             : '✅ Das Loot-Game ist wieder verfügbar! Viel Erfolg beim Looten!';
         for (const ch of activeChannels) {
-            client.say(`#${ch}`, msg).catch(() => {});
+            // über chatSender: bei COMMAND_SOURCE=eventsub via Helix (nur eigener Chat bei Stream Together)
+            require('./utils/chatSender').sendChatMessage(`#${ch}`, msg).catch(() => {});
         }
     }
 }
@@ -34,7 +35,8 @@ function setTournament(active, client) {
             ? '🏆 Das Loot-Game ist während des Raids pausiert. Nach dem Raid geht es weiter!'
             : '✅ Das Loot-Game ist wieder aktiv — viel Spaß beim Looten!';
         for (const ch of activeChannels) {
-            client.say(`#${ch}`, msg).catch(() => {});
+            // über chatSender: bei COMMAND_SOURCE=eventsub via Helix (nur eigener Chat bei Stream Together)
+            require('./utils/chatSender').sendChatMessage(`#${ch}`, msg).catch(() => {});
         }
     }
 }

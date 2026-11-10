@@ -98,7 +98,9 @@ async function sendChatMessage(text) {
         body: JSON.stringify({
             broadcaster_id: BROADCASTER_USER_ID,
             sender_id: BOT_USER_ID,
-            message: text
+            message: text,
+            // Stream Together / Shared Chat: Antworten nur im eigenen Chat, nicht in den Gast-Chats
+            for_source_only: true
         })
     });
 
@@ -136,6 +138,11 @@ function handleWebSocketMessage(raw) {
                 // Eigene Nachrichten des Bots selbst ignorieren (sonst Endlos-Risiko,
                 // genau wie tmi.js' "self"-Check)
                 if (event.chatter_user_id === BOT_USER_ID) break;
+
+                // Stream Together / Shared Chat: Nachrichten aus fremden Chats werden
+                // hier gespiegelt. source_broadcaster_user_id ist dann der fremde Kanal.
+                // Solche Nachrichten ignorieren wir komplett (kein Loot, keine Befehle).
+                if (event.source_broadcaster_user_id && event.source_broadcaster_user_id !== BROADCASTER_USER_ID) break;
 
                 // Twitch hängt manchmal unsichtbare Anti-Duplikat-Zeichen an —
                 // für saubere Command-Erkennung entfernen
