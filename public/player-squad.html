@@ -4,114 +4,98 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Squad — Loot-Game Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<link rel="stylesheet" href="css/hub-ui.css">
 <script src="player-api.js"></script>
-<style>
-  body { background-color: #05080c; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-  .glass-card { background: rgba(15,23,42,0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-</style>
 </head>
-<body class="min-h-screen pb-10">
+<body>
+<div class="app">
 
-<header class="border-b border-slate-800/60 px-4 md:px-6 py-3 flex items-center justify-between">
-  <a href="player-hub.html" class="text-sm font-mono text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-    Player Hub
-  </a>
-  <span class="text-sm font-semibold tracking-wide text-white uppercase">Squad</span>
-</header>
+  <div class="topbar">
+    <div class="brand"><div class="brand-mark">👥</div><div>Squad<small>Loot-Game Hub</small></div></div>
+    <button class="btn sm" onclick="PlayerAPI.logout()"><i class="ti ti-logout"></i>Abmelden</button>
+  </div>
 
-<main class="max-w-2xl mx-auto p-4 md:p-6 space-y-4">
+  <div id="loadingState" class="state"><div class="spinner"></div>Lade...</div>
+  <div id="errorState" class="hidden state"><p class="t-pink" id="errorMsg"></p></div>
 
-  <div id="loadingState" class="text-center py-20 text-slate-500 text-base font-mono">Lade...</div>
-  <div id="errorState" class="hidden text-center py-20"><p class="text-rose-400 text-base" id="errorMsg"></p></div>
-
-  <div id="content" class="hidden space-y-4">
+  <div id="content" class="hidden stack">
 
     <!-- OFFENE EINLADUNGEN -->
-    <div id="invitesCard" class="hidden glass-card border border-amber-500/30 rounded-2xl p-4" style="background:rgba(245,158,11,0.06);">
-      <div class="text-xs font-mono text-amber-400 uppercase tracking-wide mb-3">Offene Einladungen</div>
-      <div id="invitesList" class="space-y-2"></div>
+    <div id="invitesCard" class="hidden card rise" style="--i:0;background:rgba(255,212,119,.06);border-color:rgba(255,212,119,.3)">
+      <div class="lbl t-gold" style="margin-bottom:12px">Offene Einladungen</div>
+      <div id="invitesList" class="stack" style="gap:10px"></div>
     </div>
 
     <!-- KEIN SQUAD: ERSTELLEN -->
-    <div id="noSquadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl p-5">
-      <h3 class="text-base font-semibold text-white mb-1">Du bist in keinem Squad</h3>
-      <p class="text-sm text-slate-500 mb-4">Erstelle ein eigenes Squad und lade bis zu 4 Mitspieler ein — ihr geht dann gemeinsam in den Raid, mit geteiltem Risiko.</p>
-      <div class="flex gap-2">
-        <input id="newSquadName" type="text" placeholder="Squad-Name" maxlength="40" class="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-base text-white focus:border-emerald-500 outline-none">
-        <button onclick="createSquad()" class="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-semibold text-base hover:bg-emerald-400 transition-colors whitespace-nowrap">Erstellen</button>
+    <div id="noSquadCard" class="hidden card rise" style="--i:1">
+      <h3 class="h2">Du bist in keinem Squad</h3>
+      <p class="muted" style="font-size:14px;margin:8px 0 18px;line-height:1.6">Erstelle ein eigenes Squad und lade bis zu 4 Mitspieler ein — ihr geht dann gemeinsam in den Raid, mit geteiltem Risiko.</p>
+      <div class="row">
+        <input id="newSquadName" type="text" placeholder="Squad-Name" maxlength="40" class="input" onkeydown="if(event.key==='Enter')createSquad()">
+        <button onclick="createSquad()" class="btn primary">Erstellen</button>
       </div>
     </div>
 
     <!-- SQUAD VORHANDEN -->
-    <div id="squadCard" class="hidden glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-slate-800/60">
-        <div class="flex items-start justify-between mb-3.5">
-          <div class="flex items-center gap-3">
-            <div id="squadIconBadge" class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);">🎯</div>
-            <div>
-              <div class="text-lg font-semibold text-white" id="squadName">—</div>
-              <div class="text-sm font-mono text-slate-500 mt-0.5" id="squadLeaderLabel">—</div>
+    <div id="squadCard" class="hidden card pad0 rise" style="--i:1">
+      <div style="padding:20px;border-bottom:1px solid var(--line)">
+        <div class="row between" style="align-items:flex-start;margin-bottom:18px;gap:12px;flex-wrap:wrap">
+          <div class="row" style="gap:14px;min-width:0;flex:1 1 200px">
+            <div id="squadIconBadge" style="width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:26px;flex:none;background:rgba(91,140,255,.12);border:1px solid rgba(91,140,255,.3)">🎯</div>
+            <div style="min-width:0">
+              <div class="h2" id="squadName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+              <div class="dim" style="font-size:13px;margin-top:3px" id="squadLeaderLabel">—</div>
             </div>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button id="customizeBtn" onclick="toggleCustomizePanel()" class="hidden text-sm font-mono text-slate-400 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800">Anpassen</button>
-            <button onclick="leaveSquad()" class="text-sm font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10">Verlassen</button>
+          <div class="row" style="gap:8px;flex:none">
+            <button id="customizeBtn" onclick="toggleCustomizePanel()" class="hidden btn sm"><i class="ti ti-palette"></i>Anpassen</button>
+            <button onclick="leaveSquad()" class="btn sm danger">Verlassen</button>
           </div>
         </div>
 
-        <div id="customizePanel" class="hidden mb-3.5 p-3 rounded-xl bg-slate-950/50 border border-slate-800 space-y-2.5">
-          <div>
-            <div class="text-xs font-mono text-slate-500 uppercase mb-1.5">Icon</div>
-            <div id="iconPicker" class="flex gap-1.5 flex-wrap"></div>
-          </div>
-          <div>
-            <div class="text-xs font-mono text-slate-500 uppercase mb-1.5">Farbe</div>
-            <div id="colorPicker" class="flex gap-1.5 flex-wrap"></div>
-          </div>
+        <div id="customizePanel" class="hidden card sm" style="margin-bottom:18px;background:rgba(0,0,0,.2)">
+          <div class="lbl" style="margin-bottom:8px">Icon</div>
+          <div id="iconPicker" class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+          <div class="lbl" style="margin-bottom:8px">Farbe</div>
+          <div id="colorPicker" class="row" style="flex-wrap:wrap;gap:10px"></div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div id="avatarStack" class="flex items-center shrink-0"></div>
-          <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div id="memberProgressBar" class="h-full bg-emerald-500 rounded-full transition-all" style="width:0%"></div>
-          </div>
-          <span class="text-sm font-mono text-emerald-400 shrink-0" id="memberCountLabel">—</span>
+        <div class="row" style="gap:14px">
+          <div id="avatarStack" class="row" style="gap:0;flex:none"></div>
+          <div class="bar green grow"><i id="memberProgressBar" style="width:0%"></i></div>
+          <span class="pill green num" id="memberCountLabel">—</span>
         </div>
       </div>
 
-      <div class="p-5">
-        <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-3">Mitglieder</div>
-        <div id="memberGrid" class="grid grid-cols-2 gap-2.5"></div>
+      <div style="padding:20px">
+        <div class="lbl" style="margin-bottom:12px">Mitglieder</div>
+        <div id="memberGrid" class="grid2 sm1" style="gap:10px"></div>
       </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-3">
-      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[11px] font-mono text-slate-500 uppercase">Gemeinsamer Stash</div>
-        <div class="text-base font-semibold text-amber-400 font-mono mt-1" id="statCombinedStash">—</div>
-      </div>
-      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[11px] font-mono text-slate-500 uppercase">Raids zusammen</div>
-        <div class="text-base font-semibold text-white font-mono mt-1" id="statRaidsTogether">—</div>
-      </div>
-      <div class="glass-card border border-slate-700/50 rounded-xl p-3.5 text-center">
-        <div class="text-[11px] font-mono text-slate-500 uppercase">Überlebensrate</div>
-        <div class="text-base font-semibold text-emerald-400 font-mono mt-1" id="statSurvivalRate">—</div>
+    <div class="card pad0 rise" style="--i:2">
+      <div class="grid3" style="gap:0">
+        <div class="stat"><div class="v t-gold num" id="statCombinedStash" style="font-size:18px">—</div><div class="l">Gem. Stash</div></div>
+        <div class="stat" style="border-left:1px solid var(--line);border-right:1px solid var(--line)"><div class="v num" id="statRaidsTogether">—</div><div class="l">Raids zusammen</div></div>
+        <div class="stat"><div class="v t-green num" id="statSurvivalRate">—</div><div class="l">Überleben</div></div>
       </div>
     </div>
 
-    <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden">
-      <div class="px-5 py-3 border-b border-slate-800/60 text-xs font-mono text-slate-500 uppercase tracking-widest">Letzte gemeinsame Raids</div>
-      <div id="squadHistoryList" class="divide-y divide-slate-800/40"></div>
+    <div class="card pad0 rise" style="--i:3">
+      <div class="card-head lbl">Letzte gemeinsame Raids</div>
+      <div id="squadHistoryList" class="list"></div>
     </div>
   </div>
-</main>
+</div>
+
+<nav class="dock">
+  <a href="player-hub.html"><i class="ti ti-home-2"></i><span>Hub</span></a>
+  <a href="player-inventory.html"><i class="ti ti-backpack"></i><span>Inventar</span></a>
+  <a href="player-leaderboard.html"><i class="ti ti-trophy"></i><span>Rangliste</span></a>
+  <a href="player-squad.html" class="on"><i class="ti ti-users"></i><span>Squad</span></a>
+</nav>
 
 <script>
   let mySquad = null;
@@ -124,7 +108,8 @@
     const el = document.getElementById(elId);
     if (!el) return;
     el.textContent = msg;
-    el.className = 'text-sm font-mono mt-2 min-h-[14px] ' + (ok ? 'text-emerald-400' : 'text-rose-400');
+    el.className = 'mono ' + (ok ? 't-green' : 't-pink');
+    el.style.cssText = 'font-size:12px;margin-top:8px;min-height:14px';
   }
 
   function formatVal(v) {
@@ -137,13 +122,13 @@
 
   function avatarCircleHTML(m, size, color, borderStyle) {
     const inner = m.avatarUrl
-      ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+      ? `<img src="${m.avatarUrl}" alt="" onerror="this.style.display='none'">`
       : (m.displayName || m.username).slice(0,2).toUpperCase();
-    const border = borderStyle || `border:2px solid #05080c;`;
+    const ring = borderStyle || `box-shadow:0 0 0 2px var(--bg);`;
     const dot = m.online !== undefined
-      ? `<span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #05080c;background:${m.online ? '#10b981' : '#475569'};"></span>`
+      ? `<span class="dot" style="background:${m.online ? '#34d27b' : '#4a5270'};"></span>`
       : '';
-    return `<div style="width:${size}px;height:${size}px;color:${color};${border}" class="rounded-full bg-slate-800 flex items-center justify-center text-sm font-semibold overflow-hidden relative">${inner}${dot}</div>`;
+    return `<div class="av" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.34)}px;${ring}">${inner}${dot}</div>`;
   }
 
   async function loadAll() {
@@ -159,14 +144,14 @@
       if (invitesData.invites.length) {
         document.getElementById('invitesCard').classList.remove('hidden');
         document.getElementById('invitesList').innerHTML = invitesData.invites.map(inv => `
-          <div class="flex items-center justify-between bg-slate-950/40 rounded-xl px-3 py-2.5">
-            <div>
-              <div class="text-base text-white">${inv.name}</div>
-              <div class="text-xs font-mono text-slate-500">von ${inv.leader_username}</div>
+          <div class="row between card sm" style="background:rgba(0,0,0,.18);gap:10px">
+            <div style="min-width:0">
+              <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${inv.name}</div>
+              <div class="dim" style="font-size:12px">von ${inv.leader_username}</div>
             </div>
-            <div class="flex gap-2">
-              <button onclick="respondInvite(${inv.squad_id}, true)" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-sm font-mono transition-colors">Annehmen</button>
-              <button onclick="respondInvite(${inv.squad_id}, false)" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white text-sm font-mono transition-colors">Ablehnen</button>
+            <div class="row" style="gap:8px;flex:none">
+              <button onclick="respondInvite(${inv.squad_id}, true)" class="btn sm good">Annehmen</button>
+              <button onclick="respondInvite(${inv.squad_id}, false)" class="btn sm">Ablehnen</button>
             </div>
           </div>`).join('');
       } else {
@@ -191,7 +176,7 @@
     }
   }
 
-  const MEMBER_COLORS = ['#10b981', '#60a5fa', '#f59e0b', '#f472b6', '#a78bfa'];
+  const MEMBER_COLORS = ['#34d27b', '#5b8cff', '#ffd477', '#ff5c8a', '#a56bff'];
 
   function renderSquad() {
     document.getElementById('squadCard').classList.remove('hidden');
@@ -207,17 +192,17 @@
 
     const iconBadge = document.getElementById('squadIconBadge');
     iconBadge.textContent = mySquad.icon || '🎯';
-    iconBadge.style.background = (mySquad.color || '#10b981') + '1a';
-    iconBadge.style.border = '1px solid ' + (mySquad.color || '#10b981') + '40';
+    iconBadge.style.background = (mySquad.color || '#5b8cff') + '1f';
+    iconBadge.style.border = '1px solid ' + (mySquad.color || '#5b8cff') + '55';
 
     document.getElementById('customizeBtn').classList.toggle('hidden', !isLeader);
     document.getElementById('memberProgressBar').style.width = (accepted.length / 5 * 100) + '%';
 
     const stackShown = accepted.slice(0, 3);
     const overflow = accepted.length - stackShown.length;
-    let stackHTML = stackShown.map((m, i) => `<div style="margin-left:${i === 0 ? 0 : -12}px;z-index:${10-i};position:relative;">${avatarCircleHTML(m, 34, MEMBER_COLORS[i % MEMBER_COLORS.length])}</div>`).join('');
+    let stackHTML = stackShown.map((m, i) => `<div style="margin-left:${i === 0 ? 0 : -12}px;z-index:${10-i};position:relative;">${avatarCircleHTML(m, 38, MEMBER_COLORS[i % MEMBER_COLORS.length])}</div>`).join('');
     if (overflow > 0) {
-      stackHTML += `<div style="margin-left:-12px;width:34px;height:34px;" class="rounded-full bg-slate-900 border-2 border-dashed border-slate-700 flex items-center justify-center text-xs text-slate-500 font-mono">+${overflow}</div>`;
+      stackHTML += `<div class="av" style="margin-left:-12px;width:38px;height:38px;font-size:12px;background:var(--bg2);box-shadow:0 0 0 2px var(--bg);color:var(--tx3)">+${overflow}</div>`;
     }
     document.getElementById('avatarStack').innerHTML = stackHTML;
 
@@ -226,31 +211,28 @@
       const isPending = m.status === 'pending';
       const color = MEMBER_COLORS[i % MEMBER_COLORS.length];
       return `
-        <div class="rounded-xl p-3 flex items-center gap-2.5 ${isPending ? 'bg-amber-500/5 border border-dashed border-amber-500/30' : 'bg-slate-900/50'}">
-          ${avatarCircleHTML(m, 40, color, `border:1px solid ${color}66;`)}
-          <div class="min-w-0">
-            <div class="text-sm ${isPending ? 'text-amber-400' : 'text-slate-200'} truncate">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
-            <div class="text-xs font-mono ${isPending ? 'text-amber-600' : 'text-slate-500'}">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
+        <div class="member ${isPending ? 'pending' : ''}">
+          ${avatarCircleHTML(m, 42, color, `box-shadow:0 0 0 2px ${color}88;`)}
+          <div class="grow">
+            <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="${isPending ? 't-gold' : ''}">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
+            <div class="dim mono" style="font-size:11px;margin-top:2px">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
           </div>
-          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="ml-auto text-slate-600 hover:text-rose-400 transition-colors shrink-0" title="Entfernen">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>` : ''}
+          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="iconbtn" title="Entfernen"><i class="ti ti-x"></i></button>` : ''}
         </div>`;
     });
 
     if (isLeader && slotsUsed < 5) {
       memberCards.push(inviteTileActive ? `
-        <div class="rounded-xl p-2.5 border border-dashed border-emerald-500/30 bg-emerald-500/5 relative">
-          <div class="flex items-center gap-1.5">
-            <input id="inviteSearch" type="text" placeholder="Spieler suchen..." autocomplete="off" oninput="searchPlayers(this.value)" class="flex-1 bg-slate-950/60 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white focus:border-emerald-500 outline-none">
-            <button onclick="closeInviteTile()" class="text-slate-500 hover:text-white shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        <div class="member" style="position:relative;display:block;border-style:dashed;border-color:rgba(91,140,255,.4);background:rgba(91,140,255,.05)">
+          <div class="row" style="gap:8px">
+            <input id="inviteSearch" type="text" placeholder="Spieler suchen..." autocomplete="off" oninput="searchPlayers(this.value)" class="input" style="padding:8px 12px;font-size:14px">
+            <button onclick="closeInviteTile()" class="iconbtn"><i class="ti ti-x"></i></button>
           </div>
-          <div id="inviteDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl max-h-48 overflow-y-auto shadow-xl"></div>
-          <div id="inviteMsg" class="text-xs font-mono mt-1.5 min-h-[12px]"></div>
+          <div id="inviteDropdown" class="hidden drop"></div>
+          <div id="inviteMsg" class="mono" style="font-size:12px;margin-top:6px;min-height:12px"></div>
         </div>` : `
-        <div onclick="event.stopPropagation(); openInviteTile()" class="rounded-xl p-3 border border-dashed border-slate-700 flex items-center justify-center gap-2 cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors">
-          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          <span class="text-sm text-slate-500">Mitspieler einladen</span>
+        <div onclick="event.stopPropagation(); openInviteTile()" class="member add">
+          <i class="ti ti-plus"></i><span>Mitspieler einladen</span>
         </div>`);
     }
 
@@ -272,10 +254,10 @@
 
   function renderPickers() {
     document.getElementById('iconPicker').innerHTML = squadOptions.icons.map(icon => `
-      <button onclick="selectIcon('${icon}')" class="w-9 h-9 rounded-lg flex items-center justify-center text-base transition-all ${mySquad.icon === icon ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-slate-800 border border-slate-700 hover:border-slate-600'}">${icon}</button>
+      <button onclick="selectIcon('${icon}')" class="pick ${mySquad.icon === icon ? 'on' : ''}">${icon}</button>
     `).join('');
     document.getElementById('colorPicker').innerHTML = squadOptions.colors.map(color => `
-      <button onclick="selectColor('${color}')" style="background:${color};" class="w-7 h-7 rounded-full ${mySquad.color === color ? 'ring-2 ring-offset-2 ring-offset-[#05080c] ring-white' : ''}"></button>
+      <button onclick="selectColor('${color}')" style="background:${color};" class="swatch ${mySquad.color === color ? 'on' : ''}"></button>
     `).join('');
   }
 
@@ -309,24 +291,20 @@
       const { history } = await PlayerAPI.squad.history();
       const listEl = document.getElementById('squadHistoryList');
       if (!history.length) {
-        listEl.innerHTML = '<p class="text-sm font-mono text-slate-600 p-4">Noch keine gemeinsamen Raids.</p>';
+        listEl.innerHTML = '<p class="empty">Noch keine gemeinsamen Raids.</p>';
         return;
       }
       listEl.innerHTML = history.map(h => {
         const date = new Date(h.resolvedAt * 1000).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
         const names = h.participants.join(', ');
         return `
-          <div class="flex items-center justify-between px-5 py-2.5">
-            <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg flex items-center justify-center ${h.survived ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400' : 'bg-rose-500/10 border border-rose-500/25 text-rose-400'}">
-                ${h.survived ? '✓' : '💀'}
-              </div>
-              <div>
-                <div class="text-sm text-slate-200">${h.map || 'Unbekannt'}</div>
-                <div class="text-xs font-mono text-slate-500">${names}</div>
-              </div>
+          <div>
+            <div class="badge-ico ${h.survived ? 'ok' : 'bad'}"><i class="ti ${h.survived ? 'ti-check' : 'ti-skull'}"></i></div>
+            <div class="grow">
+              <div style="font-weight:700;font-size:14px">${h.map || 'Unbekannt'}</div>
+              <div class="dim" style="font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${names}</div>
             </div>
-            <span class="text-xs font-mono text-slate-500">${date}</span>
+            <span class="dim mono" style="font-size:11px;flex:none">${date}</span>
           </div>`;
       }).join('');
     } catch (_) {}
@@ -376,13 +354,13 @@
         if (!data.players.length) { dropdown.classList.add('hidden'); return; }
         dropdown.innerHTML = data.players.map(p => {
           const avatarInner = p.avatarUrl
-            ? `<img src="${p.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+            ? `<img src="${p.avatarUrl}" alt="" onerror="this.style.display='none'">`
             : p.displayName.slice(0,2).toUpperCase();
           return `
-          <div onclick="invitePlayer('${p.username}')" class="px-3 py-2 hover:bg-slate-800 cursor-pointer text-base text-slate-200 flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 overflow-hidden relative shrink-0" style="font-family:'JetBrains Mono',monospace;">${avatarInner}</div>
-            <span class="flex-1">${p.displayName}</span>
-            <span class="text-xs font-mono text-slate-500">Lvl ${p.level}</span>
+          <div onclick="invitePlayer('${p.username}')">
+            <div class="av sm">${avatarInner}</div>
+            <span class="grow" style="font-weight:600">${p.displayName}</span>
+            <span class="dim mono" style="font-size:11px">Lvl ${p.level}</span>
           </div>`;
         }).join('');
         dropdown.classList.remove('hidden');
