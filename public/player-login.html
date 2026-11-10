@@ -9,116 +9,109 @@
 <link rel="stylesheet" href="css/hub-ui.css">
 <script src="player-api.js"></script>
 <style>
-  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
-  .landing{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;align-items:start}
-  @media(max-width:820px){.landing{grid-template-columns:1fr}.landing .login-col{order:-1}}
-  .hero-ico{width:68px;height:68px;border-radius:22px;margin:0 auto 18px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,rgba(91,140,255,.25),rgba(165,107,255,.25));border:1px solid var(--line-hi);box-shadow:0 12px 40px rgba(91,140,255,.25)}
-  .cmd{display:grid;grid-template-columns:104px 1fr;gap:14px;align-items:start;padding:14px 18px;border-bottom:1px solid var(--line)}
-  .cmd:last-child{border-bottom:0}
-  .cmd code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;padding:4px 10px;border-radius:999px;justify-self:start}
-  .cmd code.g{background:rgba(255,212,119,.14);color:var(--gold)}
-  .cmd code.i{background:rgba(91,140,255,.16);color:var(--blue)}
-  .cmd code.o{background:rgba(255,92,138,.14);color:var(--pink)}
-  .cmd p{font-size:13px;color:var(--tx2);line-height:1.55;padding-top:2px}
-  .sec{display:flex;align-items:center;gap:8px;margin:22px 4px 10px}
-  .sec:first-of-type{margin-top:0}
-  details.admin summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--tx3);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-  details.admin summary::-webkit-details-marker{display:none}
-  details.admin summary i.chev{margin-left:auto;transition:transform .25s var(--ease)}
-  details.admin[open] summary i.chev{transform:rotate(180deg)}
-  details.admin .body{display:flex;flex-direction:column;gap:10px;margin-top:16px}
-  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px}
-  .tiles div{padding:12px 4px;border-radius:var(--r-sm);background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:11px;font-weight:700;color:var(--tx3);text-align:center}
-  .tiles div i{display:block;font-size:22px;margin-bottom:5px;color:var(--tx2)}
-  .errbox{padding:10px 14px;border-radius:var(--r-xs);background:rgba(255,92,138,.1);border:1px solid rgba(255,92,138,.3);color:var(--pink);font-size:13px;text-align:left;margin-bottom:14px}
+  body{background-image:
+    radial-gradient(900px 520px at 100% 0%,rgba(255,92,138,.16),transparent 62%),
+    radial-gradient(1000px 640px at 0% 0%,rgba(91,140,255,.16),transparent 60%),
+    radial-gradient(700px 500px at 50% 110%,rgba(165,107,255,.12),transparent 60%)}
+  .orb{position:fixed;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0;animation:float 9s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 28px 56px}
+  .head{display:flex;align-items:center;justify-content:space-between;padding:26px 0 8px}
+  .split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:stretch}
+  .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .hero{padding:52px 48px;display:flex;flex-direction:column;gap:24px;justify-content:center;min-height:440px}
+  .hero h1{font-size:clamp(44px,6vw,72px);line-height:1;letter-spacing:-.045em;font-weight:800}
+  .grad{background:linear-gradient(90deg,#5b8cff,#ff5c8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:18px;line-height:1.55;max-width:480px;color:var(--tx2)}
+  .btn.twitch.xl{min-height:60px;padding:0 28px;font-size:16px;border-radius:18px;align-self:flex-start}
+  .adm{padding:32px;display:flex;flex-direction:column;gap:14px;justify-content:center}
+  .adm label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700}
+  .adm .input{min-height:50px}
+  .ico{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-size:22px}
+  .cmds{margin-top:18px;display:flex;flex-direction:column}
+  .cmds div{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:start}
+  .cmds code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px}
+  .cmds p{font-size:13px;line-height:1.5;color:var(--tx2)}
+  .errbox{padding:10px 14px;border-radius:var(--r-xs);background:rgba(255,92,138,.1);border:1px solid rgba(255,92,138,.3);color:var(--pink);font-size:13px}
+  @media(max-width:900px){
+    .split,.three{grid-template-columns:minmax(0,1fr)}
+    .wrap{padding:0 16px 40px}.hero{padding:30px 22px;min-height:0}.adm{padding:22px}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="orb" style="width:360px;height:360px;background:rgba(91,140,255,.2);left:-80px;top:120px"></div>
+<div class="orb" style="width:300px;height:300px;background:rgba(255,92,138,.16);right:-60px;top:420px;animation-delay:-4s"></div>
 
-  <div class="topbar rise" style="--i:0">
-    <div class="brand"><div class="brand-mark">🎯</div><div>Loot-Game Hub<small>lootgamebot.de</small></div></div>
+<div class="wrap">
+  <header class="head rise" style="--i:0">
+    <div class="brand" style="font-size:18px"><div class="brand-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">🎯</div><div>Loot-Game <span class="muted" style="font-weight:500">Hub</span></div></div>
     <a href="https://twitch.tv/gunnyonetv" target="_blank" rel="noopener" class="btn sm" style="color:#b88bff;border-color:rgba(145,70,255,.35)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L21.43 12.857V0zm13.714 12L18 14.143h-3.429l-3 3v-3H7.286V1.714h12.428z"/></svg>
       GunnyOneTV
     </a>
-  </div>
+  </header>
 
-  <div class="landing">
-
-    <!-- Links: Commands -->
-    <div>
-      <div class="rise" style="--i:1;margin:0 4px 22px">
-        <div class="lbl t-blue">Twitch Chat · #gunnyonetv</div>
-        <h1 class="h1" style="font-size:34px;margin-top:8px">Alle Commands</h1>
-        <p class="muted" style="margin-top:6px;font-size:14px">Tippe diese Befehle live im Chat des Streams.</p>
-      </div>
-
-      <div class="sec lbl t-gold rise" style="--i:2"><i class="ti ti-swords"></i>Gameplay</div>
-      <div class="card pad0 rise" style="--i:2">
-        <div class="cmd"><code class="g">!loot</code><p>Starte einen Raid auf einer zufälligen Map und loote Items. Cooldown läuft bis zur Exfil — danach wieder verfügbar.</p></div>
-        <div class="cmd"><code class="g">!prestige</code><p>Setzt Level und XP zurück gegen einen Prestige-Stern mit permanentem XP-Bonus. Erst ab <strong style="color:var(--tx)">Level 70</strong> verfügbar.</p></div>
-        <div class="cmd"><code class="g">!kappa</code><p>Zeigt deinen Kappa Container Fortschritt. Sammle alle Quest-Items um in die Legende einzugehen.</p></div>
-      </div>
-
-      <div class="sec lbl t-blue rise" style="--i:3"><i class="ti ti-info-circle"></i>Info</div>
-      <div class="card pad0 rise" style="--i:3">
-        <div class="cmd"><code class="i">!stash</code><p>Zeigt den aktuellen Gesamtwert deines Stashs in Rubeln (₽).</p></div>
-        <div class="cmd"><code class="i">!toplooter</code><p>Zeigt den Spieler mit dem höchsten Gesamtvermögen im Leaderboard.</p></div>
-        <div class="cmd"><code class="i">!stats</code><p>Sendet dir den Link zum Player Hub mit deinen vollständigen Stats, Inventar und Squad.</p></div>
-      </div>
-
-      <div class="sec lbl t-pink rise" style="--i:4"><i class="ti ti-device-desktop"></i>Overlays — aktualisiert OBS live</div>
-      <div class="card pad0 rise" style="--i:4">
-        <div class="cmd"><code class="o">!lvl</code><p>Zeigt Level und Rang — aktualisiert das Level-Overlay live in OBS.</p></div>
-        <div class="cmd"><code class="o">!toplooter</code><p>Zeigt Top-Looter — aktualisiert das Leaderboard-Overlay live in OBS.</p></div>
-      </div>
-    </div>
-
-    <!-- Rechts: Login -->
-    <div class="login-col stack" style="position:sticky;top:20px">
-
-      <div class="card rise" style="--i:2;text-align:center;padding:30px 24px">
-        <div class="hero-ico">🎯</div>
-        <h2 class="h1" style="font-size:24px">Player Hub</h2>
-        <p class="muted" style="font-size:14px;margin:10px auto 22px;max-width:290px;line-height:1.6">
-          Dein persönlicher Bereich — Inventar, Stats, Leaderboard-Rang und Squad-Verwaltung auf einen Blick.
-        </p>
-
+  <div class="stack" style="gap:18px;padding-top:26px">
+    <div class="split">
+      <section class="card hero rise" style="--i:1">
+        <div class="lbl">Twitch · GunnyOneTV</div>
+        <h1>Dein Loot.<br><span class="grad">Dein Rang.</span></h1>
+        <p>Sieh dein Inventar, verkaufe Items und vergleiche dich in der Rangliste, direkt mit deinem Twitch-Account.</p>
         <div id="twitchError" class="hidden errbox"></div>
-
-        <button class="btn twitch block" style="padding:15px 20px;font-size:15px" onclick="loginWithTwitch()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L21.43 12.857V0zm13.714 12L18 14.143h-3.429l-3 3v-3H7.286V1.714h12.428z"/></svg>
+        <button class="btn twitch xl" onclick="loginWithTwitch()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L21.43 12.857V0zm13.714 12L18 14.143h-3.429l-3 3v-3H7.286V1.714h12.428z"/></svg>
           Mit Twitch anmelden
         </button>
+        <div class="dim" style="font-size:12px">Nur für Zuschauer von GunnyOneTV. Wir sehen ausschließlich deinen Twitch-Benutzernamen.</div>
+      </section>
 
-        <div class="tiles">
-          <div><i class="ti ti-backpack"></i>Inventar</div>
-          <div><i class="ti ti-trophy"></i>Rangliste</div>
-          <div><i class="ti ti-users"></i>Squad</div>
-          <div><i class="ti ti-chart-bar"></i>Stats</div>
+      <section class="card adm rise" style="--i:2">
+        <div class="lbl">Admin-Login</div>
+        <div id="adminError" class="hidden errbox"></div>
+        <label>Benutzername<input id="adminUser" class="input" type="text" placeholder="Benutzername" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()"></label>
+        <label>Passwort<input id="adminPass" class="input" type="password" placeholder="Passwort" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()"></label>
+        <button id="adminBtn" class="btn block" style="margin-top:6px;min-height:50px" onclick="adminLogin()">Anmelden</button>
+        <div class="dim" style="font-size:12px">Nur für Moderatoren und den Streamer.</div>
+      </section>
+    </div>
+
+    <div class="three">
+      <div class="card rise" style="--i:3">
+        <div class="ico" style="background:rgba(255,212,119,.14);color:var(--gold)"><i class="ti ti-bolt"></i></div>
+        <div class="h2" style="font-size:19px;margin-top:16px">Spiel-Befehle</div>
+        <div class="muted" style="font-size:14px;margin-top:4px">Im Twitch-Chat von #gunnyonetv.</div>
+        <div class="cmds">
+          <div><code class="t-gold">!loot</code><p>Starte einen Raid auf einer zufälligen Map und loote Items. Cooldown bis zur Exfil.</p></div>
+          <div><code class="t-gold">!prestige</code><p>Level und XP zurücksetzen gegen einen Prestige-Stern mit XP-Bonus. Ab <strong style="color:var(--tx)">Level 70</strong>.</p></div>
+          <div><code class="t-gold">!kappa</code><p>Zeigt deinen Kappa-Container-Fortschritt.</p></div>
         </div>
-
-        <p class="dim" style="font-size:11px;margin-top:18px;line-height:1.6">
-          Nur für Zuschauer von GunnyOneTV. Wir sehen ausschließlich deinen Twitch-Benutzernamen.
-        </p>
       </div>
 
-      <div class="card sm rise" style="--i:3;padding:18px 20px">
-        <details class="admin">
-          <summary><i class="ti ti-lock"></i>Admin-Bereich<i class="ti ti-chevron-down chev"></i></summary>
-          <div class="body">
-            <div id="adminError" class="hidden errbox" style="margin:0"></div>
-            <input id="adminUser" class="input" type="text" placeholder="Benutzername" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()">
-            <input id="adminPass" class="input" type="password" placeholder="Passwort" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()">
-            <button id="adminBtn" class="btn block" onclick="adminLogin()">Einloggen</button>
-          </div>
-        </details>
+      <div class="card rise" style="--i:4">
+        <div class="ico" style="background:rgba(91,140,255,.15);color:#9db9ff"><i class="ti ti-info-circle"></i></div>
+        <div class="h2" style="font-size:19px;margin-top:16px">Info-Befehle</div>
+        <div class="muted" style="font-size:14px;margin-top:4px">Stats, Stash und Rangliste im Chat.</div>
+        <div class="cmds">
+          <div><code class="t-blue">!stash</code><p>Gesamtwert deines Stashs in Rubeln (₽).</p></div>
+          <div><code class="t-blue">!toplooter</code><p>Spieler mit dem höchsten Gesamtvermögen.</p></div>
+          <div><code class="t-blue">!stats</code><p>Link zum Player Hub mit Stats, Inventar und Squad.</p></div>
+        </div>
+      </div>
+
+      <div class="card rise" style="--i:5">
+        <div class="ico" style="background:rgba(165,107,255,.15);color:#c7a4ff"><i class="ti ti-device-desktop"></i></div>
+        <div class="h2" style="font-size:19px;margin-top:16px">Overlay-Befehle</div>
+        <div class="muted" style="font-size:14px;margin-top:4px">Aktualisieren OBS live im Stream.</div>
+        <div class="cmds">
+          <div><code class="t-pink">!lvl</code><p>Level und Rang, aktualisiert das Level-Overlay.</p></div>
+          <div><code class="t-pink">!toplooter</code><p>Top-Looter, aktualisiert das Leaderboard-Overlay.</p></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <p class="dim mono" style="font-size:11px;text-align:center;margin-top:34px">Ein Projekt von Coregenetic · Kein offizielles EFT-Produkt · lootgamebot.de</p>
+  <p class="dim mono" style="font-size:11px;text-align:center;margin-top:40px">Ein Projekt von Coregenetic · Kein offizielles EFT-Produkt · lootgamebot.de</p>
 </div>
 
 <script>
