@@ -14,6 +14,7 @@
 
   <div class="topbar">
     <div class="brand"><div class="brand-mark">🎒</div><div>Inventar<small>Loot-Game Hub</small></div></div>
+    <nav class="tabnav"><a href="player-hub.html">Hub</a><a href="player-inventory.html" class="on">Inventar</a><a href="player-leaderboard.html">Rangliste</a><a href="player-squad.html">Squad</a></nav>
     <button class="btn sm" onclick="PlayerAPI.logout()"><i class="ti ti-logout"></i>Abmelden</button>
   </div>
 
@@ -32,7 +33,8 @@
       </div>
     </div>
 
-    <div class="rise" style="--i:1">
+    <div class="toolbar">
+    <div class="rise tb-search" style="--i:1">
       <div class="field">
         <i class="ti ti-search"></i>
         <input type="text" id="filterInput" placeholder="Item suchen..." class="input" autocomplete="off">
@@ -53,6 +55,7 @@
         <option value="qty_desc">Menge ↓</option>
         <option value="qty_asc">Menge ↑</option>
       </select>
+    </div>
     </div>
 
     <div id="invList" class="stack" style="gap:10px"></div>

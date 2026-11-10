@@ -14,13 +14,14 @@
 
   <div class="topbar">
     <div class="brand"><div class="brand-mark">👥</div><div>Squad<small>Loot-Game Hub</small></div></div>
+    <nav class="tabnav"><a href="player-hub.html">Hub</a><a href="player-inventory.html">Inventar</a><a href="player-leaderboard.html">Rangliste</a><a href="player-squad.html" class="on">Squad</a></nav>
     <button class="btn sm" onclick="PlayerAPI.logout()"><i class="ti ti-logout"></i>Abmelden</button>
   </div>
 
   <div id="loadingState" class="state"><div class="spinner"></div>Lade...</div>
   <div id="errorState" class="hidden state"><p class="t-pink" id="errorMsg"></p></div>
 
-  <div id="content" class="hidden stack">
+  <div id="content" class="hidden stack sqgrid">
 
     <!-- OFFENE EINLADUNGEN -->
     <div id="invitesCard" class="hidden card rise" style="--i:0;background:rgba(255,212,119,.06);border-color:rgba(255,212,119,.3)">
@@ -75,7 +76,7 @@
       </div>
     </div>
 
-    <div class="card pad0 rise" style="--i:2">
+    <div class="card pad0 sq-stats rise" style="--i:2">
       <div class="grid3" style="gap:0">
         <div class="stat"><div class="v t-gold num" id="statCombinedStash" style="font-size:18px">—</div><div class="l">Gem. Stash</div></div>
         <div class="stat" style="border-left:1px solid var(--line);border-right:1px solid var(--line)"><div class="v num" id="statRaidsTogether">—</div><div class="l">Raids zusammen</div></div>
@@ -83,7 +84,7 @@
       </div>
     </div>
 
-    <div class="card pad0 rise" style="--i:3">
+    <div class="card pad0 sq-hist rise" style="--i:3">
       <div class="card-head lbl">Letzte gemeinsame Raids</div>
       <div id="squadHistoryList" class="list"></div>
     </div>

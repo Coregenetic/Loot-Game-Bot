@@ -14,6 +14,7 @@
 
   <div class="topbar">
     <div class="brand"><div class="brand-mark">🏆</div><div>Rangliste<small>Loot-Game Hub</small></div></div>
+    <nav class="tabnav"><a href="player-hub.html">Hub</a><a href="player-inventory.html">Inventar</a><a href="player-leaderboard.html" class="on">Rangliste</a><a href="player-squad.html">Squad</a></nav>
     <button class="btn sm" onclick="PlayerAPI.logout()"><i class="ti ti-logout"></i>Abmelden</button>
   </div>
 
@@ -58,6 +59,7 @@
       </div>
     </div>
 
+    <div class="lbcols">
     <!-- IN DEINER NÄHE -->
     <div id="nearbyCard" class="card pad0 rise" style="--i:2">
       <div class="card-head lbl">In deiner Nähe</div>
@@ -71,6 +73,7 @@
         <span class="pill" id="totalPlayersLabel">—</span>
       </div>
       <div class="list" id="lbList"></div>
+    </div>
     </div>
   </div>
 </div>

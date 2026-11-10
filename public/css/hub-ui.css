@@ -208,3 +208,76 @@ select.input option{background:#10152c}
 .medal{font-size:22px;line-height:1}
 
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ───────── Mobile/Desktop-Weichen ───────── */
+.tabnav{display:none}
+.only-d{display:none}
+
+/* ───────── DESKTOP (ab 901px): eigene Ansicht ───────── */
+@media(min-width:901px){
+  .app{max-width:1120px;padding:0 28px 64px}
+  .dock{display:none}
+  .only-d{display:block}
+  .topbar{padding:22px 0 8px;margin-bottom:22px;gap:24px}
+  .brand-mark{width:44px;height:44px;border-radius:14px;font-size:20px}
+  .brand{font-size:18px}
+  .tabnav{display:flex;gap:4px;padding:5px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .tabnav a{padding:11px 20px;border-radius:13px;font-weight:700;font-size:14px;color:#aab2d0;transition:background .18s,color .18s,transform .16s var(--ease)}
+  .tabnav a:hover{color:#fff}
+  .tabnav a:active{transform:scale(.97)}
+  .tabnav a.on{background:var(--tx);color:#0b1020}
+  .card{padding:26px}
+  .stack{gap:18px}
+  .h1{font-size:40px;letter-spacing:-.035em}
+  .big{font-size:34px}
+
+  /* Hub */
+  .hubgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+  .hubgrid>.grid2{display:contents}
+  .hubgrid .c12{grid-column:span 12}.hubgrid .c7{grid-column:span 7}.hubgrid .c5{grid-column:span 5}.hubgrid .c4{grid-column:span 4}
+  .profile{padding:34px 36px}
+  .profile>.row{gap:36px}
+  .profile .ring{width:176px;height:176px}
+  .profile .ring .av{inset:16px}
+  .profile .ring circle{stroke-width:2.4}
+  .profile .av .ini,.profile #avatarInitials{font-size:38px}
+  .profile .lvl{font-size:14px;padding:4px 11px;right:2px;bottom:2px}
+  .profile .h1{font-size:52px}
+  .profile #xpLabel{font-size:14px}
+  .profile .bar{max-width:none!important}
+  .hubgrid .stat .v{font-size:26px}
+  .hubgrid .stat{padding:22px 10px}
+
+  /* Inventar */
+  .toolbar{display:flex;gap:12px;align-items:center}
+  .toolbar .tb-search{flex:1}
+  .toolbar .seg{flex:none}
+  #invList{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .item{padding:14px 18px}
+  .item .pill{padding:7px 16px;font-size:13px}
+
+  /* Rangliste */
+  .lbcols{display:grid;grid-template-columns:5fr 7fr;gap:18px;align-items:start}
+  .lbcols>#nearbyCard.hidden+.card{grid-column:1/-1}
+  .podium{gap:18px}
+  .podium .slot{padding:28px 14px}
+  .podium .slot.first{padding-top:38px;padding-bottom:38px}
+  .podium .av.lg{width:84px;height:84px;font-size:26px}
+  .podium .av.xl{width:112px;height:112px;font-size:34px}
+  .podium .slot div[id$=name]{font-size:18px!important}
+  .podium .slot div[id$=stash]{font-size:20px!important}
+
+  /* Squad */
+  #content.sqgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;align-items:stretch;grid-auto-flow:dense}
+  #content.sqgrid>.sq-stats{display:flex;align-items:center}
+  #content.sqgrid>.sq-stats>.grid3{flex:1}
+  #content.sqgrid>#invitesCard,#content.sqgrid>#noSquadCard{grid-column:1/-1}
+  #content.sqgrid>#squadCard{grid-column:1/8;grid-row:span 2}
+  #content.sqgrid>.sq-stats,#content.sqgrid>.sq-hist{grid-column:8/13}
+  #content.sqgrid>#squadCard.hidden~.sq-stats,#content.sqgrid>#squadCard.hidden~.sq-hist{grid-column:1/-1}
+}
+
+/* ───────── MOBILE (bis 900px): Wrapper lösen sich auf ───────── */
+@media(max-width:900px){
+  .toolbar,.lbcols{display:contents}
+}

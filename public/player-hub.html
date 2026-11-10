@@ -14,16 +14,17 @@
 
   <div class="topbar">
     <div class="brand"><div class="brand-mark">🎯</div><div>Loot-Game<small>Player Hub</small></div></div>
+    <nav class="tabnav"><a href="player-hub.html" class="on">Hub</a><a href="player-inventory.html">Inventar</a><a href="player-leaderboard.html">Rangliste</a><a href="player-squad.html">Squad</a></nav>
     <button class="btn sm" onclick="PlayerAPI.logout()"><i class="ti ti-logout"></i>Abmelden</button>
   </div>
 
   <div id="loadingState" class="state"><div class="spinner"></div>Lade deine Daten...</div>
   <div id="errorState" class="hidden state"><p class="t-pink" id="errorMsg"></p></div>
 
-  <div id="hubContent" class="hidden stack">
+  <div id="hubContent" class="hidden stack hubgrid">
 
     <!-- Profil -->
-    <div class="card rise" style="--i:0">
+    <div class="card profile c12 rise" style="--i:0">
       <div class="row" style="gap:18px">
         <div class="avwrap">
           <div class="ring">
@@ -43,20 +44,21 @@
           <div class="lbl">Willkommen zurück</div>
           <div class="h1" id="usernameLabel" style="margin-top:4px;overflow:hidden;text-overflow:ellipsis">—</div>
           <div class="mono num dim" style="font-size:12px;margin-top:8px" id="xpLabel">— XP</div>
+          <div class="bar only-d" style="margin-top:14px"><i id="xpBar" style="width:0%"></i></div>
         </div>
       </div>
     </div>
 
     <!-- Stash + Raid -->
     <div class="grid2 sm1">
-      <div class="card rise" style="--i:1">
+      <div class="card c4 rise" style="--i:1">
         <div class="lbl">Stash-Wert</div>
         <div class="big t-gold num" style="margin-top:6px" id="stashValue">—</div>
         <div class="sub num" id="rankLabel">—</div>
         <div class="sub num t-green" style="margin-top:2px" id="balanceLabel">—</div>
       </div>
 
-      <div id="raidCard" class="rise" style="--i:2">
+      <div id="raidCard" class="c4 rise" style="--i:2">
         <div id="raidLabel" class="lbl row" style="gap:6px;color:inherit"><i class="ti ti-bolt"></i>Raid-Status</div>
         <div id="raidMain">
           <i class="ti" id="raidIconWrap"></i>
@@ -67,7 +69,7 @@
     </div>
 
     <!-- Kennzahlen -->
-    <div class="card pad0 rise" style="--i:3">
+    <div class="card pad0 c4 rise" style="--i:3">
       <div class="grid3" style="gap:0">
         <div class="stat"><div class="v num" id="survivalRate">—</div><div class="l">Survival</div></div>
         <div class="stat" style="border-left:1px solid var(--line);border-right:1px solid var(--line)"><div class="v num" id="raidsTotal">—</div><div class="l">Raids</div></div>
@@ -76,7 +78,7 @@
     </div>
 
     <!-- Kappa -->
-    <div class="card rise" style="--i:4">
+    <div class="card c7 rise" style="--i:4">
       <div class="row between" style="margin-bottom:14px">
         <div class="lbl row" style="gap:6px"><i class="ti ti-chart-bar t-violet"></i>Kappa-Fortschritt</div>
         <span class="pill violet num" id="kappaFraction">—</span>
@@ -86,14 +88,14 @@
     </div>
 
     <!-- Schnellzugriff -->
-    <div class="grid3 rise" style="--i:5">
+    <div class="grid3 c5 rise" style="--i:5">
       <a href="player-inventory.html" class="card sm stat"><div style="font-size:24px"><i class="ti ti-backpack t-green"></i></div><div class="l">Inventar</div></a>
       <a href="player-leaderboard.html" class="card sm stat"><div style="font-size:24px"><i class="ti ti-trophy t-gold"></i></div><div class="l">Rangliste</div></a>
       <a href="player-squad.html" class="card sm stat"><div style="font-size:24px"><i class="ti ti-users t-blue"></i></div><div class="l">Squad</div></a>
     </div>
 
     <!-- Verlauf -->
-    <div class="card pad0 rise" style="--i:6">
+    <div class="card pad0 c12 rise" style="--i:6">
       <div class="card-head lbl">Letzte Raids</div>
       <div class="list" id="raidHistory"></div>
     </div>
@@ -171,6 +173,7 @@
       const xpForNext = stats.level * 10000; // grobe Anzeige, da keine exakte Kurve hier verfügbar
       const xpPct = Math.min(100, Math.round((stats.xp % xpForNext) / xpForNext * 100));
       requestAnimationFrame(() => { document.getElementById('xpRing').style.strokeDasharray = xpPct + ' 100'; });
+      document.getElementById('xpBar').style.width = xpPct + '%';
       document.getElementById('xpLabel').textContent = stats.xp.toLocaleString('de-DE') + ' XP · ' + xpPct + '% bis Level ' + (stats.level + 1);
 
       document.getElementById('stashValue').textContent = formatVal(stats.stashValue);
