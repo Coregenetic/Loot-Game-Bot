@@ -103,7 +103,8 @@ router.get('/callback', async (req, res) => {
             }
         }
 
-        res.redirect(`/player-hub.html?token=${sessionToken}`);
+        // Token im URL-Fragment (#) statt in der Query: Fragmente werden nie an Server, Proxy-Logs oder per Referer gesendet
+        res.redirect(`/player-hub.html#token=${sessionToken}`);
     } catch (err) {
         console.error('[PLAYER-AUTH] Callback-Fehler:', err.message);
         res.redirect('/player-login.html?error=server_error');

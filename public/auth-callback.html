@@ -13,11 +13,12 @@
 </div>
 <script>
   const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const token = hashParams.get('token');
   const error = params.get('error');
   if (token) {
     try { localStorage.setItem('lootgame_player_token', token); } catch(e) {}
-    setTimeout(() => { window.location.replace('/player-hub.html?token=' + token); }, 800);
+    setTimeout(() => { window.location.replace('/player-hub.html#token=' + encodeURIComponent(token)); }, 800);
   } else if (error) {
     window.location.replace('/player-login.html?error=' + error);
   } else {

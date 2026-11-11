@@ -229,9 +229,10 @@
   }
 
   // Token aus der URL übernehmen, falls wir gerade frisch vom Twitch-Login zurückkommen
-  if (window.location.search.includes('token=')) {
-    const token = new URLSearchParams(window.location.search).get('token');
-    PlayerAPI.setToken(token);
+  // Der Token kommt im Fragment (#token=...), damit er nie an den Server oder in Logs gelangt.
+  if (window.location.hash.includes('token=')) {
+    const token = new URLSearchParams(window.location.hash.slice(1)).get('token');
+    if (token) PlayerAPI.setToken(token);
     history.replaceState(null, '', window.location.pathname); // Token aus der sichtbaren URL entfernen
   }
 
