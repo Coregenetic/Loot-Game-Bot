@@ -19,14 +19,14 @@ async function loadSquads() {
     squadsOverridableFields = data.overridableFields;
     renderSquads();
   } catch (err) {
-    document.getElementById('squadsList').innerHTML = '<p class="text-xs font-mono text-rose-400">Fehler: ' + err.message + '</p>';
+    document.getElementById('squadsList').innerHTML = '<p class="text-xs font-mono text-rose-400">Fehler: ' + escHtml(err.message) + '</p>';
   }
 }
 
 function squadAvatarHTML(m, color) {
   const inner = m.avatarUrl
-    ? `<img src="${m.avatarUrl}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
-    : (m.displayName || m.username).slice(0,2).toUpperCase();
+    ? `<img src="${escHtml(m.avatarUrl)}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
+    : escHtml((m.displayName || m.username).slice(0,2).toUpperCase());
   return `<div style="width:30px;height:30px;color:${color};" class="rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[11px] font-semibold overflow-hidden relative shrink-0" >${inner}</div>`;
 }
 
@@ -45,7 +45,7 @@ function renderSquads() {
       <div class="flex items-center gap-2.5 ${m.status === 'pending' ? 'opacity-50' : ''}">
         ${squadAvatarHTML(m, SQUAD_MEMBER_COLORS[i % SQUAD_MEMBER_COLORS.length])}
         <div class="min-w-0">
-          <div class="text-xs text-slate-200 truncate">${m.displayName}${m.username.toLowerCase() === squad.leaderUsername.toLowerCase() ? ' 👑' : ''}</div>
+          <div class="text-xs text-slate-200 truncate">${escHtml(m.displayName)}${m.username.toLowerCase() === squad.leaderUsername.toLowerCase() ? ' 👑' : ''}</div>
           <div class="text-[9px] font-mono text-slate-500">Lvl ${m.level}${m.status === 'pending' ? ' · ausstehend' : ''}</div>
         </div>
       </div>`).join('');
@@ -76,11 +76,11 @@ function renderSquads() {
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
             <div>
-              <div class="text-sm font-semibold text-white uppercase tracking-wide">${squad.name}</div>
-              <div class="text-[10px] font-mono text-slate-500">${accepted.length}/5 Mitglieder${pending.length ? ' · ' + pending.length + ' offen' : ''} · Leader: ${squad.leaderUsername}</div>
+              <div class="text-sm font-semibold text-white uppercase tracking-wide">${escHtml(squad.name)}</div>
+              <div class="text-[10px] font-mono text-slate-500">${accepted.length}/5 Mitglieder${pending.length ? ' · ' + pending.length + ' offen' : ''} · Leader: ${escHtml(squad.leaderUsername)}</div>
             </div>
           </div>
-          <button onclick="disbandSquad(${squad.id}, '${squad.name}')" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 shrink-0">Auflösen</button>
+          <button onclick="disbandSquad(${squad.id})" class="text-xs font-mono text-rose-400 hover:text-rose-300 transition-colors px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 shrink-0">Auflösen</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
@@ -137,7 +137,9 @@ async function saveSquadConfig(squadId) {
   }
 }
 
-function disbandSquad(squadId, name) {
+function disbandSquad(squadId) {
+  const sq = squadsCache.find(s => s.id === squadId);
+  const name = sq ? sq.name : '#' + squadId;
   showConfirm('Squad auflösen?', `"${name}" wird aufgelöst, alle Mitgliedschaften gehen verloren. Das kann nicht rückgängig gemacht werden.`, async () => {
     try {
       await fetch(`/api/admin/squads/${squadId}`, { method: 'DELETE', headers: { 'x-session-token': LootGameAPI.getToken() } });

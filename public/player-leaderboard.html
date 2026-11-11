@@ -86,6 +86,10 @@
 </nav>
 
 <script>
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+
   function formatVal(v) {
     if (!v) return '0 ₽';
     if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
@@ -97,7 +101,13 @@
   function fillAvatarOrInitials(elId, player) {
     const el = document.getElementById(elId);
     if (player.avatarUrl) {
-      el.innerHTML = `<img src="${player.avatarUrl}" alt="" onerror="this.parentElement.textContent='${player.displayName.slice(0,2).toUpperCase()}'">`;
+      const initials = player.displayName.slice(0,2).toUpperCase();
+      el.textContent = '';
+      const img = document.createElement('img');
+      img.alt = '';
+      img.src = player.avatarUrl;
+      img.onerror = function() { el.textContent = initials; };
+      el.appendChild(img);
     } else {
       el.textContent = player.displayName.slice(0,2).toUpperCase();
     }
@@ -108,7 +118,7 @@
     return `
       <div style="${isMe ? 'background:rgba(91,140,255,.09)' : ''}">
         <div class="mono num ${isMe ? 't-blue' : 'dim'}" style="min-width:38px;font-size:13px;font-weight:700">#${p.rank}</div>
-        <div class="grow" style="font-weight:${isMe ? 800 : 600};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.displayName}${isMe ? ' (Du)' : ''}</div>
+        <div class="grow" style="font-weight:${isMe ? 800 : 600};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.displayName)}${isMe ? ' (Du)' : ''}</div>
         <div class="mono t-gold num" style="font-size:13px;font-weight:700">${formatVal(p.netWorth || p.stashValue)}</div>
       </div>`;
   }
@@ -170,11 +180,11 @@
             <div class="mono num dim" style="min-width:38px;font-size:13px;font-weight:700">#${p.rank}</div>
             <div class="av sm">
               ${p.avatarUrl
-                ? `<img src="${p.avatarUrl}" alt="" onerror="this.style.display='none'">`
-                : p.displayName.slice(0,2).toUpperCase()}
+                ? `<img src="${esc(p.avatarUrl)}" alt="" onerror="this.style.display='none'">`
+                : esc(p.displayName.slice(0,2).toUpperCase())}
             </div>
             <div class="grow">
-              <div style="font-weight:${isMe ? 800 : 600};font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.displayName}${isMe ? ' (Du)' : ''}</div>
+              <div style="font-weight:${isMe ? 800 : 600};font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.displayName)}${isMe ? ' (Du)' : ''}</div>
               <div class="dim mono" style="font-size:11px">Level ${p.level}</div>
             </div>
             <div class="mono t-gold num" style="font-size:13px;font-weight:700">${formatVal(p.netWorth || p.stashValue)}</div>

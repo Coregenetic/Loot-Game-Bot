@@ -26,6 +26,18 @@ const KNOWN_TABLES = [
     'config', 'dashboard_users', 'role_permissions', 'audit_log'
 ];
 
+// Dateiname kommt aus der HTTP-Anfrage: nur reine Backup-Dateinamen im BACKUP_DIR
+// zulassen (kein "..", keine Pfadtrenner, nur .db) — verhindert Path Traversal.
+function resolveBackupPath(filename) {
+    if (typeof filename !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]*\.db$/.test(filename) || filename.includes('..')) {
+        throw new Error('Ungültiger Backup-Dateiname');
+    }
+    const base = path.resolve(BACKUP_DIR);
+    const full = path.resolve(base, filename);
+    if (path.dirname(full) !== base) throw new Error('Ungültiger Backup-Dateiname');
+    return full;
+}
+
 function ensureBackupDir() {
     if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
@@ -77,7 +89,7 @@ function cleanupOldBackups() {
 
 function restoreBackup(filename) {
     ensureBackupDir();
-    const filepath = path.join(BACKUP_DIR, filename);
+    const filepath = resolveBackupPath(filename);
 
     if (!fs.existsSync(filepath)) {
         throw new Error('Backup-Datei nicht gefunden');
@@ -91,14 +103,14 @@ function restoreBackup(filename) {
 }
 
 function deleteBackup(filename) {
-    const filepath = path.join(BACKUP_DIR, filename);
+    const filepath = resolveBackupPath(filename);
     if (!fs.existsSync(filepath)) throw new Error('Backup-Datei nicht gefunden');
     fs.unlinkSync(filepath);
     return true;
 }
 
 function getBackupPath(filename) {
-    const filepath = path.join(BACKUP_DIR, filename);
+    const filepath = resolveBackupPath(filename);
     if (!fs.existsSync(filepath)) throw new Error('Backup-Datei nicht gefunden');
     return filepath;
 }

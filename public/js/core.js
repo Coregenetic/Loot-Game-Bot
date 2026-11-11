@@ -214,7 +214,7 @@ async function navigateTo(tab) {
 // Alias für Abwärtskompatibilität mit altem Code
 function showTab(tab) { return navigateTo(tab); }
 
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 function formatVal(v) {
   if (!v) return '0 ₽';

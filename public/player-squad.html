@@ -105,6 +105,10 @@
   let customizePanelOpen = false;
   let squadOptions = null;
 
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+
   function showMsg(elId, msg, ok) {
     const el = document.getElementById(elId);
     if (!el) return;
@@ -123,8 +127,8 @@
 
   function avatarCircleHTML(m, size, color, borderStyle) {
     const inner = m.avatarUrl
-      ? `<img src="${m.avatarUrl}" alt="" onerror="this.style.display='none'">`
-      : (m.displayName || m.username).slice(0,2).toUpperCase();
+      ? `<img src="${esc(m.avatarUrl)}" alt="" onerror="this.style.display='none'">`
+      : esc((m.displayName || m.username).slice(0,2).toUpperCase());
     const ring = borderStyle || `box-shadow:0 0 0 2px var(--bg);`;
     const dot = m.online !== undefined
       ? `<span class="dot" style="background:${m.online ? '#34d27b' : '#4a5270'};"></span>`
@@ -147,8 +151,8 @@
         document.getElementById('invitesList').innerHTML = invitesData.invites.map(inv => `
           <div class="row between card sm" style="background:rgba(0,0,0,.18);gap:10px">
             <div style="min-width:0">
-              <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${inv.name}</div>
-              <div class="dim" style="font-size:12px">von ${inv.leader_username}</div>
+              <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(inv.name)}</div>
+              <div class="dim" style="font-size:12px">von ${esc(inv.leader_username)}</div>
             </div>
             <div class="row" style="gap:8px;flex:none">
               <button onclick="respondInvite(${inv.squad_id}, true)" class="btn sm good">Annehmen</button>
@@ -215,10 +219,10 @@
         <div class="member ${isPending ? 'pending' : ''}">
           ${avatarCircleHTML(m, 42, color, `box-shadow:0 0 0 2px ${color}88;`)}
           <div class="grow">
-            <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="${isPending ? 't-gold' : ''}">${m.displayName}${memberIsLeader ? ' 👑' : ''}</div>
+            <div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="${isPending ? 't-gold' : ''}">${esc(m.displayName)}${memberIsLeader ? ' 👑' : ''}</div>
             <div class="dim mono" style="font-size:11px;margin-top:2px">${isPending ? 'ausstehend' : 'Lvl ' + m.level}</div>
           </div>
-          ${isLeader && !memberIsLeader ? `<button onclick="kickMember('${m.username}')" class="iconbtn" title="Entfernen"><i class="ti ti-x"></i></button>` : ''}
+          ${isLeader && !memberIsLeader ? `<button data-user="${esc(m.username)}" onclick="kickMember(this.dataset.user)" class="iconbtn" title="Entfernen"><i class="ti ti-x"></i></button>` : ''}
         </div>`;
     });
 
@@ -302,8 +306,8 @@
           <div>
             <div class="badge-ico ${h.survived ? 'ok' : 'bad'}"><i class="ti ${h.survived ? 'ti-check' : 'ti-skull'}"></i></div>
             <div class="grow">
-              <div style="font-weight:700;font-size:14px">${h.map || 'Unbekannt'}</div>
-              <div class="dim" style="font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${names}</div>
+              <div style="font-weight:700;font-size:14px">${esc(h.map || 'Unbekannt')}</div>
+              <div class="dim" style="font-size:12px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(names)}</div>
             </div>
             <span class="dim mono" style="font-size:11px;flex:none">${date}</span>
           </div>`;
@@ -355,12 +359,12 @@
         if (!data.players.length) { dropdown.classList.add('hidden'); return; }
         dropdown.innerHTML = data.players.map(p => {
           const avatarInner = p.avatarUrl
-            ? `<img src="${p.avatarUrl}" alt="" onerror="this.style.display='none'">`
-            : p.displayName.slice(0,2).toUpperCase();
+            ? `<img src="${esc(p.avatarUrl)}" alt="" onerror="this.style.display='none'">`
+            : esc(p.displayName.slice(0,2).toUpperCase());
           return `
-          <div onclick="invitePlayer('${p.username}')">
+          <div data-user="${esc(p.username)}" onclick="invitePlayer(this.dataset.user)">
             <div class="av sm">${avatarInner}</div>
-            <span class="grow" style="font-weight:600">${p.displayName}</span>
+            <span class="grow" style="font-weight:600">${esc(p.displayName)}</span>
             <span class="dim mono" style="font-size:11px">Lvl ${p.level}</span>
           </div>`;
         }).join('');

@@ -112,6 +112,10 @@
 <script>
   let cooldownInterval = null;
 
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+  }
+
   function formatVal(v) {
     if (!v) return '0 ₽';
     if (v >= 1e9) return (v/1e9).toFixed(2) + 'B ₽';
@@ -206,7 +210,7 @@
           return '<div>' +
               '<div class="badge-ico ' + (survived ? 'ok' : 'bad') + '"><i class="ti ' + (survived ? 'ti-check' : 'ti-skull') + '"></i></div>' +
               '<div class="grow">' +
-                '<div style="font-weight:700;font-size:14px">' + (r.map || 'Unbekannt') + '</div>' +
+                '<div style="font-weight:700;font-size:14px">' + esc(r.map || 'Unbekannt') + '</div>' +
                 '<div class="dim mono" style="font-size:11px;margin-top:2px">' + date + '</div>' +
               '</div>' +
               '<span class="num mono ' + (survived ? 't-green' : 't-pink') + '" style="font-size:13px;font-weight:700">' +

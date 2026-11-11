@@ -1,6 +1,8 @@
 const express = require('express');
 const router  = express.Router();
 const { getAllConfig, setConfig, getConfig } = require('../../db/config');
+const { requirePermission } = require('../middleware/permission');
+const { logAudit } = require('../../db/audit');
 
 // GET /api/config — komplette Config
 router.get('/', (req, res) => {
@@ -23,9 +25,10 @@ router.get('/:section', (req, res) => {
 });
 
 // PUT /api/config/:section — Sektion updaten
-router.put('/:section', (req, res) => {
+router.put('/:section', requirePermission('server:manage'), (req, res) => {
     try {
         setConfig(req.params.section, req.body);
+        logAudit(req.session.username, 'config_update', { section: req.params.section });
         res.json({ success: true, section: req.params.section });
     } catch (err) {
         res.status(500).json({ error: err.message });

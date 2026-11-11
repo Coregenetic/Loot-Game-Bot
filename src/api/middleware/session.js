@@ -1,12 +1,10 @@
 const { validateSession } = require('../../db/users');
 
 function sessionMiddleware(req, res, next) {
-    // Token aus Header, Cookie oder Query
+    // Token nur aus Headern — nicht aus der URL (landet sonst in Logs/Verlauf/Referrer)
     const token =
         req.headers['x-session-token'] ||
-        req.headers['x-dashboard-token'] ||
-        req.cookies?.session ||
-        req.query.token;
+        req.headers['x-dashboard-token'];
 
     // Rolle wird bei JEDEM Request frisch aus der DB gelesen (kein Caching in der
     // Session selbst) — Rollenänderungen greifen so sofort, nicht erst nach Re-Login.
