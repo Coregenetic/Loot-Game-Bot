@@ -39,17 +39,7 @@ function updateCategoryFilterOptions() {
 
 function setFilter(f) {
   logFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => {
-    b.classList.remove('bg-slate-800', 'text-white', 'border-slate-500');
-    b.classList.add('text-slate-400', 'border-slate-700');
-  });
-  
-  const btn = document.getElementById('filter-' + f);
-  if (btn) {
-    btn.classList.remove('text-slate-400', 'border-slate-700');
-    // Using simple active style to avoid complex color mapping in Tailwind classes on the fly
-    btn.classList.add('bg-slate-800', 'text-white', 'border-slate-500');
-  }
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('on', b.id === 'filter-' + f));
   renderAllLogs();
 }
 

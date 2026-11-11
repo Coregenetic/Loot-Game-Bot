@@ -1,71 +1,71 @@
 <div class="flex items-center justify-between">
-  <h2 class="text-xl font-bold text-white uppercase tracking-wide">Statistiken</h2>
+  <h2 class="h2">Statistiken</h2>
   <div class="flex gap-2">
-    <button onclick="loadAnalytics(1)"  id="an-1"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">24h</button>
-    <button onclick="loadAnalytics(7)"  id="an-7"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors">7 Tage</button>
-    <button onclick="loadAnalytics(30)" id="an-30" class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">30 Tage</button>
-    <button onclick="loadAnalytics(0)"  id="an-0"  class="px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors">Gesamt</button>
+    <button onclick="loadAnalytics(1)"  id="an-1"  class="fchip">24h</button>
+    <button onclick="loadAnalytics(7)"  id="an-7"  class="fchip on">7 Tage</button>
+    <button onclick="loadAnalytics(30)" id="an-30" class="btn sm">30 Tage</button>
+    <button onclick="loadAnalytics(0)"  id="an-0"  class="fchip">Gesamt</button>
   </div>
 </div>
 
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="an-stats-grid">
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Commands total</div>
+  <div class="card panel-card">
+    <div class="lbl mb-1">Commands total</div>
     <div class="text-3xl font-bold text-white" id="an-total">—</div>
   </div>
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Raids gespielt</div>
+  <div class="card panel-card">
+    <div class="lbl mb-1">Raids gespielt</div>
     <div class="text-3xl font-bold text-emerald-400" id="an-raids">—</div>
   </div>
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Survival Rate</div>
+  <div class="card panel-card">
+    <div class="lbl mb-1">Survival Rate</div>
     <div class="text-3xl font-bold text-blue-400" id="an-survival">—</div>
   </div>
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <div class="text-xs font-mono text-slate-500 uppercase tracking-widest mb-1">Gesamt-Loot</div>
+  <div class="card panel-card">
+    <div class="lbl mb-1">Gesamt-Loot</div>
     <div class="text-3xl font-bold text-amber-400" id="an-value">—</div>
   </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Commands Verteilung</h3>
+  <div class="card panel-card">
+    <h3 class="lbl mb-4">Commands Verteilung</h3>
     <div id="an-commands" class="space-y-2"></div>
   </div>
 
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivste Spieler</h3>
+  <div class="card panel-card">
+    <h3 class="lbl mb-4">Aktivste Spieler</h3>
     <div id="an-users" class="space-y-2"></div>
   </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Aktivität nach Uhrzeit</h3>
+  <div class="card panel-card">
+    <h3 class="lbl mb-4">Aktivität nach Uhrzeit</h3>
     <div id="an-hours" class="flex items-end gap-1 h-24"></div>
     <div class="flex justify-between text-xs font-mono text-slate-600 mt-1">
       <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span>
     </div>
   </div>
 
-  <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-    <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Häufigste Loot-Items</h3>
+  <div class="card panel-card">
+    <h3 class="lbl mb-4">Häufigste Loot-Items</h3>
     <div id="an-items" class="space-y-2"></div>
   </div>
 </div>
 
-<div class="glass-card border border-slate-700/50 rounded-2xl p-5">
-  <h3 class="text-xs font-mono text-slate-400 uppercase tracking-widest mb-4">Recap-Karte erstellen</h3>
+<div class="card panel-card">
+  <h3 class="lbl mb-4">Recap-Karte erstellen</h3>
   <div class="flex flex-wrap items-end gap-3 mb-5">
     <div>
       <label class="block text-xs font-mono text-slate-500 mb-1">Von</label>
-      <input type="date" id="recap-from" class="bg-slate-900/50 border border-slate-700 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
+      <input type="date" id="recap-from" class="bg-white/[0.03] border border-white/10 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
     </div>
     <div>
       <label class="block text-xs font-mono text-slate-500 mb-1">Bis</label>
-      <input type="date" id="recap-to" class="bg-slate-900/50 border border-slate-700 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
+      <input type="date" id="recap-to" class="bg-white/[0.03] border border-white/10 rounded-lg text-sm text-white px-3 py-2 outline-none focus:border-emerald-500">
     </div>
-    <button onclick="generateRecap()" class="px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-sm font-mono transition-colors">Vorschau generieren</button>
+    <button onclick="generateRecap()" class="btn sm good">Vorschau generieren</button>
   </div>
 
   <div id="recap-preview" class="hidden">
@@ -121,8 +121,8 @@
     </div>
 
     <div class="flex gap-2 mt-4">
-      <button onclick="downloadRecap()" class="px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 text-sm font-mono transition-colors">Als PNG herunterladen</button>
-      <button onclick="copyRecap()" class="px-4 py-2 rounded-lg bg-slate-700/30 border border-slate-700 text-slate-300 hover:bg-slate-700/50 text-sm font-mono transition-colors">In Zwischenablage kopieren</button>
+      <button onclick="downloadRecap()" class="btn sm blue">Als PNG herunterladen</button>
+      <button onclick="copyRecap()" class="btn sm">In Zwischenablage kopieren</button>
     </div>
   </div>
   <p id="recap-empty" class="text-xs font-mono text-slate-600">Zeitraum wählen und Vorschau generieren.</p>

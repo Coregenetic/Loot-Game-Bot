@@ -164,14 +164,14 @@ async function loadTabContent(tab) {
 const tabTitles = {
   'overview': 'Übersicht',
   'analytics': 'Statistiken',
-  'logs': 'Bot Log Terminal',
-  'cooldowns': 'Cooldown Management',
-  'players': 'Spieler-Verwaltung',
-  'events': 'Live Event Control',
-  'squads': 'Squad-Verwaltung',
-  'users': 'User Management',
-  'server': 'Server Diagnostics',
-  'monitoring': 'Server Monitoring'
+  'logs': 'Bot Log',
+  'cooldowns': 'Cooldowns',
+  'players': 'Spieler',
+  'events': 'Live Events',
+  'squads': 'Squads',
+  'users': 'User',
+  'server': 'Server',
+  'monitoring': 'Monitoring'
 };
 
 async function navigateTo(tab) {

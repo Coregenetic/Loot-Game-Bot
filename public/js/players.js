@@ -46,7 +46,7 @@ function renderPlayerList(q) {
       class="player-row w-full text-left pl-2.5 pr-3 py-2 rounded-lg border border-transparent border-l-4 ${isActive(p) ? 'border-l-emerald-500 bg-emerald-500/10' : 'border-l-transparent'} hover:border-slate-700 hover:bg-slate-800/50 transition-all group">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-[11px] font-bold font-mono text-emerald-400 flex-shrink-0 overflow-hidden relative">
+          <div class="w-7 h-7 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-[11px] font-bold font-mono text-emerald-400 flex-shrink-0 overflow-hidden relative">
             ${p.avatar_url
               ? `<img src="${p.avatar_url}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'">`
               : p.username.slice(0,2).toUpperCase()}
@@ -119,7 +119,7 @@ function renderInventory() {
     const total = item.value * item.count;
     const iconSrc = item.icon || ITEM_FALLBACK_ICON;
     return `
-    <div class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-slate-800/30 bg-slate-900/30 border-l-[3px] border-slate-600">
+    <div class="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-slate-800/30 bg-white/[0.03] border-l-[3px] border-slate-600">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/[0.04] overflow-hidden">
           <img src="${iconSrc}" alt="" class="w-6 h-6 object-contain" onerror="this.src='${ITEM_FALLBACK_ICON}'">
@@ -279,7 +279,7 @@ async function filterGiveItems(query) {
   }
 
   dropdown.innerHTML = matches.map(item => `
-    <div class="px-3 py-2 flex items-center justify-between border-b border-slate-800 last:border-0 cursor-pointer hover:bg-slate-800/60 transition-colors"
+    <div class="px-3 py-2 flex items-center justify-between border-b border-white/10 last:border-0 cursor-pointer hover:bg-slate-800/60 transition-colors"
       onclick="selectGiveItem('${item.name.replace(/'/g,"\\'")}', ${item.value})">
       <span class="text-sm text-white">${item.name}</span>
       <span class="text-xs font-mono text-amber-400">${formatVal(item.value)}</span>

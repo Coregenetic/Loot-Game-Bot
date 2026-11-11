@@ -16,10 +16,10 @@ function renderCooldowns(q) {
   
   el.innerHTML = filtered.map(p =>
     '<div class="flex items-center justify-between p-3 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">' +
-    '<div class="flex items-center gap-3"><span class="text-slate-200 font-medium text-sm">' + p.username + '</span> <span class="text-[10px] text-slate-400 font-mono tracking-wider bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800">Lvl ' + (p.level||1) + ' P' + (p.prestige||0) + '</span></div>' +
+    '<div class="flex items-center gap-3"><span class="text-slate-200 font-medium text-sm">' + p.username + '</span> <span class="text-[10px] text-slate-400 font-mono tracking-wider bg-slate-900/80 px-2 py-0.5 rounded border border-white/10">Lvl ' + (p.level||1) + ' P' + (p.prestige||0) + '</span></div>' +
     '<div class="flex items-center gap-5">' +
-    '<span class="text-emerald-400 font-mono text-xs font-medium">' + formatVal(p.stash_value) + ' ₽</span>' +
-    '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="clearUserCD(\'' + p.username + '\')">CD RESET</button>' +
+    '<span class="text-emerald-400 font-mono text-xs font-medium">' + formatVal(p.stash_value) + '</span>' +
+    '<button class="btn sm danger" onclick="clearUserCD(\'' + p.username + '\')">CD RESET</button>' +
     '</div></div>'
   ).join('');
 }

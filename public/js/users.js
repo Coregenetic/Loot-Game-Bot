@@ -25,11 +25,11 @@ async function loadUsers() {
           '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 ml-1.5 inline-block ' + ((pkCounts[u.username.toLowerCase()] || 0) > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-slate-800/50 text-slate-500 border-slate-700') + '">🔐 ' + (pkCounts[u.username.toLowerCase()] || 0) + ' Passkey' + ((pkCounts[u.username.toLowerCase()] || 0) === 1 ? '' : 's') + '</span></div>' +
         '</div>' +
         '<div class="flex items-center gap-2">' +
-          '<select onchange="changeUserRole(\'' + u.username + '\', this.value)" ' + (isMe ? 'disabled title="Du kannst dir selbst keine Rolle entziehen"' : '') + ' class="bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500 disabled:opacity-40">' +
+          '<select onchange="changeUserRole(\'' + u.username + '\', this.value)" ' + (isMe ? 'disabled title="Du kannst dir selbst keine Rolle entziehen"' : '') + ' class="bg-white/[0.03] border border-white/10 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500 disabled:opacity-40">' +
             ['mod','admin','superadmin'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('') +
           '</select>' +
-          (isMe || !(pkCounts[u.username.toLowerCase()] || 0) ? '' : '<button class="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" data-username="' + u.username.replace(/"/g, '&quot;') + '" onclick="resetUserPasskeys(this.dataset.username)">PASSKEYS RESET</button>') +
-          (isMe ? '' : '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button>') +
+          (isMe || !(pkCounts[u.username.toLowerCase()] || 0) ? '' : '<button class="btn sm gold" data-username="' + u.username.replace(/"/g, '&quot;') + '" onclick="resetUserPasskeys(this.dataset.username)">PASSKEYS RESET</button>') +
+          (isMe ? '' : '<button class="btn sm danger" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button>') +
         '</div></div>';
     }).join('');
   } catch {}

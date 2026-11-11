@@ -306,7 +306,7 @@ async function loadBackups() {
       const labelClass = labelColors[label] || 'text-slate-400 bg-slate-800 border-slate-700';
 
       return `
-        <div class="rounded-lg bg-slate-900/50 border border-slate-800/60 hover:border-slate-700 transition-colors overflow-hidden" data-filename="${b.filename}">
+        <div class="rounded-lg bg-white/[0.03] border border-white/10 hover:border-slate-700 transition-colors overflow-hidden" data-filename="${b.filename}">
           <div class="flex items-center justify-between px-3 py-2">
             <div class="flex items-center gap-3 min-w-0">
               <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border flex-shrink-0 ${labelClass}">${label}</span>
@@ -316,21 +316,21 @@ async function loadBackups() {
               <span class="text-[10px] font-mono text-slate-600 flex-shrink-0">${sizeKb} KB</span>
             </div>
             <div class="flex gap-1 flex-shrink-0">
-              <button onclick="toggleBackupDetails(${i})" title="Inspizieren" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-700/30 border border-slate-600 text-slate-300 hover:bg-slate-700 transition-colors">
+              <button onclick="toggleBackupDetails(${i})" title="Inspizieren" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/[0.06] border border-slate-600 text-slate-300 hover:bg-white/[0.1] transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
               </button>
-              <button onclick="downloadBackup('${b.filename}')" title="Download" class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors">
+              <button onclick="downloadBackup('${b.filename}')" title="Download" class="btn sm blue ibtn flex items-center justify-center">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               </button>
-              <button onclick="restoreBackupConfirm('${b.filename}')" title="Komplett wiederherstellen" class="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-colors">
+              <button onclick="restoreBackupConfirm('${b.filename}')" title="Komplett wiederherstellen" class="btn sm gold ibtn flex items-center justify-center">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               </button>
-              <button onclick="deleteBackupConfirm('${b.filename}')" title="Löschen" class="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 transition-colors">
+              <button onclick="deleteBackupConfirm('${b.filename}')" title="Löschen" class="btn sm danger ibtn flex items-center justify-center">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
             </div>
           </div>
-          <div id="backup-detail-${i}" class="hidden border-t border-slate-800/60 px-3 py-3 bg-slate-950/40"></div>
+          <div id="backup-detail-${i}" class="hidden border-t border-white/10 px-3 py-3 bg-slate-950/40"></div>
         </div>`;
     }).join('');
     window._backupFiles = backups.map(b => b.filename);
@@ -365,13 +365,13 @@ async function toggleBackupDetails(i) {
     panel.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">Inhalt dieses Backups</h4>
+          <h4 class="lbl mb-2">Inhalt dieses Backups</h4>
           ${rows}
         </div>
         <div>
-          <h4 class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mb-2">Gezielt wiederherstellen</h4>
+          <h4 class="lbl mb-2">Gezielt wiederherstellen</h4>
           <div class="space-y-1.5 mb-3">${checkboxes}</div>
-          <button onclick="restoreSelectedTables('${filename}', ${i})" class="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-mono transition-colors">
+          <button onclick="restoreSelectedTables('${filename}', ${i})" class="btn sm gold">
             Ausgewählte Tabellen wiederherstellen
           </button>
         </div>
@@ -463,7 +463,7 @@ async function loadCommands_panel() {
     const status = await apiCall('/api/admin/commands');
     const el = document.getElementById('commandList');
     el.innerHTML = Object.entries(status).map(([cmd, active]) => `
-      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border ${active ? 'border-slate-800' : 'border-slate-800/40'}">
+      <div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border ${active ? 'border-slate-800' : 'border-slate-800/40'}">
         <span class="text-sm font-mono ${active ? 'text-white' : 'text-slate-500'}">${cmd}</span>
         <div class="flex items-center gap-2.5">
           <span class="text-[10px] font-mono ${active ? 'text-emerald-400' : 'text-slate-500'}">${active ? 'Aktiv' : 'Inaktiv'}</span>
@@ -604,16 +604,14 @@ async function loadChannels() {
     const status = await apiCall('/api/admin/channels');
     const el = document.getElementById('channelList');
     el.innerHTML = Object.entries(status).map(([ch, active]) => `
-      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-900/50 border border-slate-800">
+      <div class="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/10">
         <div class="flex items-center gap-3">
           <div class="w-2 h-2 rounded-full ${active ? 'bg-emerald-400' : 'bg-slate-600'}"></div>
           <span class="text-sm font-mono text-white">#${ch}</span>
           <span class="text-xs font-mono ${active ? 'text-emerald-400' : 'text-slate-500'}">${active ? 'AKTIV' : 'INAKTIV'}</span>
         </div>
         <button onclick="toggleChannel('${ch}', ${!active})"
-          class="px-4 py-1.5 rounded-lg text-xs font-mono transition-colors ${active
-            ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
-            : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}">
+          class="px-4 py-1.5 rounded-lg text-xs font-mono transition-colors ${active ? 'bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}">
           ${active ? 'Deaktivieren' : 'Aktivieren'}
         </button>
       </div>

@@ -5,9 +5,7 @@ async function loadAnalytics(days) {
   ['1','7','30','0'].forEach(d => {
     const btn = document.getElementById('an-' + d);
     if (!btn) return;
-    btn.className = String(d) === String(days)
-      ? 'px-3 py-1.5 text-xs font-mono rounded-lg border border-emerald-500 text-emerald-400 bg-emerald-500/10 transition-colors'
-      : 'px-3 py-1.5 text-xs font-mono rounded-lg border border-slate-700 text-slate-400 hover:border-emerald-500 hover:text-emerald-400 transition-colors';
+    btn.className = String(d) === String(days) ? 'fchip on' : 'fchip';
   });
   try {
     const url  = `/api/admin/analytics?days=${days > 0 ? days : 3650}`;
@@ -23,7 +21,7 @@ async function loadAnalytics(days) {
     document.getElementById('an-commands').innerHTML = cmds.map(([cmd,count])=>`
       <div class="flex items-center gap-3">
         <span class="font-mono text-xs text-slate-300 w-24 shrink-0">${cmd}</span>
-        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div class="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
           <div class="h-full bg-emerald-500 rounded-full" style="width:${Math.round((count/maxBar(cmds))*100)}%"></div>
         </div>
         <span class="font-mono text-xs text-slate-400 w-10 text-right">${count}</span>
@@ -32,7 +30,7 @@ async function loadAnalytics(days) {
     document.getElementById('an-users').innerHTML = users.map(([user,count])=>`
       <div class="flex items-center gap-3">
         <span class="font-mono text-xs text-slate-300 w-28 shrink-0 truncate">${user}</span>
-        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div class="flex-1 h-2 bg-white/[0.06] rounded-full overflow-hidden">
           <div class="h-full bg-blue-500 rounded-full" style="width:${Math.round((count/maxBar(users))*100)}%"></div>
         </div>
         <span class="font-mono text-xs text-slate-400 w-10 text-right">${count}</span>
@@ -40,7 +38,7 @@ async function loadAnalytics(days) {
     const hours = s.byHour||new Array(24).fill(0);
     const maxH  = Math.max(...hours, 1);
     document.getElementById('an-hours').innerHTML = hours.map((h,i)=>`
-      <div class="flex-1 bg-slate-800 rounded-sm relative" title="${i}:00 — ${h}x">
+      <div class="flex-1 bg-white/[0.06] rounded-sm relative" title="${i}:00 — ${h}x">
         <div class="absolute bottom-0 left-0 right-0 bg-purple-500 rounded-sm" style="height:${Math.round((h/maxH)*100)}%;opacity:0.8"></div>
       </div>`).join('');
     const items   = Object.entries(s.lootStats?.topItems||{}).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -48,7 +46,7 @@ async function loadAnalytics(days) {
     document.getElementById('an-items').innerHTML = items.length ? items.map(([name,count])=>`
       <div class="flex items-center gap-3">
         <span class="font-mono text-xs text-slate-300 flex-1 truncate" title="${name}">${name}</span>
-        <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div class="w-20 h-2 bg-white/[0.06] rounded-full overflow-hidden">
           <div class="h-full bg-amber-500 rounded-full" style="width:${Math.round((count/maxItem)*100)}%"></div>
         </div>
         <span class="font-mono text-xs text-slate-400 w-8 text-right">${count}x</span>
