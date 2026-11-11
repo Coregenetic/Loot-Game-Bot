@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 <link rel="stylesheet" href="css/hub-ui.css">
 <script src="player-api.js"></script>
-<script src="js/passkey.js"></script>
-<script src="js/login-passkey.js"></script>
 <style>
   body{background-image:
     radial-gradient(900px 520px at 100% 0%,rgba(255,92,138,.16),transparent 62%),
@@ -19,16 +17,13 @@
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
   .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 28px 56px}
   .head{display:flex;align-items:center;justify-content:space-between;padding:26px 0 8px}
-  .split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:stretch}
+  .split{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
   .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-  .hero{padding:52px 48px;display:flex;flex-direction:column;gap:24px;justify-content:center;min-height:440px}
+  .hero{padding:64px 56px;display:flex;flex-direction:column;gap:24px;justify-content:center;min-height:380px}
   .hero h1{font-size:clamp(44px,6vw,72px);line-height:1;letter-spacing:-.045em;font-weight:800}
   .grad{background:linear-gradient(90deg,#5b8cff,#ff5c8a);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .hero p{font-size:18px;line-height:1.55;max-width:480px;color:var(--tx2)}
+  .hero p{font-size:18px;line-height:1.55;max-width:560px;color:var(--tx2)}
   .btn.twitch.xl{min-height:60px;padding:0 28px;font-size:16px;border-radius:18px;align-self:flex-start}
-  .adm{padding:32px;display:flex;flex-direction:column;gap:14px;justify-content:center}
-  .adm label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700}
-  .adm .input{min-height:50px}
   .ico{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-size:22px}
   .cmds{margin-top:18px;display:flex;flex-direction:column}
   .cmds div{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:start}
@@ -37,7 +32,7 @@
   .errbox{padding:10px 14px;border-radius:var(--r-xs);background:rgba(255,92,138,.1);border:1px solid rgba(255,92,138,.3);color:var(--pink);font-size:13px}
   @media(max-width:900px){
     .split,.three{grid-template-columns:minmax(0,1fr)}
-    .wrap{padding:0 16px 40px}.hero{padding:30px 22px;min-height:0}.adm{padding:22px}
+    .wrap{padding:0 16px 40px}.hero{padding:30px 22px;min-height:0}
   }
 </style>
 </head>
@@ -68,19 +63,6 @@
         <div class="dim" style="font-size:12px">Nur für Zuschauer von GunnyOneTV. Wir sehen ausschließlich deinen Twitch-Benutzernamen.</div>
       </section>
 
-      <section class="card adm rise" style="--i:2">
-        <div class="lbl">Admin-Login</div>
-        <div id="adminError" class="hidden errbox"></div>
-        <div id="adminPasskeyBox" class="hidden" style="margin-bottom:12px">
-          <div id="adminPasskeyNotice" class="dim" style="font-size:12px;line-height:1.5;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:12px;padding:10px 12px"></div>
-          <button id="adminPasskeyBtn" type="button" class="btn block" style="margin-top:10px;min-height:50px">🔐 Mit Windows Hello anmelden</button>
-          <div class="dim" style="font-size:11px;text-align:center;margin-top:10px" id="adminPwLabel">oder mit Passwort</div>
-        </div>
-        <label>Benutzername<input id="adminUser" class="input" type="text" placeholder="Benutzername" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()"></label>
-        <label>Passwort<input id="adminPass" class="input" type="password" placeholder="Passwort" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()"></label>
-        <button id="adminBtn" class="btn block" style="margin-top:6px;min-height:50px" onclick="adminLogin()">Anmelden</button>
-        <div class="dim" style="font-size:12px">Nur für Moderatoren und den Streamer.</div>
-      </section>
     </div>
 
     <div class="three">
@@ -118,7 +100,7 @@
     </div>
   </div>
 
-  <p class="dim mono" style="font-size:11px;text-align:center;margin-top:40px">Ein Projekt von Coregenetic · Kein offizielles EFT-Produkt · lootgamebot.de</p>
+  <p class="dim mono" style="font-size:11px;text-align:center;margin-top:40px">Ein Projekt von Coregenetic · Kein offizielles EFT-Produkt · lootgamebot.de · <a href="/login.html" style="text-decoration:underline">Admin</a></p>
 </div>
 
 <script>
@@ -134,42 +116,6 @@
     window.open('/api/player-auth/login', '_blank', 'noopener');
   }
 
-  async function adminLogin() {
-    const username = document.getElementById('adminUser').value.trim();
-    const password = document.getElementById('adminPass').value;
-    const errEl    = document.getElementById('adminError');
-    const btn      = document.getElementById('adminBtn');
-    if (!username || !password) {
-      errEl.textContent = 'Benutzername und Passwort erforderlich.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    btn.textContent = 'Einloggen...';
-    btn.disabled = true;
-    errEl.classList.add('hidden');
-    try {
-      const res  = await fetch('/api/auth/login', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.token) {
-        errEl.textContent = data.error || 'Login fehlgeschlagen.';
-        errEl.classList.remove('hidden');
-        btn.textContent = 'Einloggen';
-        btn.disabled = false;
-        return;
-      }
-      localStorage.setItem('lootgame_session_token', data.token);
-      localStorage.setItem('lootgame_username', data.username || username);
-      window.location.href = data.passkeySetupRequired ? '/passkey-setup.html' : '/admin.html';
-    } catch(e) {
-      errEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
-      errEl.classList.remove('hidden');
-      btn.textContent = 'Einloggen';
-      btn.disabled = false;
-    }
-  }
 
   if (PlayerAPI.isLoggedIn()) {
     window.location.href = '/player-hub.html';

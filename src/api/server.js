@@ -92,8 +92,8 @@ function createServer() {
         }
         next();
     });
-    app.use(express.static(PUBLIC_DIR));
-    app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'login.html')));
+    app.use(express.static(PUBLIC_DIR, { index: false })); // / wird unten explizit bedient (Spieler-Login)
+    app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'player-login.html')));
 
     // Public Routes
     app.get('/health', (req, res) => {

@@ -1,12 +1,9 @@
-// Passkey-Login-Box für login.html und die Admin-Karte auf player-login.html
+// Passkey-Login-Box für login.html (Admin-Login)
 (function () {
   const NOTICE_ENFORCED = 'Admin-Zugang nur mit Passkey. Melde dich mit Windows Hello an (Fingerabdruck, Gesicht oder PIN). Das Passwort dient nur dazu, einmalig einen Passkey einzurichten.';
   const NOTICE_OPTIONAL = 'Passkeys sind verfügbar. Melde dich mit Windows Hello an, oder richte nach dem Passwort-Login einen Passkey ein. Bald ist der Passkey Pflicht.';
 
-  // Zwei Varianten der Oberfläche: login.html (passkey*) und player-login.html (adminPasskey*)
-  const ui = document.getElementById('passkeyBox')
-    ? { box: 'passkeyBox', notice: 'passkeyNotice', btn: 'passkeyBtn', err: 'passkeyErr', pw: 'pwDividerLabel', target: '/index.html' }
-    : { box: 'adminPasskeyBox', notice: 'adminPasskeyNotice', btn: 'adminPasskeyBtn', err: 'adminError', pw: 'adminPwLabel', target: '/admin.html' };
+  const ui = { box: 'passkeyBox', notice: 'passkeyNotice', btn: 'passkeyBtn', err: 'passkeyErr', pw: 'pwDividerLabel', target: '/admin.html' };
 
   const $ = id => document.getElementById(id);
   const box = $(ui.box);
@@ -15,8 +12,8 @@
   function showErr(msg) {
     const el = $(ui.err);
     if (!el) return;
-    el.textContent = msg ? '✗ ' + msg : '';
-    if (ui.err === 'adminError') el.classList.toggle('hidden', !msg);
+    el.textContent = msg || '';
+    el.classList.toggle('hidden', !msg);
   }
 
   PasskeyAuth.config().then(cfg => {
