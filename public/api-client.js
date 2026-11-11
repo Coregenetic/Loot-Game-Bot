@@ -47,6 +47,7 @@ const LootGameAPI = (() => {
 
         if (!res.ok) {
             const err = await res.json().catch(() => ({ error: res.statusText }));
+            if (err.code === 'passkey_setup_required') { window.location.href = '/passkey-setup.html'; return; }
             throw new Error(err.error || 'HTTP ' + res.status);
         }
         return res.json();

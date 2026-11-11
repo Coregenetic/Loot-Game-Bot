@@ -6,6 +6,7 @@ const logger     = require('../utils/logger');
 const sessionAuth    = require('./middleware/session');
 const { requirePermission } = require('./middleware/permission');
 const authRoutes     = require('./routes/auth');
+const passkeyRoutes  = require('./routes/passkeys');
 const configRoutes   = require('./routes/config');
 const itemsRoutes    = require('./routes/items');
 const playersRoutes  = require('./routes/players');
@@ -126,6 +127,7 @@ function createServer() {
         res.sendStatus(204);
     });
 
+    app.use('/api/auth/passkey', passkeyRoutes); // vor /api/auth, damit der Pfad nicht von authRoutes geschluckt wird
     app.use('/api/auth', authRoutes);
 
     // Overlay (kein Auth)

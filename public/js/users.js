@@ -7,6 +7,8 @@ const ROLE_BADGE = {
 async function loadUsers() {
   try {
     const users = await fetch('/api/admin/users',{headers:{'x-session-token':LootGameAPI.getToken()}}).then(r=>r.json());
+    let pkCounts = {};
+    try { pkCounts = await PasskeyAuth.counts(); } catch {}
 
     document.getElementById('userStatTotal').textContent = users.length;
     document.getElementById('userStatSuperadmin').textContent = users.filter(u => u.role === 'superadmin').length;
@@ -19,12 +21,14 @@ async function loadUsers() {
       return '<div class="flex items-center justify-between p-3 rounded-xl border border-slate-800/50 hover:bg-slate-800/30 transition-colors">' +
         '<div class="flex items-center gap-3">' +
           '<div><div class="text-slate-200 font-medium text-sm">' + u.username + (isMe ? ' <span class="text-[10px] text-slate-500">(du)</span>' : '') + '</div>' +
-          '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 inline-block ' + badge + '">' + u.role + '</span></div>' +
+          '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 inline-block ' + badge + '">' + u.role + '</span>' +
+          '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md border mt-1 ml-1.5 inline-block ' + ((pkCounts[u.username.toLowerCase()] || 0) > 0 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-slate-800/50 text-slate-500 border-slate-700') + '">🔐 ' + (pkCounts[u.username.toLowerCase()] || 0) + ' Passkey' + ((pkCounts[u.username.toLowerCase()] || 0) === 1 ? '' : 's') + '</span></div>' +
         '</div>' +
         '<div class="flex items-center gap-2">' +
           '<select onchange="changeUserRole(\'' + u.username + '\', this.value)" ' + (isMe ? 'disabled title="Du kannst dir selbst keine Rolle entziehen"' : '') + ' class="bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-300 px-2 py-1.5 outline-none focus:border-emerald-500 disabled:opacity-40">' +
             ['mod','admin','superadmin'].map(r => '<option value="'+r+'" '+(r===u.role?'selected':'')+'>'+r+'</option>').join('') +
           '</select>' +
+          (isMe || !(pkCounts[u.username.toLowerCase()] || 0) ? '' : '<button class="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 text-[10px] font-bold tracking-wider transition-colors" data-username="' + u.username.replace(/"/g, '&quot;') + '" onclick="resetUserPasskeys(this.dataset.username)">PASSKEYS RESET</button>') +
           (isMe ? '' : '<button class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 text-[10px] font-bold tracking-wider transition-colors" onclick="deleteUser(\'' + u.username + '\')">LÖSCHEN</button>') +
         '</div></div>';
     }).join('');
@@ -71,6 +75,16 @@ async function changeUserRole(username, role) {
     if (d.success) { showToast('✓ Rolle geändert', 'success'); loadUsers(); }
     else { showToast('✗ '+(d.error||'Fehler'), 'error'); loadUsers(); }
   } catch(e) { showToast('✗ '+e.message, 'error'); }
+}
+
+async function resetUserPasskeys(username) {
+  showConfirm('Passkeys zurücksetzen', 'Alle Passkeys von "' + username + '" werden gelöscht und die Sitzungen beendet. Danach kann sich der User mit dem Passwort anmelden und einen neuen Passkey einrichten.', async () => {
+    try {
+      const r = await PasskeyAuth.resetUser(username);
+      showToast('✓ ' + r.removed + ' Passkey(s) gelöscht', 'success');
+    } catch (e) { showToast('✗ ' + e.message, 'error'); }
+    loadUsers();
+  });
 }
 
 async function deleteUser(username) {

@@ -3,6 +3,7 @@ require('dotenv').config();
 const fs     = require('fs');
 const logger = require('./utils/logger');
 const { initSchema, initDashboardUsers, initMessages, all } = require('./db/schema');
+const { initPasskeys } = require('./db/passkeys');
 const { getUserCount } = require('./db/users');
 const { createBot }    = require('./bot');
 const { startServer }  = require('./api/server');
@@ -33,6 +34,7 @@ async function main() {
     logger.info('BOOT', 'Initialisiere Datenbank...');
     await initSchema();
     await initDashboardUsers();
+    initPasskeys();
     await initMessages();
     logger.info('BOOT', 'Datenbank bereit.');
 

@@ -34,14 +34,23 @@ router.post('/login', loginLimiter, async (req, res) => {
             logAudit(username.toLowerCase(), 'login_failed');
             return res.status(401).json({ error: 'Falscher Benutzername oder Passwort' });
         }
+        if (result.error === 'passkey_required') {
+            logAudit(username.toLowerCase(), 'login_password_blocked_passkey_required');
+            return res.status(403).json({
+                code: 'passkey_required',
+                error: 'Für dieses Konto ist ein Passkey Pflicht. Bitte mit Windows Hello anmelden.'
+            });
+        }
 
-        logAudit(result.username, 'login_success');
+        logAudit(result.username, result.limited ? 'login_success_setup_only' : 'login_success');
         res.json({
             success:  true,
             token:    result.token,
             username: result.username,
             role:     result.role,
-            expires:  result.expiresAt
+            expires:  result.expiresAt,
+            // true = Passwort-Login ohne Passkey bei aktiver Pflicht: nur Einrichtung möglich
+            passkeySetupRequired: !!result.limited
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -49,19 +58,20 @@ router.post('/login', loginLimiter, async (req, res) => {
 });
 
 // POST /api/auth/logout
-router.post('/logout', sessionMiddleware, (req, res) => {
+router.post('/logout', sessionMiddleware.allowLimited, (req, res) => {
     const token = req.headers['x-session-token'] || req.headers['x-dashboard-token'];
     logoutUser(token);
     res.json({ success: true });
 });
 
 // GET /api/auth/me — Session prüfen, liefert auch Rolle + Permissions
-router.get('/me', sessionMiddleware, (req, res) => {
+router.get('/me', sessionMiddleware.allowLimited, (req, res) => {
     const { getRolePermissions } = require('../../db/permissions');
     res.json({
         username:    req.session.username,
         role:        req.session.role,
-        permissions: getRolePermissions(req.session.role)
+        limited:     !!req.session.limited,
+        permissions: req.session.limited ? [] : getRolePermissions(req.session.role)
     });
 });
 

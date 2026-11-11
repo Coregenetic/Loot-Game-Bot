@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passkeys — Loot-Game Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { background:#05080c; color:#e2e8f0; font-family:Inter,sans-serif; min-height:100vh; }
+  .panel { background:rgba(10,15,22,.75); border:1px solid rgba(255,255,255,.06); border-radius:20px; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:12px; padding:12px 18px; font-weight:600; font-size:13px; transition:.2s; cursor:pointer; border:1px solid transparent; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-primary { background:#10b981; color:#04120c; }
+  .btn-primary:hover:not(:disabled) { background:#34d399; }
+  .btn-ghost { background:rgba(148,163,184,.08); border-color:rgba(148,163,184,.25); color:#cbd5e1; }
+  .btn-ghost:hover:not(:disabled) { background:rgba(148,163,184,.16); }
+  .btn-danger { background:rgba(244,63,94,.1); border-color:rgba(244,63,94,.3); color:#fb7185; font-size:11px; padding:7px 12px; }
+  .input { width:100%; background:rgba(15,23,42,.6); border:1px solid #334155; border-radius:12px; padding:12px 14px; font-size:14px; color:#fff; outline:none; }
+  .input:focus { border-color:#10b981; }
+</style>
+</head>
+<body>
+<div class="max-w-2xl mx-auto px-4 py-10 space-y-5">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="mono text-[10px] tracking-widest text-slate-500 uppercase">Loot-Game Hub · Sicherheit</div>
+      <h1 class="text-2xl font-bold text-white mt-1" id="pageTitle">Passkeys</h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <a id="backLink" href="/admin.html" class="btn btn-ghost hidden">Zurück zum Dashboard</a>
+      <button id="logoutBtn" class="btn btn-ghost">Abmelden</button>
+    </div>
+  </div>
+
+  <div id="requiredBanner" class="hidden panel p-5" style="border-color:rgba(251,191,36,.4);background:rgba(251,191,36,.07)">
+    <div class="flex gap-3">
+      <div class="text-2xl">🔐</div>
+      <div>
+        <div class="font-bold text-amber-300">Für dein Konto ist ein Passkey Pflicht</div>
+        <p class="text-sm text-slate-300 mt-1">Du hast dich mit dem Passwort angemeldet. Richte jetzt Windows Hello (Fingerabdruck, Gesicht oder PIN) als Passkey ein. Danach landest du direkt im Dashboard, und künftig meldest du dich nur noch damit an.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="errorBox" class="hidden panel p-4 text-sm text-rose-300" style="border-color:rgba(244,63,94,.35);background:rgba(244,63,94,.07)"></div>
+  <div id="okBox" class="hidden panel p-4 text-sm text-emerald-300" style="border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07)"></div>
+
+  <section class="panel p-6 space-y-4">
+    <div>
+      <div class="font-semibold text-white">Neuen Passkey hinzufügen</div>
+      <p class="text-sm text-slate-400 mt-1">Windows fragt dich nach Fingerabdruck, Gesicht oder PIN. Der geheime Schlüssel bleibt auf deinem Gerät und verlässt es nie.</p>
+    </div>
+    <div>
+      <label class="block text-[10px] mono text-slate-400 uppercase tracking-widest mb-1.5" for="pkName">Name des Passkeys</label>
+      <input id="pkName" class="input" maxlength="40" value="Windows PC" autocomplete="off">
+    </div>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <button id="addPcBtn" class="btn btn-primary">💻 Dieser PC (Windows Hello)</button>
+      <button id="addPhoneBtn" class="btn btn-ghost">📱 Handy per QR-Code</button>
+    </div>
+    <p class="text-xs text-slate-500">Tipp: Lege mindestens <strong class="text-slate-300">zwei</strong> Passkeys an, zum Beispiel PC und Handy. Beim Handy wählst du im Windows-Dialog „Handy oder Tablet“ und scannst den QR-Code. So bleibst du nicht ausgesperrt, falls der PC ausfällt.</p>
+  </section>
+
+  <section class="panel p-6">
+    <div class="font-semibold text-white mb-3">Deine Passkeys</div>
+    <div id="pkList" class="space-y-2"><div class="text-sm text-slate-500">Lade…</div></div>
+  </section>
+
+  <p class="text-[11px] text-slate-600 text-center mono">Gerät verloren? Ein Superadmin (oder der Server-Administrator per SSH) kann deine Passkeys zurücksetzen.</p>
+</div>
+
+<script src="/api-client.js"></script>
+<script src="/js/passkey.js"></script>
+<script src="/js/passkey-setup.js"></script>
+</body>
+</html>

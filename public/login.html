@@ -194,6 +194,20 @@
           <p class="text-[9px] font-mono text-rose-400 tracking-widest uppercase leading-tight font-semibold">Restricted Area · Unauthorized access prohibited</p>
         </div>
 
+        <!-- Passkey / Windows Hello -->
+        <div id="passkeyBox" class="hidden mb-7 space-y-4">
+          <div id="passkeyNotice" class="rounded-xl p-3.5 text-[11px] font-mono leading-relaxed border border-emerald-500/30 bg-emerald-500/5 text-emerald-300"></div>
+          <button id="passkeyBtn" type="button" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-4 rounded-xl font-mono text-xs font-bold tracking-widest uppercase transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center justify-center gap-3">
+            <span>🔐</span><span>Mit Windows Hello anmelden</span>
+          </button>
+          <div id="passkeyErr" class="text-[10px] font-mono text-rose-400 text-center min-h-[16px] font-bold tracking-wide"></div>
+          <div class="flex items-center gap-3">
+            <div class="h-px flex-1 bg-slate-800"></div>
+            <span id="pwDividerLabel" class="text-[9px] font-mono text-slate-500 uppercase tracking-widest">oder mit Passwort</span>
+            <div class="h-px flex-1 bg-slate-800"></div>
+          </div>
+        </div>
+
         <div class="space-y-6">
           <!-- Username -->
           <div>
@@ -237,6 +251,9 @@
   </div>
 
 </div>
+
+<script src="js/passkey.js"></script>
+<script src="js/login-passkey.js"></script>
 
 <!-- Original JS Logic -->
 <script>
@@ -292,7 +309,8 @@
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           <span class="text-emerald-400">Verbunden</span>
         `;
-        setTimeout(() => window.location.href = '/index.html', 300);
+        // Passkey-Pflicht aktiv, aber noch keiner eingerichtet: nur die Einrichtungsseite ist erreichbar
+        setTimeout(() => window.location.href = data.passkeySetupRequired ? '/passkey-setup.html' : '/index.html', 300);
 
       } else {
         errorEl.textContent = '✗ ' + (data.error || 'Login fehlgeschlagen');

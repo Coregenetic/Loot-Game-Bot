@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 <link rel="stylesheet" href="css/hub-ui.css">
 <script src="player-api.js"></script>
+<script src="js/passkey.js"></script>
+<script src="js/login-passkey.js"></script>
 <style>
   body{background-image:
     radial-gradient(900px 520px at 100% 0%,rgba(255,92,138,.16),transparent 62%),
@@ -69,6 +71,11 @@
       <section class="card adm rise" style="--i:2">
         <div class="lbl">Admin-Login</div>
         <div id="adminError" class="hidden errbox"></div>
+        <div id="adminPasskeyBox" class="hidden" style="margin-bottom:12px">
+          <div id="adminPasskeyNotice" class="dim" style="font-size:12px;line-height:1.5;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:12px;padding:10px 12px"></div>
+          <button id="adminPasskeyBtn" type="button" class="btn block" style="margin-top:10px;min-height:50px">🔐 Mit Windows Hello anmelden</button>
+          <div class="dim" style="font-size:11px;text-align:center;margin-top:10px" id="adminPwLabel">oder mit Passwort</div>
+        </div>
         <label>Benutzername<input id="adminUser" class="input" type="text" placeholder="Benutzername" autocomplete="username" onkeydown="if(event.key==='Enter')adminLogin()"></label>
         <label>Passwort<input id="adminPass" class="input" type="password" placeholder="Passwort" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()"></label>
         <button id="adminBtn" class="btn block" style="margin-top:6px;min-height:50px" onclick="adminLogin()">Anmelden</button>
@@ -155,7 +162,7 @@
       }
       localStorage.setItem('lootgame_session_token', data.token);
       localStorage.setItem('lootgame_username', data.username || username);
-      window.location.href = '/admin.html';
+      window.location.href = data.passkeySetupRequired ? '/passkey-setup.html' : '/admin.html';
     } catch(e) {
       errEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
       errEl.classList.remove('hidden');

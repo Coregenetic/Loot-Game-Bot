@@ -90,6 +90,8 @@ function canAccess(tab) {
 async function loadCurrentUser() {
   try {
     const me = await fetch('/api/auth/me', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
+    // Eingeschränkte Session (Passwort-Login bei aktiver Passkey-Pflicht): nur die Einrichtung ist erlaubt
+    if (me.limited) { window.location.href = '/passkey-setup.html'; return; }
     currentUser = { username: me.username, role: me.role, permissions: me.permissions || [] };
     const el = document.getElementById('sidebarUsername');
     if (el) el.textContent = currentUser.username;
