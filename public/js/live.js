@@ -7,13 +7,13 @@ function updateLiveFeedStatusBadge() {
   if (!el) return;
   if (liveWS && liveWS.readyState === WebSocket.OPEN) {
     el.textContent = 'live';
-    el.className = 'text-[9px] font-mono text-emerald-500';
+    el.style.color = 'var(--green)';
   } else if (liveWS && liveWS.readyState === WebSocket.CONNECTING) {
-    el.textContent = 'verbinde...';
-    el.className = 'text-[9px] font-mono text-slate-600';
+    el.textContent = 'verbinde…';
+    el.style.color = '';
   } else {
-    el.textContent = 'getrennt — verbinde neu...';
-    el.className = 'text-[9px] font-mono text-amber-500';
+    el.textContent = 'getrennt, verbinde neu…';
+    el.style.color = 'var(--gold)';
   }
 }
 
@@ -44,25 +44,39 @@ function formatLiveValue(v) {
   return v + ' ₽';
 }
 
+let liveFeedFilter = 'all';
+
+function setFeedFilter(f) {
+  liveFeedFilter = f;
+  document.querySelectorAll('#liveFeedFilters [data-feed]').forEach(b => b.classList.toggle('on', b.dataset.feed === f));
+  renderLiveFeed();
+}
+
+function feedKind(e) {
+  if (e.type === 'raid_result') return e.survived ? 'loot' : 'death';
+  if (e.type === 'bot_status') return 'bot';
+  return 'other';
+}
+
 function renderLiveFeed() {
   const el = document.getElementById('liveFeedList');
   if (!el) return; // Übersicht evtl. gerade nicht aktiv/geladen
-  if (!liveFeedEvents.length) {
-    el.innerHTML = '<p class="text-xs font-mono text-slate-600">Warte auf Aktivität...</p>';
+  const rows = liveFeedEvents.filter(e => feedKind(e) !== 'other' && (liveFeedFilter === 'all' || feedKind(e) === liveFeedFilter));
+  if (!rows.length) {
+    el.innerHTML = '<div class="feed-empty">' + (liveFeedEvents.length ? 'Keine Einträge für diesen Filter.' : 'Warte auf Aktivität…') + '</div>';
     return;
   }
-  el.innerHTML = liveFeedEvents.map(e => {
+  const row = (cls, icon, time, html) =>
+    `<div class="feed-row"><span class="ibox ${cls}"><svg class="ic sm"><use href="#i-${icon}"/></svg></span><span class="tm">${time}</span><span>${html}</span></div>`;
+  el.innerHTML = rows.map(e => {
     const time = new Date(e.ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     if (e.type === 'raid_result') {
       return e.survived
-        ? `<div class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-emerald-500/5"><span class="text-slate-300">✅ <b class="text-emerald-400">${e.username}</b> hat ${e.itemName ? e.itemName + ' (' + formatLiveValue(e.value) + ')' : formatLiveValue(e.value)} auf ${e.map} gelootet${e.leveledUp ? ' · 🎉 Lvl ' + e.newLevel : ''}</span><span class="text-slate-600 font-mono shrink-0 ml-2">${time}</span></div>`
-        : `<div class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-rose-500/5"><span class="text-slate-300">💀 <b class="text-rose-400">${e.username}</b> ist auf ${e.map} gestorben</span><span class="text-slate-600 font-mono shrink-0 ml-2">${time}</span></div>`;
+        ? row('gold', 'box', time, `<b>${escHtml(e.username)}</b> hat ${e.itemName ? escHtml(e.itemName) + ' (' + formatLiveValue(e.value) + ')' : formatLiveValue(e.value)} auf ${escHtml(e.map)} gelootet${e.leveledUp ? ' · Level ' + escHtml(e.newLevel) : ''}`)
+        : row('pink', 'skull', time, `<b>${escHtml(e.username)}</b> ist auf ${escHtml(e.map)} gestorben`);
     }
-    if (e.type === 'bot_status') {
-      const labels = { tournament: 'Turnier-Modus', maintenance: 'Wartungsmodus', command: 'Command ' + e.cmd, channel: 'Channel ' + e.channel };
-      return `<div class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-blue-500/5"><span class="text-slate-300">⚙️ ${labels[e.kind] || e.kind} ${e.active ? 'aktiviert' : 'deaktiviert'}</span><span class="text-slate-600 font-mono shrink-0 ml-2">${time}</span></div>`;
-    }
-    return '';
+    const labels = { tournament: 'Turnier-Modus', maintenance: 'Wartungsmodus', command: 'Command ' + e.cmd, channel: 'Channel ' + e.channel };
+    return row('blue', 'gear', time, `${escHtml(labels[e.kind] || e.kind)} ${e.active ? 'aktiviert' : 'deaktiviert'}`);
   }).join('');
 }
 

@@ -1,63 +1,95 @@
-<div class="space-y-5">
+<div class="ov">
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-    <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 50ms;">
-      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-3">Bot-Verhalten</div>
-      <div class="flex items-center justify-between py-1.5">
-        <span class="text-sm text-slate-300">Wartungsmodus</span>
-        <span id="ov-maintenance-pill" class="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Inaktiv</span>
-      </div>
-      <div class="flex items-center justify-between py-1.5">
-        <span class="text-sm text-slate-300">Turnier-Modus</span>
-        <span id="ov-tournament-pill" class="text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Inaktiv</span>
-      </div>
-    </div>
-
-    <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 100ms;">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
-            <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/></svg>
-          </div>
-          <span class="font-mono text-[10px] text-slate-500 uppercase tracking-widest">Hetzner CX23</span>
-        </div>
-        <span id="ov-hetzner-status" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-500">—</span>
-      </div>
-      <div class="space-y-2 mb-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-slate-400">CPU</span>
-          <span id="ov-cpu-label" class="text-xs font-mono text-white">—</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-slate-400">RAM genutzt</span>
-          <span id="ov-ram-label" class="text-xs font-mono text-white">—</span>
-        </div>
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-slate-400">Disk genutzt</span>
-          <span id="ov-disk-label" class="text-xs font-mono text-white">—</span>
-        </div>
-      </div>
-      <button onclick="navigateTo('server')" class="w-full text-[10px] font-mono text-slate-500 hover:text-emerald-400 transition-colors py-1.5 rounded-lg border border-slate-800 hover:border-emerald-500/30">
-        Details & Controls →
-      </button>
-    </div>
+  <!-- Kennzahlen -->
+  <div class="ov-kpis">
+    <section class="card kpi rise" style="--i:0">
+      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lbl">Bot</span><span class="ibox green"><svg class="ic"><use href="#i-activity"/></svg></span></div>
+      <div class="v" id="kpi-bot-v">—</div>
+      <div class="n" id="kpi-bot-n">&nbsp;</div>
+    </section>
+    <section class="card kpi rise" style="--i:1">
+      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lbl">Uptime</span><span class="ibox violet"><svg class="ic"><use href="#i-clock"/></svg></span></div>
+      <div class="v" id="kpi-up-v">—</div>
+      <div class="n">seit dem letzten Neustart</div>
+    </section>
+    <section class="card kpi rise" style="--i:2">
+      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lbl">Ping</span><span class="ibox blue"><svg class="ic"><use href="#i-wifi"/></svg></span></div>
+      <div class="v" id="kpi-ping-v">—</div>
+      <div class="n" id="kpi-ping-n">&nbsp;</div>
+    </section>
+    <section class="card kpi rise" style="--i:3">
+      <div style="display:flex;align-items:center;justify-content:space-between"><span class="lbl">Server</span><span class="ibox pink"><svg class="ic"><use href="#i-server"/></svg></span></div>
+      <div class="v" id="kpi-srv-v">—</div>
+      <div class="n" id="kpi-srv-n">&nbsp;</div>
+    </section>
   </div>
 
-  <div class="animate-reveal glass-card border border-slate-700/50 rounded-2xl p-5" style="animation-delay: 150ms;">
-    <div class="flex items-center justify-between mb-3">
-      <div class="font-mono text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-2">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-        </span>
-        Live-Feed
+  <div class="ov-two">
+
+    <!-- Bot-Verhalten -->
+    <section class="card panel-card rise" style="--i:4">
+      <div class="lbl">Bot-Verhalten</div>
+      <div class="setrow" style="margin-top:6px">
+        <span class="ibox lg gold"><svg class="ic"><use href="#i-wrench"/></svg></span>
+        <div class="t"><b>Wartungsmodus</b><span>Bot antwortet nur Admins</span></div>
+        <span id="ov-maintenance-pill" class="pill green">Inaktiv</span>
       </div>
-      <span id="liveFeedStatus" class="text-[9px] font-mono text-slate-600">verbinde...</span>
-    </div>
-    <div id="liveFeedList" class="space-y-1.5 max-h-[28rem] overflow-y-auto pr-1">
-      <p class="text-xs font-mono text-slate-600">Warte auf Aktivität...</p>
-    </div>
+      <div class="setrow">
+        <span class="ibox lg violet"><svg class="ic"><use href="#i-trophy"/></svg></span>
+        <div class="t"><b>Turnier-Modus</b><span>Wertung mit eigenen Regeln</span></div>
+        <span id="ov-tournament-pill" class="pill green">Inaktiv</span>
+      </div>
+    </section>
+
+    <!-- Server -->
+    <section class="card panel-card rise" style="--i:5">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="lbl">Hetzner CX23</div>
+        <span id="ov-hetzner-status" class="pill">—</span>
+      </div>
+      <div class="gauge">
+        <div><div class="h"><span>CPU</span><span id="ov-cpu-label">—</span></div><div class="bar"><i id="ov-cpu-bar" style="width:0%"></i></div></div>
+        <div><div class="h"><span>RAM</span><span id="ov-ram-label">—</span></div><div class="bar"><i id="ov-ram-bar" style="width:0%"></i></div></div>
+        <div><div class="h"><span>Disk</span><span id="ov-disk-label">—</span></div><div class="bar"><i id="ov-disk-bar" style="width:0%"></i></div></div>
+      </div>
+      <button onclick="navigateTo('server')" data-permission="server:manage" class="btn block" style="margin-top:18px">Details und Controls</button>
+    </section>
   </div>
+
+  <!-- Schnellzugriff -->
+  <div class="ov-quick">
+    <button onclick="navigateTo('events')" data-permission="events:manage" class="card quick hoverable rise" style="--i:6">
+      <span class="ibox lg gold"><svg class="ic"><use href="#i-bolt"/></svg></span>
+      <span class="t"><b>Live Events</b><span>Events starten und steuern</span></span>
+      <svg class="ic sm dim"><use href="#i-chev"/></svg>
+    </button>
+    <button onclick="navigateTo('cooldowns')" data-permission="cooldowns:manage" class="card quick hoverable rise" style="--i:7">
+      <span class="ibox lg blue"><svg class="ic"><use href="#i-clock"/></svg></span>
+      <span class="t"><b>Cooldowns</b><span>Spieler freigeben</span></span>
+      <svg class="ic sm dim"><use href="#i-chev"/></svg>
+    </button>
+    <button onclick="navigateTo('logs')" data-permission="logs:view" class="card quick hoverable rise" style="--i:8">
+      <span class="ibox lg violet"><svg class="ic"><use href="#i-terminal"/></svg></span>
+      <span class="t"><b>Bot Log</b><span>Live-Log ansehen</span></span>
+      <svg class="ic sm dim"><use href="#i-chev"/></svg>
+    </button>
+  </div>
+
+  <!-- Live-Feed -->
+  <section class="card panel-card rise" style="--i:9">
+    <div class="feed-head">
+      <div class="lbl" style="display:flex;align-items:center;gap:10px">
+        <span class="dot" style="color:var(--green)"></span>Live-Feed
+        <span id="liveFeedStatus" class="mono dim" style="font-weight:500;letter-spacing:0;text-transform:none;font-size:12px">verbinde…</span>
+      </div>
+      <div class="fchips" id="liveFeedFilters">
+        <button type="button" class="fchip on" data-feed="all" onclick="setFeedFilter('all')">Alle</button>
+        <button type="button" class="fchip" data-feed="loot" onclick="setFeedFilter('loot')">Loot</button>
+        <button type="button" class="fchip" data-feed="death" onclick="setFeedFilter('death')">Tode</button>
+        <button type="button" class="fchip" data-feed="bot" onclick="setFeedFilter('bot')">Bot</button>
+      </div>
+    </div>
+    <div id="liveFeedList"><div class="feed-empty">Warte auf Aktivität…</div></div>
+  </section>
 
 </div>

@@ -4,17 +4,11 @@ function showConfirm(title, msg, callback) {
   document.getElementById('confirm-title').textContent = title;
   document.getElementById('confirm-msg').textContent = msg;
   confirmCallback = callback;
-  const modal = document.getElementById('confirm-modal');
-  const content = document.getElementById('confirm-modal-content');
-  modal.classList.remove('opacity-0', 'invisible');
-  content.classList.remove('scale-95');
+  document.getElementById('confirm-modal').classList.add('open');
 }
 
 function closeConfirm() {
-  const modal = document.getElementById('confirm-modal');
-  const content = document.getElementById('confirm-modal-content');
-  modal.classList.add('opacity-0', 'invisible');
-  content.classList.add('scale-95');
+  document.getElementById('confirm-modal').classList.remove('open');
   confirmCallback = null;
 }
 
@@ -26,20 +20,11 @@ function executeConfirm() {
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  const colors = {
-    success: 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400',
-    error: 'bg-rose-500/10 border-rose-500/50 text-rose-400',
-    warning: 'bg-amber-500/10 border-amber-500/50 text-amber-400',
-    info: 'bg-blue-500/10 border-blue-500/50 text-blue-400'
-  };
-  
-  toast.className = `glass-card border ${colors[type] || colors.info} px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-sm transform transition-all duration-300 translate-y-4 opacity-0`;
-  toast.innerHTML = `<div class="font-mono text-xs">${message}</div>`;
+  toast.className = 'adm-toast ' + (['success','error','warning','info'].includes(type) ? type : 'info');
+  toast.textContent = message;
   container.appendChild(toast);
-  
-  requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
   setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-x-4');
+    toast.classList.add('out');
     setTimeout(() => toast.remove(), 300);
   }, 4000);
 }
@@ -95,6 +80,10 @@ async function loadCurrentUser() {
     currentUser = { username: me.username, role: me.role, permissions: me.permissions || [] };
     const el = document.getElementById('sidebarUsername');
     if (el) el.textContent = currentUser.username;
+    const av = document.getElementById('sidebarAvatar');
+    if (av) av.textContent = (currentUser.username || '?').charAt(0).toUpperCase();
+    const rl = document.getElementById('sidebarRole');
+    if (rl) rl.textContent = { superadmin: 'Superadmin', admin: 'Admin', mod: 'Moderator' }[currentUser.role] || currentUser.role;
   } catch (err) {
     console.error('Konnte aktuellen User nicht laden:', err);
   }
@@ -120,30 +109,43 @@ function applyPermissionVisibility() {
     const ok = currentUser.role === 'superadmin' || (need !== 'superadmin' && currentUser.permissions.includes(need));
     el.classList.toggle('hidden', !ok);
   });
+  // Gruppenüberschriften ausblenden, wenn kein Eintrag darunter sichtbar ist
+  document.querySelectorAll('.adm-grp').forEach(g => {
+    let n = g.nextElementSibling, any = false;
+    while (n && !n.classList.contains('adm-grp')) { if (!n.classList.contains('hidden')) any = true; n = n.nextElementSibling; }
+    g.classList.toggle('hidden', !any);
+  });
 }
 
 // ─── Health Ping ──────────────────────────────────────────────────────────────
+function fmtUptime(sec) {
+  const u = Math.floor(sec);
+  const d = Math.floor(u / 86400), h = Math.floor((u % 86400) / 3600), m = Math.floor((u % 3600) / 60);
+  return d > 0 ? d + 'd ' + h + 'h' : h > 0 ? h + 'h ' + m + 'm' : m + 'm ' + (u % 60) + 's';
+}
+
+function setBotChip(state, text) {
+  const chip = document.getElementById('botChip');
+  const label = document.getElementById('botStatusLabel');
+  if (chip) chip.className = 'chip ' + state;
+  if (label) label.textContent = text;
+}
+
+window.lastHealth = null;
 async function pingHealth() {
   const t0 = Date.now();
   try {
     const d = await fetch('/health').then(r => r.json());
     const ms = Date.now() - t0;
-    document.getElementById('pingVal').textContent = ms + 'ms';
-    const u = Math.floor(d.uptime);
-    const h = Math.floor(u/3600), m = Math.floor((u%3600)/60), s = u%60;
-    document.getElementById('uptimeVal').textContent = h + 'h ' + m + 'm ' + s + 's';
-
-    const dot = document.getElementById('botDot');
-    const label = document.getElementById('botStatusLabel');
-    if (dot) dot.style.background = d.botConnected ? '#10b981' : '#f43f5e';
-    if (dot) dot.style.boxShadow = d.botConnected ? '0 0 6px #10b981' : '0 0 6px #f43f5e';
-    if (label) label.textContent = d.botConnected ? 'BOT ONLINE' : 'BOT OFFLINE';
+    document.getElementById('pingVal').textContent = ms + ' ms';
+    document.getElementById('uptimeVal').textContent = fmtUptime(d.uptime);
+    setBotChip(d.botConnected ? 'ok' : 'bad', d.botConnected ? 'BOT ONLINE' : 'BOT OFFLINE');
+    window.lastHealth = { ok: true, ms, uptime: d.uptime, botConnected: !!d.botConnected };
   } catch {
-    const dot = document.getElementById('botDot');
-    const label = document.getElementById('botStatusLabel');
-    if (dot) { dot.style.background = '#f43f5e'; dot.style.boxShadow = '0 0 6px #f43f5e'; }
-    if (label) label.textContent = 'SERVER OFFLINE';
+    setBotChip('bad', 'SERVER OFFLINE');
+    window.lastHealth = { ok: false };
   }
+  if (typeof renderOverviewKpis === 'function') renderOverviewKpis();
 }
 setInterval(pingHealth, 10000);
 pingHealth();
@@ -180,13 +182,13 @@ async function navigateTo(tab) {
   }
 
   const container = document.getElementById('tab-container');
-  container.innerHTML = '<div class="flex items-center justify-center h-40 text-slate-500 text-xs font-mono">Lade...</div>';
+  container.innerHTML = '<div class="tab-loading">Lade…</div>';
 
   try {
     const html = await loadTabContent(tab);
     container.innerHTML = html;
   } catch (err) {
-    container.innerHTML = '<div class="text-rose-400 text-xs font-mono p-4">Fehler beim Laden: ' + err.message + '</div>';
+    container.innerHTML = '<div class="tab-loading" style="color:var(--pink)">Fehler beim Laden: ' + escHtml(err.message) + '</div>';
     return;
   }
 

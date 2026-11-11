@@ -1,12 +1,8 @@
 function updateLogStatus(online) {
   const el = document.getElementById('logStatus');
-  if(online) {
-    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span><span class="text-emerald-400">LOG LIVE</span>';
-    el.className = "flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded transition-colors";
-  } else {
-    el.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-slate-400">LOG OFFLINE</span>';
-    el.className = "flex items-center gap-2 bg-slate-900/50 border border-slate-800 px-3 py-1.5 rounded transition-colors";
-  }
+  if (!el) return;
+  el.className = 'chip hide-sm ' + (online ? 'ok' : 'warn');
+  el.innerHTML = '<span class="dot"></span><span>' + (online ? 'LOG LIVE' : 'LOG OFFLINE') + '</span>';
 }
 
 function startLogPoll() {

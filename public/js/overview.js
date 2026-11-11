@@ -1,57 +1,63 @@
+// Pill-Helfer (Hub-Design)
+function setPill(el, text, cls) { if (el) { el.textContent = text; el.className = 'pill ' + cls; } }
+function setBar(id, pct) { const el = document.getElementById(id); if (el) el.style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+function setTxt(id, t) { const el = document.getElementById(id); if (el) el.textContent = t; }
+
+// Kennzahlen oben (Bot / Uptime / Ping): kommen aus dem 10-s-Health-Ping in core.js
+function renderOverviewKpis() {
+  const h = window.lastHealth;
+  if (!document.getElementById('kpi-bot-v') || !h) return;
+  if (!h.ok) {
+    setTxt('kpi-bot-v', 'Offline'); setTxt('kpi-bot-n', 'Server nicht erreichbar');
+    setTxt('kpi-up-v', '—'); setTxt('kpi-ping-v', '—'); setTxt('kpi-ping-n', '');
+    return;
+  }
+  setTxt('kpi-bot-v', h.botConnected ? 'Online' : 'Offline');
+  setTxt('kpi-bot-n', h.botConnected ? 'Twitch-Chat verbunden' : 'Bot nicht mit Twitch verbunden');
+  setTxt('kpi-up-v', fmtUptime(h.uptime));
+  setTxt('kpi-ping-v', h.ms + ' ms');
+  setTxt('kpi-ping-n', h.ms < 150 ? 'Verbindung schnell' : h.ms < 400 ? 'Verbindung okay' : 'Verbindung langsam');
+}
+
 async function loadOverview() {
+  renderOverviewKpis();
+  const hdr = { headers: { 'x-session-token': LootGameAPI.getToken() } };
+
   try {
-    const maint = await fetch('/api/admin/maintenance', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-    const pill = document.getElementById('ov-maintenance-pill');
-    if (pill) {
-      pill.textContent = maint.active ? 'Aktiv' : 'Inaktiv';
-      pill.className = maint.active
-        ? 'text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20'
-        : 'text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-    }
+    const maint = await fetch('/api/admin/maintenance', hdr).then(r => r.json());
+    setPill(document.getElementById('ov-maintenance-pill'), maint.active ? 'Aktiv' : 'Inaktiv', maint.active ? 'gold' : 'green');
   } catch {}
 
   try {
-    const tour = await fetch('/api/admin/tournament', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-    const pill = document.getElementById('ov-tournament-pill');
-    if (pill) {
-      pill.textContent = tour.active ? 'Aktiv' : 'Inaktiv';
-      pill.className = tour.active
-        ? 'text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20'
-        : 'text-[10px] font-mono px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-    }
+    const tour = await fetch('/api/admin/tournament', hdr).then(r => r.json());
+    setPill(document.getElementById('ov-tournament-pill'), tour.active ? 'Aktiv' : 'Inaktiv', tour.active ? 'blue' : 'green');
     updateDashTournamentBtn(tour.active);
   } catch {}
 
-  let hetznerCpuChart = null;
-
   try {
     const [status, metrics] = await Promise.all([
-      fetch('/api/admin/hetzner/status', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json()),
-      fetch('/api/admin/hetzner/metrics', { headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json())
+      fetch('/api/admin/hetzner/status', hdr).then(r => r.json()),
+      fetch('/api/admin/hetzner/metrics', hdr).then(r => r.json())
     ]);
 
-    const statusEl = document.getElementById('ov-hetzner-status');
-    if (statusEl) {
-      const running = status.status === 'running';
-      statusEl.textContent = running ? '● Online' : '○ ' + (status.status || '—');
-      statusEl.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full ' +
-        (running ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                 : 'bg-rose-500/10 text-rose-400 border border-rose-500/20');
+    const running = status.status === 'running';
+    setPill(document.getElementById('ov-hetzner-status'), running ? 'Online' : (status.status || '—'), running ? 'green' : 'pink');
+    setTxt('kpi-srv-v', running ? 'Online' : (status.status || '—'));
+
+    if (metrics.cpu !== null && metrics.cpu !== undefined) {
+      setTxt('ov-cpu-label', metrics.cpu.toFixed(1) + ' %');
+      setBar('ov-cpu-bar', metrics.cpu);
+      setTxt('kpi-srv-n', 'CPU ' + metrics.cpu.toFixed(1) + ' %');
     }
-
-    const cpuEl = document.getElementById('ov-cpu-label');
-    if (cpuEl && metrics.cpu !== null) cpuEl.textContent = metrics.cpu.toFixed(1) + '%';
-
     if (metrics.ram) {
-      const usedGb = parseFloat((metrics.ram.totalGb - metrics.ram.freeGb).toFixed(1));
-      const ramEl  = document.getElementById('ov-ram-label');
-      if (ramEl) ramEl.textContent = usedGb + ' / ' + metrics.ram.totalGb + ' GB';
+      const used = parseFloat((metrics.ram.totalGb - metrics.ram.freeGb).toFixed(1));
+      setTxt('ov-ram-label', used + ' / ' + metrics.ram.totalGb + ' GB');
+      setBar('ov-ram-bar', (used / metrics.ram.totalGb) * 100);
     }
-
     if (metrics.disk?.totalGb) {
-      const usedGb  = parseFloat((metrics.disk.totalGb - metrics.disk.freeGb).toFixed(1));
-      const diskEl  = document.getElementById('ov-disk-label');
-      if (diskEl) diskEl.textContent = usedGb + ' / ' + metrics.disk.totalGb + ' GB';
+      const used = parseFloat((metrics.disk.totalGb - metrics.disk.freeGb).toFixed(1));
+      setTxt('ov-disk-label', used + ' / ' + metrics.disk.totalGb + ' GB');
+      setBar('ov-disk-bar', (used / metrics.disk.totalGb) * 100);
     }
   } catch {}
 }
