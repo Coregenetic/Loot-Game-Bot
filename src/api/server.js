@@ -44,7 +44,8 @@ const CSP_DIRECTIVES = {
     objectSrc:      ["'none'"],
     baseUri:        ["'self'"],
     formAction:     ["'self'"],
-    frameAncestors: ["'self'"]
+    frameAncestors: ["'self'"],
+    reportUri:      ['/api/csp-report']
 };
 
 function createServer() {
@@ -111,6 +112,18 @@ function createServer() {
             }
         } catch (_) {}
         res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now(), botConnected });
+    });
+
+    // CSP-Verstöße der Browser einsammeln (nur Log-Zeile, begrenzt gegen Missbrauch)
+    let cspLogCount = 0, cspLogWindow = Date.now();
+    app.post('/api/csp-report', express.json({ type: () => true, limit: '10kb' }), (req, res) => {
+        if (Date.now() - cspLogWindow > 3600 * 1000) { cspLogWindow = Date.now(); cspLogCount = 0; }
+        if (cspLogCount++ < 300) {
+            const r = (req.body && (req.body['csp-report'] || req.body)) || {};
+            const clip = v => String(v ?? '').slice(0, 160).replace(/[\r\n]/g, ' ');
+            console.warn(`[CSP] ${clip(r['violated-directive'] || r.effectiveDirective)} | blockiert: ${clip(r['blocked-uri'] || r.blockedURL)} | Seite: ${clip(r['document-uri'] || r.documentURL)}`);
+        }
+        res.sendStatus(204);
     });
 
     app.use('/api/auth', authRoutes);
