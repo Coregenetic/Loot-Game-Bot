@@ -20,9 +20,32 @@ const adminRoutes    = require('./routes/admin');
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
 
-// Erlaubte Origin fürs Dashboard — per Env überschreibbar, sonst alle *.fly.dev
-// Domains dieser App (kein offenes Wildcard-CORS mehr).
-const ALLOWED_ORIGIN = process.env.DASHBOARD_ORIGIN || null;
+// Erlaubte Origins fürs Dashboard (kommagetrennt, z.B. https://lootgamebot.de).
+// Ohne gesetzte Env bleibt CORS offen (*), damit nichts ungewollt kaputt geht.
+const ALLOWED_ORIGINS = (process.env.DASHBOARD_ORIGIN || '')
+    .split(',').map(o => o.trim().replace(/\/$/, '')).filter(Boolean);
+
+// Content-Security-Policy: zunächst nur im Melde-Modus (Report-Only), damit nichts bricht.
+// Mit CSP_ENFORCE=1 in der .env wird sie erzwungen. Die Seiten nutzen Inline-Skripte und
+// -Handler sowie CDN-Ressourcen, daher bleibt 'unsafe-inline' vorerst erlaubt; geschützt wird
+// trotzdem gegen fremde Skriptquellen, Plugins (object), base-Hijacking, Framing und
+// Datenabfluss per fetch/WebSocket an fremde Hosts.
+const CSP_ENFORCE = process.env.CSP_ENFORCE === '1';
+const CSP_DIRECTIVES = {
+    defaultSrc:     ["'self'"],
+    scriptSrc:      ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com', 'https://cdnjs.cloudflare.com'],
+    scriptSrcAttr:  ["'unsafe-inline'"],
+    styleSrc:       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdnjs.cloudflare.com'],
+    fontSrc:        ["'self'", 'data:', 'https://fonts.gstatic.com', 'https://cdnjs.cloudflare.com'],
+    imgSrc:         ["'self'", 'data:', 'blob:', 'https:'],
+    connectSrc:     ["'self'", 'https://json.tarkov.dev'],
+    workerSrc:      ["'self'"],
+    manifestSrc:    ["'self'"],
+    objectSrc:      ["'none'"],
+    baseUri:        ["'self'"],
+    formAction:     ["'self'"],
+    frameAncestors: ["'self'"]
+};
 
 function createServer() {
     const app = express();
@@ -32,16 +55,26 @@ function createServer() {
     app.set('trust proxy', 1);
 
     app.use(helmet({
-        contentSecurityPolicy: false // eigenes CSP würde Tailwind-CDN/Inline-Scripts blockieren
+        contentSecurityPolicy: {
+            useDefaults: false,
+            reportOnly: !CSP_ENFORCE,
+            directives: CSP_DIRECTIVES
+        }
     }));
 
     app.use(express.json({ limit: '10mb' }));
 
     app.use((req, res, next) => {
-        // Setze DASHBOARD_ORIGIN (z.B. https://lootgamebot.fly.dev) um CORS auf
-        // eure eigene Domain einzuschränken. Ohne gesetzte Env bleibt es offen wie
-        // bisher, damit nichts ungewollt kaputt geht.
-        res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN || '*');
+        // Mit DASHBOARD_ORIGIN ist CORS auf die genannten Origins beschränkt (gleiche Origin
+        // braucht ohnehin kein CORS). Ohne gesetzte Env bleibt es offen wie bisher.
+        if (ALLOWED_ORIGINS.length === 0) {
+            res.header('Access-Control-Allow-Origin', '*');
+        } else {
+            res.header('Vary', 'Origin');
+            if (req.headers.origin && ALLOWED_ORIGINS.includes(req.headers.origin)) {
+                res.header('Access-Control-Allow-Origin', req.headers.origin);
+            }
+        }
         res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
         res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-token, x-dashboard-token');
         if (req.method === 'OPTIONS') return res.sendStatus(200);
