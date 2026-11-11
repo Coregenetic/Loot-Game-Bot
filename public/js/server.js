@@ -66,8 +66,6 @@ async function loadHetznerStatus() {
     const sub = document.getElementById('htz-subtitle');
     if (sub && status.location) sub.textContent = 'CoresServer · ' + status.location + ', DE';
 
-    const rebootBtn = document.getElementById('htz-reboot-btn');
-    if (rebootBtn && currentUser?.role === 'superadmin') rebootBtn.classList.remove('hidden');
   } catch {}
 }
 
@@ -188,18 +186,6 @@ async function hetznerRestartBot() {
       const r = await fetch('/api/admin/hetzner/restart-bot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
       if (msg) { msg.textContent = '✓ ' + r.message; msg.style.color = 'var(--green)'; }
       setTimeout(loadHetznerStatus, 12000);
-    } catch (e) {
-      if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
-    }
-  });
-}
-
-async function hetznerRebootServer() {
-  showConfirm('Server neu starten?', '⚠️ Der gesamte Server wird neu gestartet. Bot ~1-2 Min. offline.', async () => {
-    const msg = document.getElementById('htz-action-msg');
-    try {
-      const r = await fetch('/api/admin/hetzner/reboot', { method: 'POST', headers: { 'x-session-token': LootGameAPI.getToken() } }).then(r => r.json());
-      if (msg) { msg.textContent = '✓ ' + r.message; msg.style.color = 'var(--green)'; }
     } catch (e) {
       if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
     }

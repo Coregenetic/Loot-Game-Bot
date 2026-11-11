@@ -1,11 +1,11 @@
 /**
- * Hetzner API Integration — Server-Status, Metriken und Quick Controls
+ * Hetzner API Integration — Server-Status und Metriken (nur lesend)
  * für das Admin Panel. Metriken (CPU/RAM/Disk) kommen direkt von der
  * Hetzner Cloud API, kein Extra-Agent auf dem Server nötig.
  */
 const express = require('express');
 const router  = express.Router();
-const { requirePermission, requireSuperadmin } = require('../middleware/permission');
+const { requirePermission } = require('../middleware/permission');
 
 const HETZNER_API = 'https://api.hetzner.cloud/v1';
 
@@ -98,19 +98,7 @@ router.post('/restart-bot', requirePermission('server:manage'), async (req, res)
     }
 });
 
-// ─── Server neu starten (Hetzner API, nur Superadmin) ────────────────────────
-router.post('/reboot', requireSuperadmin, async (req, res) => {
-    try {
-        const serverId = process.env.HETZNER_SERVER_ID;
-        const r = await fetch(`${HETZNER_API}/servers/${serverId}/actions/reboot`, {
-            method: 'POST',
-            headers: hetznerHeaders()
-        });
-        if (!r.ok) return res.status(r.status).json({ error: 'Hetzner Reboot Fehler: ' + r.status });
-        res.json({ success: true, message: 'Server wird neu gestartet...' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// Server-Neustart bewusst NICHT in der App: Der Hetzner-Token ist nur lesend.
+// Neustart bei Bedarf über die Hetzner-Konsole oder per SSH.
 
 module.exports = router;
