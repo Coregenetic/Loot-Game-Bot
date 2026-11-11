@@ -6,61 +6,119 @@
 <meta name="robots" content="noindex">
 <title>Admin-Login — Loot-Game Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 <link rel="stylesheet" href="css/hub-ui.css">
 <script defer src="js/passkey.js"></script>
 <script defer src="js/login-passkey.js"></script>
 <style>
-  body{min-height:100vh;display:grid;place-items:center;background-image:
-    radial-gradient(900px 520px at 100% 0%,rgba(255,92,138,.16),transparent 62%),
-    radial-gradient(1000px 640px at 0% 0%,rgba(91,140,255,.16),transparent 60%),
-    radial-gradient(700px 500px at 50% 110%,rgba(165,107,255,.12),transparent 60%)}
-  .orb{position:fixed;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0;animation:float 9s ease-in-out infinite}
-  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-  .wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:28px 16px}
-  .login{padding:34px;display:flex;flex-direction:column;gap:16px}
+  html,body{min-height:100%}
+  body{background-image:
+    radial-gradient(1100px 640px at 0% 0%,rgba(91,140,255,.20),transparent 60%),
+    radial-gradient(900px 560px at 100% 8%,rgba(255,92,138,.16),transparent 62%),
+    radial-gradient(800px 560px at 55% 115%,rgba(165,107,255,.14),transparent 60%)}
+  .grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(to right,rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.028) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:radial-gradient(ellipse at 30% 40%,#000 25%,transparent 75%);mask-image:radial-gradient(ellipse at 30% 40%,#000 25%,transparent 75%)}
+  .orb{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0;animation:float 10s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  .shell{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);max-width:1320px;margin:0 auto}
+  .left{padding:48px 40px 48px 56px;display:flex;flex-direction:column;justify-content:space-between;gap:36px}
+  .right{padding:48px 56px 48px 24px;display:flex;align-items:center;justify-content:center}
+
+  .hero h1{font-size:clamp(44px,5.2vw,76px);line-height:1;letter-spacing:-.045em;font-weight:800;margin-top:18px}
+  .grad{background:linear-gradient(90deg,#5b8cff,#a56bff 55%,#ff5c8a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:18px;line-height:1.6;max-width:520px;color:var(--tx2);margin-top:22px}
+
+  .feats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:560px}
+  .feat{padding:16px 18px;display:flex;gap:14px;align-items:flex-start;border-radius:var(--r-sm)}
+  .feat .ico{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:20px;flex:none}
+  .feat b{display:block;font-size:14px;font-weight:700}
+  .feat span{display:block;font-size:12.5px;line-height:1.45;color:var(--tx2);margin-top:2px}
+
+  .login{width:100%;max-width:430px;padding:38px;display:flex;flex-direction:column;gap:16px;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04) inset;position:relative}
+  .login::before{content:"";position:absolute;left:18%;right:18%;top:0;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#5b8cff,#ff5c8a,transparent);opacity:.8}
+  .login .title{font-size:26px;font-weight:800;letter-spacing:-.02em}
   .login label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700}
   .login .input{min-height:50px}
   .btn.xl{min-height:54px;font-size:15px}
+  .secure{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--green);background:rgba(52,210,123,.09);border:1px solid rgba(52,210,123,.25);padding:5px 11px;border-radius:999px;align-self:flex-start}
   .errbox{padding:10px 14px;border-radius:var(--r-xs);background:rgba(255,92,138,.1);border:1px solid rgba(255,92,138,.3);color:var(--pink);font-size:13px}
   .note{font-size:12px;line-height:1.55;border:1px solid rgba(52,210,123,.3);background:rgba(52,210,123,.07);border-radius:12px;padding:10px 12px;color:var(--tx2)}
   .or{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--tx3)}
   .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
-  @media(max-width:480px){.login{padding:24px 20px}}
+  #passkeyBox{display:flex;flex-direction:column;gap:12px}
+  #passkeyBox.hidden{display:none!important}
+  .mobile-brand{display:none}
+  .foot{font-size:12px;color:var(--tx3)}
+  .foot a{text-decoration:underline}
+
+  @media(max-width:1000px){
+    .shell{grid-template-columns:minmax(0,1fr)}
+    .left{display:none}
+    .right{padding:28px 16px}
+    .mobile-brand{display:flex;justify-content:center;margin-bottom:22px}
+    .login{padding:26px 22px}
+  }
 </style>
 </head>
 <body>
-<div class="orb" style="width:340px;height:340px;background:rgba(91,140,255,.2);left:-80px;top:100px"></div>
-<div class="orb" style="width:280px;height:280px;background:rgba(255,92,138,.16);right:-60px;bottom:80px;animation-delay:-4s"></div>
+<div class="grid-bg"></div>
+<div class="orb" style="width:380px;height:380px;background:rgba(91,140,255,.22);left:-90px;top:140px"></div>
+<div class="orb" style="width:320px;height:320px;background:rgba(255,92,138,.16);right:-70px;bottom:60px;animation-delay:-4s"></div>
 
-<main class="wrap">
-  <header class="rise" style="--i:0;display:flex;justify-content:center;margin-bottom:22px">
-    <div class="brand" style="font-size:18px"><div class="brand-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">🎯</div><div>Loot-Game <span class="muted" style="font-weight:500">Admin</span></div></div>
-  </header>
+<div class="shell">
+  <!-- Links: Branding (nur Desktop) -->
+  <aside class="left">
+    <div class="brand rise" style="--i:0;font-size:18px"><div class="brand-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">🎯</div><div>Loot-Game <span class="muted" style="font-weight:500">Hub</span></div></div>
 
-  <section class="card login rise" style="--i:1">
-    <div>
-      <div class="lbl">Admin-Login</div>
-      <div class="muted" style="font-size:14px;margin-top:6px">Nur für Moderatoren und den Streamer.</div>
+    <div class="hero rise" style="--i:1">
+      <div class="lbl">Admin · Command Center</div>
+      <h1>Alles im Griff.<br><span class="grad">Jeder Loot.</span></h1>
+      <p>Die zentrale Steuerung für den Loot-Game-Bot: Items und Economy konfigurieren, Raids und Events steuern, Spieler verwalten und den Stream live überwachen.</p>
     </div>
 
-    <div id="passkeyBox" class="hidden" style="display:flex;flex-direction:column;gap:12px">
-      <div id="passkeyNotice" class="note"></div>
-      <button id="passkeyBtn" type="button" class="btn primary block xl">🔐 Mit Windows Hello anmelden</button>
-      <div id="passkeyErr" class="errbox hidden"></div>
-      <div class="or" id="pwDividerLabel">oder mit Passwort</div>
+    <div class="feats rise" style="--i:2">
+      <div class="card feat"><div class="ico" style="background:rgba(255,212,119,.14);color:var(--gold)"><i class="ti ti-box"></i></div><div><b>Items &amp; Economy</b><span>Preise, Seltenheiten, Verkaufsquote</span></div></div>
+      <div class="card feat"><div class="ico" style="background:rgba(91,140,255,.15);color:#9db9ff"><i class="ti ti-swords"></i></div><div><b>Raids &amp; Events</b><span>Maps, Drops, Cooldowns</span></div></div>
+      <div class="card feat"><div class="ico" style="background:rgba(165,107,255,.15);color:#c7a4ff"><i class="ti ti-users"></i></div><div><b>Spieler &amp; Squads</b><span>Inventare, Ränge, Moderation</span></div></div>
+      <div class="card feat"><div class="ico" style="background:rgba(255,92,138,.14);color:var(--pink)"><i class="ti ti-activity"></i></div><div><b>Live &amp; Overlays</b><span>Monitoring, OBS-Overlays</span></div></div>
     </div>
-    <style>#passkeyBox.hidden{display:none!important}</style>
 
-    <div id="errorMsg" class="errbox hidden"></div>
-    <label>Benutzername<input id="username" class="input" type="text" placeholder="Benutzername" autocomplete="username"></label>
-    <label>Passwort<input id="password" class="input" type="password" placeholder="Passwort" autocomplete="current-password"></label>
-    <button id="loginBtn" type="button" class="btn block xl" onclick="doLogin()">Anmelden</button>
-  </section>
+    <div class="foot rise" style="--i:3">Ein Projekt von Coregenetic · lootgamebot.de</div>
+  </aside>
 
-  <p class="dim mono rise" style="--i:2;font-size:11px;text-align:center;margin-top:22px">
-    <a href="/player-login.html" style="text-decoration:underline">← Zum Spieler-Login</a> · lootgamebot.de
-  </p>
-</main>
+  <!-- Rechts: Login -->
+  <main class="right">
+    <div style="width:100%;max-width:430px">
+      <div class="brand mobile-brand" style="font-size:18px"><div class="brand-mark" style="width:44px;height:44px;border-radius:14px;font-size:20px">🎯</div><div>Loot-Game <span class="muted" style="font-weight:500">Admin</span></div></div>
+
+      <section class="card login rise" style="--i:2">
+        <div class="secure"><i class="ti ti-shield-lock"></i> Geschützter Bereich</div>
+        <div>
+          <div class="title">Willkommen zurück</div>
+          <div class="muted" style="font-size:14px;margin-top:6px">Nur für Moderatoren und den Streamer.</div>
+        </div>
+
+        <div id="passkeyBox" class="hidden">
+          <div id="passkeyNotice" class="note"></div>
+          <button id="passkeyBtn" type="button" class="btn primary block xl">🔐 Mit Windows Hello anmelden</button>
+          <div id="passkeyErr" class="errbox hidden"></div>
+          <div class="or" id="pwDividerLabel">oder mit Passwort</div>
+        </div>
+
+        <div id="errorMsg" class="errbox hidden"></div>
+        <label>Benutzername<input id="username" class="input" type="text" placeholder="Benutzername" autocomplete="username"></label>
+        <label>Passwort<input id="password" class="input" type="password" placeholder="Passwort" autocomplete="current-password"></label>
+        <button id="loginBtn" type="button" class="btn block xl" onclick="doLogin()">Anmelden</button>
+      </section>
+
+      <p class="foot rise" style="--i:3;text-align:center;margin-top:22px"><a href="/player-login.html">← Zum Spieler-Login</a></p>
+    </div>
+  </main>
+</div>
 
 <script>
   // Schon angemeldet? Direkt weiter zum Dashboard.

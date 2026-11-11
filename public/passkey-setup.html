@@ -59,11 +59,10 @@
       <label class="block text-[10px] mono text-slate-400 uppercase tracking-widest mb-1.5" for="pkName">Name des Passkeys</label>
       <input id="pkName" class="input" maxlength="40" value="Windows PC" autocomplete="off">
     </div>
-    <div class="grid sm:grid-cols-2 gap-3">
-      <button id="addPcBtn" class="btn btn-primary">💻 Dieser PC (Windows Hello)</button>
-      <button id="addPhoneBtn" class="btn btn-ghost">📱 Handy per QR-Code</button>
+    <div>
+      <button id="addPcBtn" class="btn btn-primary w-full">💻 Mit Windows Hello einrichten</button>
     </div>
-    <p class="text-xs text-slate-500">Tipp: Lege mindestens <strong class="text-slate-300">zwei</strong> Passkeys an, zum Beispiel PC und Handy. Beim Handy wählst du im Windows-Dialog „Handy oder Tablet“ und scannst den QR-Code. So bleibst du nicht ausgesperrt, falls der PC ausfällt.</p>
+    <p class="text-xs text-slate-500">Der Passkey gilt nur für dieses Gerät. Brauchst du den Zugang auf einem zweiten PC, melde dich dort einmal mit dem Passwort an und richte dort ebenfalls Windows Hello ein. Ist ein Gerät verloren, setzt der Superadmin oder der Server-Admin die Passkeys zurück.</p>
   </section>
 
   <section class="panel p-6">

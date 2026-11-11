@@ -178,7 +178,7 @@ router.post('/register/options', limiter, requireConfigured, sessionMiddleware.a
                 id: p.credential_id,
                 transports: parseTransports(p.transports)
             })),
-            authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+            authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'required', userVerification: 'required' }, // nur Windows Hello, kein Handy/Sicherheitsschluessel
             timeout: 120000
         });
         res.json({ options, challengeId: putChallenge('register', options.challenge, user.id) });

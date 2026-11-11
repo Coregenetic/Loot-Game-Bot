@@ -65,7 +65,7 @@
   async function add(hint) {
     clearMsgs();
     if (!PasskeyAuth.supported()) { showError('Dieser Browser unterstützt keine Passkeys.'); return; }
-    const btns = [$('addPcBtn'), $('addPhoneBtn')];
+    const btns = [$('addPcBtn')];
     btns.forEach(b => b.disabled = true);
     try {
       const res = await PasskeyAuth.register($('pkName').value, hint);
@@ -84,7 +84,6 @@
   }
 
   $('addPcBtn').addEventListener('click', () => add('client-device'));
-  $('addPhoneBtn').addEventListener('click', () => add('hybrid'));
   $('logoutBtn').addEventListener('click', () => LootGameAPI.logout());
   load();
 })();
