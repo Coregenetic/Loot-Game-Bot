@@ -1,13 +1,8 @@
 #!/bin/sh
-# Berechtigungen als root fixieren
+# Berechtigungen als root fixieren, dann als User "node" starten.
+# (Frueher wurde eine root-eigene DB hier geloescht — das war ein Datenverlust-Risiko;
+#  jetzt wird sie stattdessen einfach dem User "node" zugewiesen.)
 chown -R node:node /app/data 2>/dev/null || true
-find /app/data -name "*.db" -exec chmod 664 {} \; 2>/dev/null || true
-# Falls DB root-owned ist, löschen und neu erstellen lassen
-if [ -f /app/data/lootgame.db ]; then
-    OWNER=$(stat -c '%U' /app/data/lootgame.db 2>/dev/null || echo "unknown")
-    if [ "$OWNER" = "root" ]; then
-        rm -f /app/data/lootgame.db
-    fi
-fi
+find /app/data -name "*.db*" -exec chmod 660 {} \; 2>/dev/null || true
 
 exec su-exec node node src/index.js
